@@ -111,6 +111,12 @@ export default function Index() {
                 {item}
               </button>
             ))}
+            <a
+              href="/news"
+              className="px-4 py-1.5 border border-gold/50 text-gold text-xs font-golos uppercase tracking-wider hover:bg-gold hover:text-forest transition-all duration-200"
+            >
+              Новости ВК
+            </a>
           </div>
 
           <button
