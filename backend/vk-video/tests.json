@@ -1,0 +1,10 @@
+{
+  "tests": [
+    {
+      "name": "GET videos returns 401 without token",
+      "method": "GET",
+      "path": "/?count=3",
+      "expectedStatus": 401
+    }
+  ]
+}

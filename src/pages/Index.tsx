@@ -1,19 +1,18 @@
 import { useEffect, useRef, useState } from "react";
 import Icon from "@/components/ui/icon";
 
-const HERO_IMG = "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/files/816a6f8b-3744-4a4f-9419-16fd09eae5d2.jpg";
-const MISSION_IMG = "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/files/3762e589-ebe3-4415-894b-2497fef34020.jpg";
-const TEAM_IMG = "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/files/df24eb93-543d-4047-8dd6-bcec81af892d.jpg";
+const HERO_IMG = "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/files/2f04b4eb-3162-4cce-86d9-50a2cb12022e.jpg";
+const VK_URL = "https://vk.com/spasenienadezhdi";
 
-function useReveal() {
+function useReveal(threshold = 0.12) {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
     const obs = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) { setVisible(true); obs.disconnect(); } },
-      { threshold: 0.12 }
+      ([e]) => { if (e.isIntersecting) { setVisible(true); obs.disconnect(); } },
+      { threshold }
     );
     obs.observe(el);
     return () => obs.disconnect();
@@ -21,61 +20,47 @@ function useReveal() {
   return { ref, visible };
 }
 
-function Section({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+function Reveal({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   const { ref, visible } = useReveal();
   return (
-    <div
-      ref={ref}
-      className={`transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"} ${className}`}
-    >
+    <div ref={ref} className={`transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"} ${className}`}>
       {children}
     </div>
   );
 }
 
 const teamMembers = [
-  { name: "Анна Соколова", role: "Основатель и директор", emoji: "🌿" },
-  { name: "Михаил Орлов", role: "Руководитель проектов", emoji: "🦅" },
-  { name: "Лариса Ветрова", role: "Куратор программ", emoji: "🌸" },
-  { name: "Дмитрий Лесной", role: "Координатор волонтёров", emoji: "🌲" },
+  { name: "Руководитель организации", role: "Директор", initial: "Р", emoji: "🌿" },
+  { name: "Координатор программ", role: "Программный директор", initial: "К", emoji: "🤝" },
+  { name: "Куратор волонтёров", role: "Волонтёрский менеджер", initial: "В", emoji: "💚" },
+  { name: "Специалист по связям", role: "PR и коммуникации", initial: "С", emoji: "🌱" },
 ];
 
-const blogPosts = [
-  {
-    date: "18 апреля 2026",
-    category: "Новости",
-    title: "Открываем новую программу поддержки молодёжи",
-    excerpt: "В этом году мы расширяем деятельность — запускаем образовательные мастерские в трёх городах.",
-  },
-  {
-    date: "5 апреля 2026",
-    category: "Истории",
-    title: "Как одно доброе слово меняет судьбу",
-    excerpt: "История Алины, которая нашла свой путь благодаря программе наставничества нашей организации.",
-  },
-  {
-    date: "22 марта 2026",
-    category: "Отчёт",
-    title: "Итоги зимнего сезона: цифры и люди",
-    excerpt: "1200 человек получили помощь, 80 волонтёров работали ежедневно — рассказываем о результатах.",
-  },
-];
-
-const donationAmounts = [500, 1000, 2500, 5000];
+const donationAmounts = [300, 500, 1000, 3000];
 
 export default function Index() {
-  const [activeNav, setActiveNav] = useState("главная");
   const [menuOpen, setMenuOpen] = useState(false);
-  const [donationAmount, setDonationAmount] = useState(1000);
+  const [activeSection, setActiveSection] = useState("главная");
+  const [donationAmount, setDonationAmount] = useState(500);
   const [customAmount, setCustomAmount] = useState("");
-  const [donationName, setDonationName] = useState("");
-  const [donationEmail, setDonationEmail] = useState("");
+  const [donorName, setDonorName] = useState("");
+  const [donorEmail, setDonorEmail] = useState("");
   const [isRecurring, setIsRecurring] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
-  const navItems = ["главная", "о нас", "миссия", "команда", "поддержка", "контакты", "блог"];
+  const navItems = [
+    { label: "главная", id: "glavnaya" },
+    { label: "о нас", id: "o-nas" },
+    { label: "миссия", id: "missiya" },
+    { label: "команда", id: "komanda" },
+    { label: "новости", id: "/news" },
+    { label: "видео", id: "/video" },
+    { label: "поддержка", id: "podderzhka" },
+    { label: "контакты", id: "kontakty" },
+  ];
 
   const scrollTo = (id: string) => {
+    if (id.startsWith("/")) { window.location.href = id; return; }
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
     setMenuOpen(false);
   };
@@ -89,54 +74,44 @@ export default function Index() {
   const finalAmount = customAmount ? Number(customAmount) : donationAmount;
 
   return (
-    <div className="min-h-screen bg-cream font-golos overflow-x-hidden">
+    <div className="min-h-screen bg-beige font-golos overflow-x-hidden">
 
       {/* NAV */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-forest/95 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-gold flex items-center justify-center text-forest font-cormorant font-bold text-lg">
-              Д
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-beige/95 backdrop-blur-sm border-b border-beige-dark">
+        <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
+          <a href="/" className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-sage flex items-center justify-center">
+              <Icon name="Heart" size={16} className="text-beige" />
             </div>
-            <span className="font-cormorant text-cream text-xl font-semibold tracking-wide">Добро</span>
-          </div>
+            <div>
+              <div className="font-cormorant text-ink text-lg font-semibold leading-none">Спасение надежды</div>
+              <div className="text-muted-foreground text-[10px] uppercase tracking-wider">Некоммерческая организация</div>
+            </div>
+          </a>
 
-          <div className="hidden md:flex items-center gap-8">
-            {navItems.map((item) => (
+          <div className="hidden lg:flex items-center gap-6">
+            {navItems.map(({ label, id }) => (
               <button
-                key={item}
-                onClick={() => { setActiveNav(item); scrollTo(item.replace(" ", "-")); }}
-                className={`nav-link ${activeNav === item ? "opacity-100" : ""}`}
+                key={id}
+                onClick={() => { setActiveSection(label); scrollTo(id); }}
+                className={`nav-link ${activeSection === label ? "active" : ""}`}
               >
-                {item}
+                {label}
               </button>
             ))}
-            <a
-              href="/news"
-              className="px-4 py-1.5 border border-gold/50 text-gold text-xs font-golos uppercase tracking-wider hover:bg-gold hover:text-forest transition-all duration-200"
-            >
-              Новости ВК
-            </a>
           </div>
 
-          <button
-            onClick={() => setMenuOpen(!menuOpen)}
-            className="md:hidden text-cream"
-          >
+          <button onClick={() => setMenuOpen(!menuOpen)} className="lg:hidden text-ink">
             <Icon name={menuOpen ? "X" : "Menu"} size={22} />
           </button>
         </div>
 
         {menuOpen && (
-          <div className="md:hidden bg-forest border-t border-white/10">
-            <div className="px-6 py-4 flex flex-col gap-4">
-              {navItems.map((item) => (
-                <button
-                  key={item}
-                  onClick={() => { setActiveNav(item); scrollTo(item.replace(" ", "-")); }}
-                  className="nav-link text-left py-1"
-                >
-                  {item}
+          <div className="lg:hidden bg-beige border-t border-beige-dark">
+            <div className="px-6 py-4 grid grid-cols-2 gap-3">
+              {navItems.map(({ label, id }) => (
+                <button key={id} onClick={() => { setActiveSection(label); scrollTo(id); }} className="nav-link text-left py-2">
+                  {label}
                 </button>
               ))}
             </div>
@@ -145,289 +120,364 @@ export default function Index() {
       </nav>
 
       {/* HERO */}
-      <section id="главная" className="relative min-h-screen flex items-center overflow-hidden">
+      <section id="glavnaya" className="relative min-h-screen flex items-center overflow-hidden pt-16">
         <div className="absolute inset-0">
-          <img src={HERO_IMG} alt="Объединяем людей" className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-r from-forest/90 via-forest/70 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-t from-forest/60 via-transparent to-transparent" />
+          <img src={HERO_IMG} alt="Спасение надежды" className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-r from-beige/95 via-beige/80 to-beige/30" />
         </div>
 
-        <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gold/20 hidden lg:block" />
-
-        <div className="relative z-10 max-w-7xl mx-auto px-6 pt-24 pb-20 grid lg:grid-cols-2 gap-16 items-center">
+        <div className="relative z-10 max-w-7xl mx-auto px-6 py-20 grid lg:grid-cols-2 gap-16 items-center">
           <div className="animate-fade-up">
-            <div className="flex items-center gap-3 mb-8">
-              <div className="h-px w-12 bg-gold" />
-              <span className="text-gold font-golos text-xs tracking-[0.25em] uppercase">Некоммерческая организация</span>
+            <div className="inline-flex items-center gap-2 bg-sage-pale text-sage px-4 py-2 rounded-full text-xs font-golos uppercase tracking-widest mb-8">
+              <Icon name="Heart" size={12} />
+              АНО «Спасение надежды»
             </div>
-            <h1 className="font-cormorant text-cream text-6xl md:text-8xl font-light leading-[0.95] mb-8">
-              Мы меняем<br/>
-              <em className="text-gold-light not-italic font-semibold">мир</em><br/>
-              вместе
+            <h1 className="font-cormorant text-ink text-6xl md:text-7xl font-light leading-[1.0] mb-6">
+              Там, где<br/>
+              <span className="text-sage font-semibold">нужна</span><br/>
+              надежда
             </h1>
-            <p className="text-cream/75 font-golos text-lg leading-relaxed max-w-md mb-10">
-              Организация «Добро» объединяет неравнодушных людей, создаёт устойчивые социальные изменения и даёт голос тем, кто в этом нуждается.
+            <p className="text-foreground/65 text-lg leading-relaxed max-w-lg mb-10">
+              Мы помогаем людям в трудных жизненных ситуациях — оказываем социальную поддержку, восстанавливаем надежду и возвращаем уверенность в завтрашнем дне.
             </p>
             <div className="flex flex-wrap gap-4">
               <button
-                onClick={() => scrollTo("поддержка")}
-                className="px-8 py-4 bg-gold text-forest font-golos font-semibold text-sm tracking-wide uppercase hover:bg-gold-light transition-all duration-300 hover:scale-105"
+                onClick={() => scrollTo("podderzhka")}
+                className="px-8 py-3.5 bg-sage text-beige font-golos font-semibold text-sm uppercase tracking-wide rounded-sm hover:bg-sage-dark transition-all duration-300 hover:scale-105"
               >
-                Поддержать
+                Помочь организации
               </button>
-              <button
-                onClick={() => scrollTo("о-нас")}
-                className="px-8 py-4 border border-cream/40 text-cream font-golos text-sm tracking-wide uppercase hover:border-gold hover:text-gold transition-all duration-300"
+              <a
+                href={VK_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-8 py-3.5 border border-sage/40 text-sage font-golos text-sm uppercase tracking-wide rounded-sm hover:border-sage hover:bg-sage-pale transition-all duration-300 flex items-center gap-2"
               >
-                Узнать больше
-              </button>
+                <Icon name="ExternalLink" size={14} /> Наша группа ВК
+              </a>
             </div>
           </div>
 
-          <div className="animate-fade-up delay-300 grid grid-cols-2 gap-4 lg:gap-6">
+          <div className="animate-fade-up delay-300 grid grid-cols-2 gap-4">
             {[
-              { num: "12 лет", label: "на службе обществу" },
-              { num: "48 000+", label: "людей получили помощь" },
-              { num: "320", label: "волонтёров по стране" },
-              { num: "95%", label: "средств идёт на программы" },
+              { num: "8+ лет", label: "помогаем людям" },
+              { num: "2 400+", label: "человек получили помощь" },
+              { num: "150+", label: "волонтёров" },
+              { num: "100%", label: "прозрачность расходов" },
             ].map(({ num, label }) => (
-              <div key={num} className="bg-cream/10 backdrop-blur border border-cream/15 p-6 hover:bg-cream/15 transition-colors duration-300">
-                <div className="font-cormorant text-gold text-4xl font-semibold mb-2">{num}</div>
-                <div className="text-cream/65 text-sm leading-snug">{label}</div>
+              <div key={num} className="bg-white/70 backdrop-blur border border-beige-dark rounded-sm p-5 hover:shadow-md transition-shadow duration-300">
+                <div className="font-cormorant text-sage text-4xl font-semibold mb-1">{num}</div>
+                <div className="text-muted-foreground text-sm leading-snug">{label}</div>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-cream/50 animate-float">
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 text-ink/30 animate-float">
           <span className="text-xs tracking-widest uppercase">листайте</span>
-          <Icon name="ChevronDown" size={16} />
+          <Icon name="ChevronDown" size={14} />
         </div>
       </section>
 
       {/* О НАС */}
-      <section id="о-нас" className="py-32 bg-cream">
+      <section id="o-nas" className="py-28 bg-white">
         <div className="max-w-7xl mx-auto px-6">
-          <Section>
+          <Reveal>
             <div className="grid lg:grid-cols-2 gap-20 items-center">
               <div>
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="h-px w-8 bg-gold" />
-                  <span className="text-gold text-xs tracking-[0.2em] uppercase font-golos">О нас</span>
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="h-px w-8 bg-sage" />
+                  <span className="text-sage text-xs tracking-[0.2em] uppercase font-golos">О нас</span>
                 </div>
-                <h2 className="font-cormorant text-ink text-5xl md:text-6xl font-light leading-tight mb-8">
-                  История, рождённая<br/><em className="text-forest font-semibold not-italic">из сострадания</em>
+                <h2 className="font-cormorant text-ink text-5xl font-light leading-tight mb-7">
+                  АНО «Спасение надежды» —<br/>
+                  <span className="text-sage font-semibold">рядом в трудный момент</span>
                 </h2>
-                <div className="space-y-5 text-foreground/70 leading-relaxed">
+                <div className="space-y-4 text-foreground/65 leading-relaxed">
                   <p>
-                    Организация «Добро» была основана в 2014 году группой единомышленников, убеждённых: системные изменения возможны только тогда, когда каждый человек чувствует свою ценность и причастность.
+                    Автономная некоммерческая организация «Спасение надежды» была создана, чтобы помогать людям, оказавшимся в сложных жизненных ситуациях: потерявшим жильё, работу, оказавшимся в социальной изоляции.
                   </p>
                   <p>
-                    Мы работаем в сферах образования, социальной поддержки и развития местных сообществ. Наши программы охватывают 18 регионов России.
+                    Мы верим, что каждый человек заслуживает поддержки и шанса на лучшую жизнь. Наши волонтёры и специалисты работают каждый день, чтобы эта вера становилась реальностью.
                   </p>
                   <p>
-                    Прозрачность, честность и человечность — три кита, на которых стоит всё, что мы делаем.
+                    Следите за нашей работой в группе ВКонтакте — там мы публикуем новости, истории и отчёты о деятельности.
                   </p>
                 </div>
-                <div className="mt-10 deco-line" />
-                <div className="mt-8 flex items-center gap-6">
-                  <div className="w-14 h-14 rounded-full bg-forest flex items-center justify-center text-cream font-cormorant text-2xl">
-                    А
-                  </div>
-                  <div>
-                    <div className="font-cormorant text-ink text-lg font-semibold">Анна Соколова</div>
-                    <div className="text-muted-foreground text-sm">Основатель и директор</div>
-                  </div>
+                <div className="mt-8">
+                  <a
+                    href={VK_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-sage font-golos font-semibold text-sm hover:underline"
+                  >
+                    Подписаться на группу ВК <Icon name="ArrowRight" size={14} />
+                  </a>
                 </div>
               </div>
 
-              <div className="relative">
-                <div className="relative overflow-hidden aspect-[4/5]">
-                  <img src={MISSION_IMG} alt="Наша история" className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-forest/20" />
-                </div>
-                <div className="absolute -bottom-6 -left-6 bg-forest text-cream p-6 shadow-2xl">
-                  <div className="font-cormorant text-5xl text-gold font-semibold">12</div>
-                  <div className="text-xs text-cream/70 uppercase tracking-wider mt-1">лет<br/>работы</div>
-                </div>
-                <div className="absolute -top-3 -right-3 w-full h-full border border-gold/30 pointer-events-none" />
+              <div className="grid grid-cols-2 gap-4">
+                {[
+                  { icon: "Home", title: "Помощь с жильём", text: "Поддерживаем людей, оказавшихся без крыши над головой" },
+                  { icon: "BookOpen", title: "Образование", text: "Организуем курсы и мастерские для повышения квалификации" },
+                  { icon: "Users", title: "Сообщество", text: "Создаём среду взаимопомощи и социальных связей" },
+                  { icon: "HandHeart", title: "Адресная помощь", text: "Адресная поддержка семей и одиноких людей" },
+                ].map(({ icon, title, text }) => (
+                  <div key={title} className="bg-sage-pale/60 p-5 rounded-sm hover:bg-sage-pale transition-colors duration-200">
+                    <div className="w-10 h-10 bg-sage/15 rounded-full flex items-center justify-center mb-3">
+                      <Icon name={icon as "Home"} size={18} className="text-sage" />
+                    </div>
+                    <div className="font-cormorant text-ink text-lg font-semibold mb-1">{title}</div>
+                    <div className="text-muted-foreground text-xs leading-relaxed">{text}</div>
+                  </div>
+                ))}
               </div>
             </div>
-          </Section>
+          </Reveal>
         </div>
       </section>
 
       {/* МИССИЯ */}
-      <section id="миссия" className="py-32 bg-forest relative overflow-hidden">
-        <div className="absolute inset-0 opacity-5">
-          <div className="absolute top-20 left-10 w-96 h-96 rounded-full border border-cream" />
-          <div className="absolute bottom-20 right-10 w-64 h-64 rounded-full border border-cream" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full border border-cream" />
+      <section id="missiya" className="py-28 bg-sage relative overflow-hidden">
+        <div className="absolute inset-0 opacity-[0.04]">
+          <div className="absolute top-10 left-10 w-80 h-80 rounded-full border-2 border-beige" />
+          <div className="absolute bottom-10 right-20 w-56 h-56 rounded-full border-2 border-beige" />
+          <div className="absolute top-1/2 right-1/3 w-40 h-40 rounded-full border border-beige" />
         </div>
-
         <div className="relative z-10 max-w-7xl mx-auto px-6">
-          <Section>
-            <div className="text-center mb-20">
-              <div className="flex items-center justify-center gap-3 mb-6">
-                <div className="h-px w-12 bg-gold/50" />
-                <span className="text-gold text-xs tracking-[0.2em] uppercase font-golos">Миссия</span>
-                <div className="h-px w-12 bg-gold/50" />
+          <Reveal>
+            <div className="max-w-3xl mx-auto text-center mb-16">
+              <div className="flex items-center justify-center gap-3 mb-5">
+                <div className="h-px w-10 bg-beige/40" />
+                <span className="text-beige/70 text-xs tracking-[0.2em] uppercase font-golos">Наша миссия</span>
+                <div className="h-px w-10 bg-beige/40" />
               </div>
-              <h2 className="font-cormorant text-cream text-5xl md:text-7xl font-light leading-tight">
-                Создавать пространство,<br/>
-                <em className="text-gold not-italic font-semibold">где важен каждый</em>
+              <h2 className="font-cormorant text-beige text-5xl md:text-6xl font-light leading-tight mb-6">
+                Восстанавливать надежду<br/>
+                <span className="font-semibold">в каждом человеке</span>
               </h2>
+              <p className="text-beige/70 leading-relaxed">
+                Мы убеждены: безвыходных ситуаций не бывает. Наша задача — быть рядом в самый трудный момент и помочь найти выход.
+              </p>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-8">
+            <div className="grid md:grid-cols-3 gap-6">
               {[
-                {
-                  icon: "Heart",
-                  title: "Человек в центре",
-                  text: "Каждое наше решение начинается с вопроса: как это повлияет на жизнь конкретного человека? Мы видим не статистику, а людей.",
-                },
-                {
-                  icon: "Sprout",
-                  title: "Устойчивые изменения",
-                  text: "Мы не закрываем дыры — мы строим системы. Наши программы создают долгосрочный эффект, который живёт и после нас.",
-                },
-                {
-                  icon: "Users",
-                  title: "Сила сообщества",
-                  text: "Объединяя людей с разным опытом и взглядами, мы создаём среду взаимной поддержки и коллективного действия.",
-                },
+                { icon: "Heart", title: "Без осуждения", text: "Мы принимаем каждого человека таким, какой он есть, без оценок и предубеждений." },
+                { icon: "Shield", title: "Надёжно и честно", text: "Все пожертвования расходуются прозрачно, мы публикуем отчёты о каждом потраченном рубле." },
+                { icon: "Sprout", title: "Долгосрочно", text: "Мы не просто помогаем выжить сегодня — мы помогаем построить лучшее завтра." },
               ].map(({ icon, title, text }) => (
-                <div key={title} className="group border border-cream/15 p-8 hover:border-gold/50 transition-all duration-300 hover:bg-cream/5">
-                  <div className="w-12 h-12 rounded-full border border-gold/40 flex items-center justify-center mb-6 group-hover:border-gold transition-colors duration-300">
-                    <Icon name={icon as "Heart"} size={20} className="text-gold" />
+                <div key={title} className="bg-white/10 border border-beige/20 p-7 rounded-sm hover:bg-white/15 transition-colors duration-300 group">
+                  <div className="w-11 h-11 rounded-full border border-beige/30 flex items-center justify-center mb-5 group-hover:border-beige/60 transition-colors">
+                    <Icon name={icon as "Heart"} size={20} className="text-beige/80" />
                   </div>
-                  <h3 className="font-cormorant text-cream text-2xl font-semibold mb-4">{title}</h3>
-                  <p className="text-cream/60 leading-relaxed text-sm">{text}</p>
+                  <h3 className="font-cormorant text-beige text-2xl font-semibold mb-3">{title}</h3>
+                  <p className="text-beige/60 text-sm leading-relaxed">{text}</p>
                 </div>
               ))}
             </div>
-          </Section>
+          </Reveal>
         </div>
       </section>
 
       {/* КОМАНДА */}
-      <section id="команда" className="py-32 bg-cream-dark">
+      <section id="komanda" className="py-28 bg-beige-mid">
         <div className="max-w-7xl mx-auto px-6">
-          <Section>
-            <div className="mb-16">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="h-px w-8 bg-gold" />
-                <span className="text-gold text-xs tracking-[0.2em] uppercase font-golos">Команда</span>
-              </div>
-              <h2 className="font-cormorant text-ink text-5xl md:text-6xl font-light">
-                Люди, которые<br/><em className="text-forest font-semibold not-italic">делают добро</em>
-              </h2>
+          <Reveal>
+            <div className="flex items-center gap-3 mb-5">
+              <div className="h-px w-8 bg-sage" />
+              <span className="text-sage text-xs tracking-[0.2em] uppercase font-golos">Команда</span>
             </div>
+            <h2 className="font-cormorant text-ink text-5xl font-light mb-12">
+              Люди, которые<br/><span className="text-sage font-semibold">делают это возможным</span>
+            </h2>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {teamMembers.map((member, i) => (
-                <div
-                  key={member.name}
-                  className="group bg-cream p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
-                  style={{ animationDelay: `${i * 0.1}s` }}
-                >
-                  <div className="w-20 h-20 rounded-full bg-forest/10 flex items-center justify-center text-4xl mb-6">
-                    {member.emoji}
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
+              {teamMembers.map((m) => (
+                <div key={m.name} className="group bg-beige rounded-sm p-7 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+                  <div className="w-16 h-16 rounded-full bg-sage-pale flex items-center justify-center text-3xl mb-5">
+                    {m.emoji}
                   </div>
-                  <h3 className="font-cormorant text-ink text-xl font-semibold mb-1">{member.name}</h3>
-                  <p className="text-muted-foreground text-sm">{member.role}</p>
-                  <div className="mt-4 h-px bg-gold/30 group-hover:bg-gold transition-colors duration-300" />
+                  <h3 className="font-cormorant text-ink text-xl font-semibold mb-1">{m.name}</h3>
+                  <p className="text-muted-foreground text-sm">{m.role}</p>
+                  <div className="mt-4 h-px bg-sage/20 group-hover:bg-sage/50 transition-colors duration-300" />
                 </div>
               ))}
             </div>
 
-            <div className="mt-16 relative overflow-hidden h-72 md:h-96">
-              <img src={TEAM_IMG} alt="Наша команда" className="w-full h-full object-cover object-top" />
-              <div className="absolute inset-0 bg-gradient-to-t from-forest/80 via-transparent" />
-              <div className="absolute bottom-8 left-8 text-cream">
-                <div className="font-cormorant text-3xl font-semibold">320+ волонтёров</div>
-                <div className="text-cream/70 text-sm mt-1">по всей России</div>
+            <div className="mt-10 bg-sage-pale/60 rounded-sm p-8 flex flex-col md:flex-row items-center justify-between gap-6">
+              <div>
+                <div className="font-cormorant text-ink text-2xl font-semibold mb-1">Хочешь стать волонтёром?</div>
+                <p className="text-muted-foreground text-sm">Мы всегда рады новым людям, готовым помогать.</p>
               </div>
+              <a
+                href={VK_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-7 py-3 bg-sage text-beige text-sm font-golos font-semibold uppercase tracking-wide rounded-sm hover:bg-sage-dark transition-colors whitespace-nowrap flex items-center gap-2"
+              >
+                Написать нам <Icon name="ExternalLink" size={13} />
+              </a>
             </div>
-          </Section>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* НОВОСТИ — превью */}
+      <section className="py-28 bg-white">
+        <div className="max-w-7xl mx-auto px-6">
+          <Reveal>
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+              <div>
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="h-px w-8 bg-sage" />
+                  <span className="text-sage text-xs tracking-[0.2em] uppercase font-golos">Новости из ВКонтакте</span>
+                </div>
+                <h2 className="font-cormorant text-ink text-5xl font-light">
+                  Следим за<br/><span className="text-sage font-semibold">нашей работой</span>
+                </h2>
+              </div>
+              <a href="/news" className="inline-flex items-center gap-2 text-sage font-golos text-sm uppercase tracking-wider hover:underline self-start md:self-auto">
+                Все новости <Icon name="ArrowRight" size={14} />
+              </a>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-6">
+              {[1,2,3].map((i) => (
+                <div key={i} className="bg-beige rounded-sm overflow-hidden hover:shadow-md transition-shadow duration-300">
+                  <div className="h-1 bg-gradient-to-r from-sage to-sage-light" />
+                  <div className="p-6">
+                    <div className="skeleton h-3 rounded w-1/3 mb-4" />
+                    <div className="skeleton h-4 rounded mb-2" />
+                    <div className="skeleton h-4 rounded w-4/5 mb-2" />
+                    <div className="skeleton h-4 rounded w-3/5 mb-5" />
+                    <div className="skeleton h-3 rounded w-1/4" />
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p className="text-center text-muted-foreground text-sm mt-6">
+              Новости загружаются автоматически из группы ВКонтакте →{" "}
+              <a href="/news" className="text-sage hover:underline">открыть ленту</a>
+            </p>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ВИДЕО — превью */}
+      <section className="py-28 bg-beige-mid">
+        <div className="max-w-7xl mx-auto px-6">
+          <Reveal>
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+              <div>
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="h-px w-8 bg-sage" />
+                  <span className="text-sage text-xs tracking-[0.2em] uppercase font-golos">Видео</span>
+                </div>
+                <h2 className="font-cormorant text-ink text-5xl font-light">
+                  Смотрите наши<br/><span className="text-sage font-semibold">видеоматериалы</span>
+                </h2>
+              </div>
+              <a href="/video" className="inline-flex items-center gap-2 text-sage font-golos text-sm uppercase tracking-wider hover:underline self-start md:self-auto">
+                Все видео <Icon name="ArrowRight" size={14} />
+              </a>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-6">
+              {[1,2,3].map((i) => (
+                <div key={i} className="bg-beige rounded-sm overflow-hidden hover:shadow-md transition-shadow duration-300">
+                  <div className="aspect-video bg-sage-pale flex items-center justify-center">
+                    <div className="w-14 h-14 rounded-full bg-sage/20 flex items-center justify-center">
+                      <Icon name="Play" size={24} className="text-sage ml-1" />
+                    </div>
+                  </div>
+                  <div className="p-5">
+                    <div className="skeleton h-4 rounded mb-2" />
+                    <div className="skeleton h-3 rounded w-3/5" />
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p className="text-center text-muted-foreground text-sm mt-6">
+              Видео загружаются из группы ВКонтакте после добавления токена →{" "}
+              <a href="/video" className="text-sage hover:underline">открыть раздел</a>
+            </p>
+          </Reveal>
         </div>
       </section>
 
       {/* ПОДДЕРЖКА */}
-      <section id="поддержка" className="py-32 bg-cream relative overflow-hidden">
-        <div className="absolute right-0 top-0 font-cormorant text-[20rem] font-bold text-forest/4 leading-none select-none pointer-events-none">
-          ♡
-        </div>
-
+      <section id="podderzhka" className="py-28 bg-white relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-sage-pale/50 rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />
         <div className="relative z-10 max-w-7xl mx-auto px-6">
-          <Section>
+          <Reveal>
             <div className="grid lg:grid-cols-2 gap-20 items-start">
               <div>
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="h-px w-8 bg-gold" />
-                  <span className="text-gold text-xs tracking-[0.2em] uppercase font-golos">Поддержка</span>
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="h-px w-8 bg-sage" />
+                  <span className="text-sage text-xs tracking-[0.2em] uppercase font-golos">Поддержка</span>
                 </div>
-                <h2 className="font-cormorant text-ink text-5xl md:text-6xl font-light leading-tight mb-8">
-                  Ваш вклад<br/><em className="text-forest font-semibold not-italic">меняет жизни</em>
+                <h2 className="font-cormorant text-ink text-5xl font-light leading-tight mb-7">
+                  Ваш вклад —<br/><span className="text-sage font-semibold">чья-то надежда</span>
                 </h2>
-                <p className="text-foreground/65 leading-relaxed mb-10">
-                  95% всех поступивших средств направляются непосредственно на программы помощи. Мы публикуем полные отчёты каждый квартал.
+                <p className="text-foreground/65 leading-relaxed mb-8">
+                  Любая сумма имеет значение. Мы работаем полностью на пожертвования и публикуем отчёты о каждом потраченном рубле.
                 </p>
-
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {[
-                    { amount: "500 ₽", impact: "обеспечит школьные принадлежности для одного ребёнка" },
-                    { amount: "1 000 ₽", impact: "поддержит месяц занятий в кружке творчества" },
-                    { amount: "5 000 ₽", impact: "даст возможность пройти курс переобучения" },
+                    { amount: "300 ₽", impact: "горячий обед для одного человека" },
+                    { amount: "500 ₽", impact: "необходимые медикаменты" },
+                    { amount: "1 000 ₽", impact: "неделя адресной поддержки семьи" },
+                    { amount: "3 000 ₽", impact: "месяц в программе реабилитации" },
                   ].map(({ amount, impact }) => (
-                    <div key={amount} className="flex gap-4 items-start">
-                      <div className="w-6 h-6 rounded-full bg-gold/20 flex items-center justify-center mt-0.5 flex-shrink-0">
-                        <Icon name="Check" size={12} className="text-gold" />
+                    <div key={amount} className="flex gap-3 items-start">
+                      <div className="w-5 h-5 rounded-full bg-sage/15 flex items-center justify-center mt-0.5 flex-shrink-0">
+                        <Icon name="Check" size={11} className="text-sage" />
                       </div>
-                      <div>
-                        <span className="font-golos font-semibold text-forest">{amount}</span>
-                        <span className="text-foreground/60 text-sm"> — {impact}</span>
+                      <div className="text-sm">
+                        <span className="font-semibold text-sage">{amount}</span>
+                        <span className="text-foreground/60"> — {impact}</span>
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="bg-forest p-10 shadow-2xl">
+              <div className="bg-sage rounded-sm p-8 shadow-xl">
                 {submitted ? (
-                  <div className="text-center py-10">
-                    <div className="text-5xl mb-4">🌿</div>
-                    <h3 className="font-cormorant text-cream text-3xl font-semibold mb-2">Спасибо!</h3>
-                    <p className="text-cream/70">Ваша поддержка имеет значение. Мы свяжемся с вами по email.</p>
+                  <div className="text-center py-12">
+                    <div className="text-5xl mb-4">💚</div>
+                    <h3 className="font-cormorant text-beige text-3xl font-semibold mb-2">Спасибо!</h3>
+                    <p className="text-beige/70 text-sm">Ваша поддержка меняет жизни. Мы свяжемся с вами.</p>
                   </div>
                 ) : (
-                  <form onSubmit={handleDonate} className="space-y-6">
-                    <h3 className="font-cormorant text-cream text-3xl font-semibold">Сделать пожертвование</h3>
+                  <form onSubmit={handleDonate} className="space-y-5">
+                    <h3 className="font-cormorant text-beige text-2xl font-semibold">Сделать пожертвование</h3>
 
                     <div>
-                      <label className="text-cream/60 text-xs uppercase tracking-wider mb-3 block">Сумма пожертвования</label>
-                      <div className="grid grid-cols-4 gap-2 mb-3">
-                        {donationAmounts.map((amount) => (
+                      <label className="text-beige/60 text-xs uppercase tracking-wider mb-2.5 block">Сумма</label>
+                      <div className="grid grid-cols-4 gap-2 mb-2">
+                        {donationAmounts.map((a) => (
                           <button
-                            key={amount}
+                            key={a}
                             type="button"
-                            onClick={() => { setDonationAmount(amount); setCustomAmount(""); }}
-                            className={`py-3 text-sm font-semibold transition-all duration-200 ${
-                              donationAmount === amount && !customAmount
-                                ? "bg-gold text-forest"
-                                : "border border-cream/20 text-cream hover:border-gold/50"
+                            onClick={() => { setDonationAmount(a); setCustomAmount(""); }}
+                            className={`py-2.5 text-sm font-semibold rounded-sm transition-all duration-200 ${
+                              donationAmount === a && !customAmount
+                                ? "bg-beige text-sage"
+                                : "border border-beige/25 text-beige hover:border-beige/50"
                             }`}
                           >
-                            {amount.toLocaleString()} ₽
+                            {a} ₽
                           </button>
                         ))}
                       </div>
                       <input
                         type="number"
-                        placeholder="Своя сумма (₽)"
+                        placeholder="Другая сумма (₽)"
                         value={customAmount}
                         onChange={(e) => setCustomAmount(e.target.value)}
-                        className="w-full bg-cream/10 border border-cream/20 text-cream placeholder-cream/30 px-4 py-3 focus:outline-none focus:border-gold/60 text-sm"
+                        className="w-full bg-white/10 border border-beige/20 text-beige placeholder-beige/35 px-3 py-2.5 focus:outline-none focus:border-beige/50 text-sm rounded-sm"
                       />
                     </div>
 
@@ -435,208 +485,136 @@ export default function Index() {
                       <button
                         type="button"
                         onClick={() => setIsRecurring(!isRecurring)}
-                        className={`w-10 h-6 rounded-full transition-all duration-300 flex items-center px-1 ${
-                          isRecurring ? "bg-gold" : "bg-cream/20"
-                        }`}
+                        className={`w-10 h-5 rounded-full transition-all duration-300 flex items-center px-0.5 ${isRecurring ? "bg-beige" : "bg-white/20"}`}
                       >
-                        <div className={`w-4 h-4 rounded-full bg-cream transition-transform duration-300 ${isRecurring ? "translate-x-4" : ""}`} />
+                        <div className={`w-4 h-4 rounded-full transition-transform duration-300 ${isRecurring ? "bg-sage translate-x-5" : "bg-beige"}`} />
                       </button>
-                      <span className="text-cream/70 text-sm">Ежемесячное пожертвование</span>
+                      <span className="text-beige/70 text-sm">Ежемесячно</span>
                     </div>
 
-                    <div className="space-y-3">
+                    <div className="space-y-2">
                       <input
                         type="text"
                         placeholder="Ваше имя"
-                        value={donationName}
-                        onChange={(e) => setDonationName(e.target.value)}
-                        className="w-full bg-cream/10 border border-cream/20 text-cream placeholder-cream/30 px-4 py-3 focus:outline-none focus:border-gold/60 text-sm"
+                        value={donorName}
+                        onChange={(e) => setDonorName(e.target.value)}
+                        className="w-full bg-white/10 border border-beige/20 text-beige placeholder-beige/35 px-3 py-2.5 focus:outline-none focus:border-beige/50 text-sm rounded-sm"
                         required
                       />
                       <input
                         type="email"
-                        placeholder="Email для квитанции"
-                        value={donationEmail}
-                        onChange={(e) => setDonationEmail(e.target.value)}
-                        className="w-full bg-cream/10 border border-cream/20 text-cream placeholder-cream/30 px-4 py-3 focus:outline-none focus:border-gold/60 text-sm"
+                        placeholder="Email"
+                        value={donorEmail}
+                        onChange={(e) => setDonorEmail(e.target.value)}
+                        className="w-full bg-white/10 border border-beige/20 text-beige placeholder-beige/35 px-3 py-2.5 focus:outline-none focus:border-beige/50 text-sm rounded-sm"
                         required
                       />
                     </div>
 
                     <button
                       type="submit"
-                      className="w-full bg-gold text-forest py-4 font-golos font-semibold text-sm tracking-wide uppercase hover:bg-gold-light transition-all duration-300 hover:scale-[1.02]"
+                      className="w-full bg-beige text-sage py-3.5 font-golos font-semibold text-sm tracking-wide uppercase rounded-sm hover:bg-beige-mid transition-all duration-300"
                     >
-                      Пожертвовать {finalAmount ? `${finalAmount.toLocaleString()} ₽` : ""}
-                      {isRecurring ? " / мес" : ""}
+                      Пожертвовать {finalAmount ? `${finalAmount.toLocaleString()} ₽` : ""}{isRecurring ? " / мес" : ""}
                     </button>
-
-                    <p className="text-cream/40 text-xs text-center leading-relaxed">
-                      Нажимая кнопку, вы соглашаетесь с условиями пожертвования.<br/>
-                      Ваши данные в безопасности.
-                    </p>
+                    <p className="text-beige/35 text-xs text-center">Ваши данные в безопасности</p>
                   </form>
                 )}
               </div>
             </div>
-          </Section>
-        </div>
-      </section>
-
-      {/* БЛОГ */}
-      <section id="блог" className="py-32 bg-cream-dark">
-        <div className="max-w-7xl mx-auto px-6">
-          <Section>
-            <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
-              <div>
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="h-px w-8 bg-gold" />
-                  <span className="text-gold text-xs tracking-[0.2em] uppercase font-golos">Блог</span>
-                </div>
-                <h2 className="font-cormorant text-ink text-5xl md:text-6xl font-light">
-                  Истории и<br/><em className="text-forest font-semibold not-italic">новости</em>
-                </h2>
-              </div>
-              <button className="link-hover text-forest font-golos text-sm uppercase tracking-wider self-start md:self-auto">
-                Все публикации →
-              </button>
-            </div>
-
-            <div className="grid md:grid-cols-3 gap-8">
-              {blogPosts.map((post, i) => (
-                <article
-                  key={post.title}
-                  className="group bg-cream cursor-pointer hover:shadow-lg transition-all duration-300"
-                  style={{ animationDelay: `${i * 0.1}s` }}
-                >
-                  <div className="h-1 bg-gradient-to-r from-gold to-gold/30 group-hover:from-forest group-hover:to-forest/30 transition-all duration-300" />
-                  <div className="p-8">
-                    <div className="flex items-center justify-between mb-6">
-                      <span className="text-xs bg-forest/10 text-forest px-3 py-1 font-golos tracking-wide">{post.category}</span>
-                      <span className="text-muted-foreground text-xs">{post.date}</span>
-                    </div>
-                    <h3 className="font-cormorant text-ink text-2xl font-semibold leading-tight mb-4 group-hover:text-forest transition-colors duration-200">
-                      {post.title}
-                    </h3>
-                    <p className="text-foreground/60 text-sm leading-relaxed">{post.excerpt}</p>
-                    <div className="mt-6 flex items-center gap-2 text-gold text-sm font-semibold">
-                      Читать <Icon name="ArrowRight" size={14} />
-                    </div>
-                  </div>
-                </article>
-              ))}
-            </div>
-          </Section>
+          </Reveal>
         </div>
       </section>
 
       {/* КОНТАКТЫ */}
-      <section id="контакты" className="py-32 bg-forest">
+      <section id="kontakty" className="py-28 bg-beige-mid">
         <div className="max-w-7xl mx-auto px-6">
-          <Section>
+          <Reveal>
             <div className="grid lg:grid-cols-2 gap-20">
               <div>
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="h-px w-8 bg-gold/50" />
-                  <span className="text-gold text-xs tracking-[0.2em] uppercase font-golos">Контакты</span>
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="h-px w-8 bg-sage" />
+                  <span className="text-sage text-xs tracking-[0.2em] uppercase font-golos">Контакты</span>
                 </div>
-                <h2 className="font-cormorant text-cream text-5xl md:text-6xl font-light leading-tight mb-8">
-                  Давайте<br/><em className="text-gold not-italic font-semibold">поговорим</em>
+                <h2 className="font-cormorant text-ink text-5xl font-light leading-tight mb-7">
+                  Свяжитесь<br/><span className="text-sage font-semibold">с нами</span>
                 </h2>
-                <p className="text-cream/60 leading-relaxed mb-10">
-                  Мы открыты для партнёрства, волонтёрства и любых вопросов. Ответим в течение рабочего дня.
+                <p className="text-foreground/65 leading-relaxed mb-10">
+                  Мы отвечаем на все обращения. Если вам нужна помощь или вы хотите помочь — напишите нам.
                 </p>
-
-                <div className="space-y-6">
+                <div className="space-y-5">
                   {[
-                    { icon: "MapPin", label: "Адрес", value: "Москва, ул. Садовая, 12, офис 304" },
-                    { icon: "Phone", label: "Телефон", value: "+7 (495) 000-00-00" },
-                    { icon: "Mail", label: "Email", value: "hello@dobro-nko.ru" },
-                    { icon: "Clock", label: "Часы работы", value: "Пн–Пт, 10:00 – 18:00" },
-                  ].map(({ icon, label, value }) => (
+                    { icon: "ExternalLink", label: "ВКонтакте", value: "vk.com/spasenienadezhdi", href: VK_URL },
+                    { icon: "Mail", label: "Email", value: "info@spasenienadezhdi.ru", href: "mailto:info@spasenienadezhdi.ru" },
+                    { icon: "Phone", label: "Телефон", value: "+7 (000) 000-00-00", href: "tel:+70000000000" },
+                    { icon: "Clock", label: "Часы работы", value: "Пн–Пт, 10:00 – 18:00", href: null },
+                  ].map(({ icon, label, value, href }) => (
                     <div key={label} className="flex gap-4 items-start">
-                      <div className="w-10 h-10 rounded-full border border-cream/20 flex items-center justify-center flex-shrink-0">
-                        <Icon name={icon as "MapPin"} size={16} className="text-gold" />
+                      <div className="w-9 h-9 rounded-full bg-sage/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <Icon name={icon as "Mail"} size={15} className="text-sage" />
                       </div>
                       <div>
-                        <div className="text-cream/40 text-xs uppercase tracking-wider mb-1">{label}</div>
-                        <div className="text-cream text-sm">{value}</div>
+                        <div className="text-muted-foreground text-xs uppercase tracking-wider mb-0.5">{label}</div>
+                        {href ? (
+                          <a href={href} target="_blank" rel="noopener noreferrer" className="text-ink text-sm hover:text-sage transition-colors">{value}</a>
+                        ) : (
+                          <div className="text-ink text-sm">{value}</div>
+                        )}
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
-                <div className="grid grid-cols-2 gap-4">
-                  <input
-                    type="text"
-                    placeholder="Имя"
-                    className="bg-cream/10 border border-cream/20 text-cream placeholder-cream/30 px-4 py-3 focus:outline-none focus:border-gold/60 text-sm"
-                  />
-                  <input
-                    type="email"
-                    placeholder="Email"
-                    className="bg-cream/10 border border-cream/20 text-cream placeholder-cream/30 px-4 py-3 focus:outline-none focus:border-gold/60 text-sm"
-                  />
+              <form className="space-y-4 bg-beige rounded-sm p-8" onSubmit={(e) => e.preventDefault()}>
+                <h3 className="font-cormorant text-ink text-2xl font-semibold mb-2">Написать нам</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  <input type="text" placeholder="Имя" className="bg-white border border-beige-dark text-ink placeholder-muted-foreground px-3 py-2.5 focus:outline-none focus:border-sage text-sm rounded-sm" />
+                  <input type="email" placeholder="Email" className="bg-white border border-beige-dark text-ink placeholder-muted-foreground px-3 py-2.5 focus:outline-none focus:border-sage text-sm rounded-sm" />
                 </div>
-                <input
-                  type="text"
-                  placeholder="Тема обращения"
-                  className="w-full bg-cream/10 border border-cream/20 text-cream placeholder-cream/30 px-4 py-3 focus:outline-none focus:border-gold/60 text-sm"
-                />
-                <textarea
-                  placeholder="Ваше сообщение..."
-                  rows={5}
-                  className="w-full bg-cream/10 border border-cream/20 text-cream placeholder-cream/30 px-4 py-3 focus:outline-none focus:border-gold/60 text-sm resize-none"
-                />
-                <button
-                  type="submit"
-                  className="w-full bg-gold text-forest py-4 font-golos font-semibold text-sm tracking-wide uppercase hover:bg-gold-light transition-all duration-300"
-                >
-                  Отправить сообщение
+                <input type="text" placeholder="Тема" className="w-full bg-white border border-beige-dark text-ink placeholder-muted-foreground px-3 py-2.5 focus:outline-none focus:border-sage text-sm rounded-sm" />
+                <textarea placeholder="Сообщение..." rows={4} className="w-full bg-white border border-beige-dark text-ink placeholder-muted-foreground px-3 py-2.5 focus:outline-none focus:border-sage text-sm rounded-sm resize-none" />
+                <button type="submit" className="w-full bg-sage text-beige py-3.5 font-golos font-semibold text-sm tracking-wide uppercase rounded-sm hover:bg-sage-dark transition-colors duration-300">
+                  Отправить
                 </button>
               </form>
             </div>
-          </Section>
+          </Reveal>
         </div>
       </section>
 
       {/* FOOTER */}
-      <footer className="bg-ink py-12">
+      <footer className="bg-ink py-10">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-6">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-gold flex items-center justify-center text-forest font-cormorant font-bold text-lg">
-                Д
+              <div className="w-8 h-8 rounded-full bg-sage flex items-center justify-center">
+                <Icon name="Heart" size={14} className="text-beige" />
               </div>
-              <span className="font-cormorant text-cream text-xl font-semibold tracking-wide">Добро</span>
+              <div>
+                <div className="font-cormorant text-beige text-lg font-semibold">Спасение надежды</div>
+                <div className="text-beige/40 text-[10px] uppercase tracking-wider">АНО</div>
+              </div>
             </div>
-            <div className="flex flex-wrap justify-center gap-8">
-              {navItems.map((item) => (
-                <button
-                  key={item}
-                  onClick={() => scrollTo(item.replace(" ", "-"))}
-                  className="nav-link text-xs"
-                >
-                  {item}
+            <div className="flex flex-wrap justify-center gap-6">
+              {navItems.map(({ label, id }) => (
+                <button key={id} onClick={() => scrollTo(id)} className="nav-link text-beige/50 hover:text-beige/90 text-xs">
+                  {label}
                 </button>
               ))}
             </div>
-            <div className="flex gap-4">
-              {["Share2", "Send", "Instagram"].map((s) => (
-                <button
-                  key={s}
-                  className="w-9 h-9 rounded-full border border-cream/20 flex items-center justify-center text-cream/50 hover:border-gold hover:text-gold transition-all duration-200"
-                >
-                  <Icon name={s as "Send"} size={14} />
-                </button>
-              ))}
-            </div>
+            <a
+              href={VK_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 text-beige/50 hover:text-sage-light transition-colors text-sm"
+            >
+              <Icon name="ExternalLink" size={14} /> ВКонтакте
+            </a>
           </div>
-          <div className="deco-line mt-8 mb-6" />
-          <p className="text-center text-cream/30 text-xs">
-            © 2026 НКО «Добро». Все права защищены. Организация работает на благо общества.
+          <div className="deco-line mb-5" />
+          <p className="text-center text-beige/25 text-xs">
+            © 2026 АНО «Спасение надежды». Все права защищены.
           </p>
         </div>
       </footer>

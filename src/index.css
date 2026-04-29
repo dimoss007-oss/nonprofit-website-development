@@ -4,35 +4,35 @@
 
 @layer base {
   :root {
-    --background: 42 30% 96%;
-    --foreground: 150 25% 10%;
+    /* Светло-зелёная + бежевая палитра */
+    --background: 42 35% 97%;
+    --foreground: 140 20% 15%;
 
-    --card: 42 20% 93%;
-    --card-foreground: 150 25% 10%;
+    --card: 42 30% 95%;
+    --card-foreground: 140 20% 15%;
 
-    --popover: 42 20% 93%;
-    --popover-foreground: 150 25% 10%;
+    --popover: 42 30% 95%;
+    --popover-foreground: 140 20% 15%;
 
-    --primary: 150 30% 18%;
-    --primary-foreground: 42 30% 96%;
+    --primary: 138 35% 42%;
+    --primary-foreground: 42 35% 97%;
 
-    --secondary: 40 35% 88%;
-    --secondary-foreground: 150 25% 10%;
+    --secondary: 40 30% 90%;
+    --secondary-foreground: 140 20% 15%;
 
-    --muted: 40 20% 88%;
-    --muted-foreground: 150 10% 40%;
+    --muted: 40 25% 90%;
+    --muted-foreground: 140 10% 45%;
 
-    --accent: 38 65% 52%;
-    --accent-foreground: 150 25% 10%;
+    --accent: 138 30% 88%;
+    --accent-foreground: 140 20% 15%;
 
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 42 30% 96%;
+    --destructive-foreground: 42 35% 97%;
 
-    --border: 40 20% 80%;
-    --input: 40 20% 80%;
-    --ring: 150 30% 18%;
-
-    --radius: 0.25rem;
+    --border: 40 20% 84%;
+    --input: 40 20% 84%;
+    --ring: 138 35% 42%;
+    --radius: 0.375rem;
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -43,14 +43,15 @@
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
 
-    /* Custom brand tokens */
-    --forest: 150 30% 18%;
-    --forest-mid: 150 25% 28%;
-    --gold: 38 65% 52%;
-    --gold-light: 40 70% 72%;
-    --cream: 42 30% 96%;
-    --cream-dark: 40 20% 88%;
-    --ink: 150 25% 10%;
+    /* Brand tokens */
+    --sage: 138 35% 42%;
+    --sage-light: 138 28% 58%;
+    --sage-pale: 138 25% 90%;
+    --sage-dark: 140 30% 28%;
+    --beige: 42 35% 97%;
+    --beige-mid: 40 28% 91%;
+    --beige-dark: 38 22% 82%;
+    --ink: 140 20% 15%;
   }
 }
 
@@ -58,12 +59,10 @@
   * {
     @apply border-border;
   }
-
   body {
     @apply bg-background text-foreground;
     font-family: "Golos Text", sans-serif;
   }
-
   h1,
   h2,
   h3,
@@ -72,28 +71,16 @@
   }
 }
 
-/* Noise texture overlay */
-.noise-bg::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-  pointer-events: none;
-  z-index: 1;
-}
-
-/* Scroll animations */
 @keyframes fadeUp {
   from {
     opacity: 0;
-    transform: translateY(40px);
+    transform: translateY(32px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
   }
 }
-
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -102,78 +89,32 @@
     opacity: 1;
   }
 }
-
-@keyframes slideRight {
-  from {
-    opacity: 0;
-    transform: translateX(-30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes scaleIn {
-  from {
-    opacity: 0;
-    transform: scale(0.92);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes lineGrow {
-  from {
-    transform: scaleX(0);
-  }
-  to {
-    transform: scaleX(1);
-  }
-}
-
 @keyframes float {
   0%,
   100% {
     transform: translateY(0px);
   }
   50% {
-    transform: translateY(-10px);
+    transform: translateY(-8px);
   }
 }
-
-@keyframes pulse-gold {
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 hsla(38, 65%, 52%, 0.4);
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
   }
-  50% {
-    box-shadow: 0 0 0 12px hsla(38, 65%, 52%, 0);
+  100% {
+    background-position: 200% 0;
   }
 }
 
 .animate-fade-up {
-  animation: fadeUp 0.8s ease forwards;
+  animation: fadeUp 0.7s ease forwards;
 }
 .animate-fade-in {
-  animation: fadeIn 0.6s ease forwards;
-}
-.animate-slide-right {
-  animation: slideRight 0.7s ease forwards;
-}
-.animate-scale-in {
-  animation: scaleIn 0.7s ease forwards;
-}
-.animate-line-grow {
-  animation: lineGrow 1s ease forwards;
+  animation: fadeIn 0.5s ease forwards;
 }
 .animate-float {
   animation: float 4s ease-in-out infinite;
-}
-.animate-pulse-gold {
-  animation: pulse-gold 2s ease infinite;
 }
 
 .delay-100 {
@@ -191,71 +132,54 @@
 .delay-500 {
   animation-delay: 0.5s;
 }
-.delay-600 {
-  animation-delay: 0.6s;
-}
-.delay-700 {
-  animation-delay: 0.7s;
-}
 
-.opacity-0 {
-  opacity: 0;
-}
-
-/* Декоративная линия */
 .deco-line {
   height: 1px;
   background: linear-gradient(
     90deg,
     transparent,
-    hsl(var(--gold)),
+    hsl(var(--sage-light)),
     transparent
   );
 }
 
-/* Кастомный скроллбар */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 5px;
 }
 ::-webkit-scrollbar-track {
-  background: hsl(var(--cream));
+  background: hsl(var(--beige));
 }
 ::-webkit-scrollbar-thumb {
-  background: hsl(var(--forest-mid));
+  background: hsl(var(--sage-light));
   border-radius: 3px;
 }
 
-/* Hover underline */
-.link-hover {
-  position: relative;
-  display: inline-block;
-}
-.link-hover::after {
-  content: "";
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  width: 100%;
-  height: 1px;
-  background: hsl(var(--gold));
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 0.3s ease;
-}
-.link-hover:hover::after {
-  transform: scaleX(1);
-}
-
-/* Nav link style */
 .nav-link {
   font-family: "Golos Text", sans-serif;
-  font-size: 0.85rem;
-  letter-spacing: 0.12em;
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: hsl(var(--cream));
-  opacity: 0.8;
-  transition: opacity 0.2s;
+  color: hsl(var(--ink));
+  opacity: 0.6;
+  transition:
+    opacity 0.2s,
+    color 0.2s;
 }
 .nav-link:hover {
   opacity: 1;
+}
+.nav-link.active {
+  opacity: 1;
+  color: hsl(var(--sage));
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--beige-mid)) 25%,
+    hsl(var(--beige-dark)) 50%,
+    hsl(var(--beige-mid)) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
 }

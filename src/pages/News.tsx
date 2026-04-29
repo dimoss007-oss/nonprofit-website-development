@@ -117,27 +117,27 @@ export default function News() {
   const hasMore = offset < total;
 
   return (
-    <div className="min-h-screen bg-cream font-golos">
+    <div className="min-h-screen bg-beige font-golos">
       {/* Header */}
-      <div className="bg-forest relative overflow-hidden">
-        <div className="absolute inset-0 opacity-5">
-          <div className="absolute top-10 left-10 w-64 h-64 rounded-full border border-cream" />
-          <div className="absolute bottom-0 right-20 w-96 h-96 rounded-full border border-cream" />
+      <div className="bg-sage relative overflow-hidden">
+        <div className="absolute inset-0 opacity-[0.04]">
+          <div className="absolute top-10 left-10 w-64 h-64 rounded-full border border-beige" />
+          <div className="absolute bottom-0 right-20 w-96 h-96 rounded-full border border-beige" />
         </div>
         <div className="relative z-10 max-w-7xl mx-auto px-6 py-20 pt-28">
-          <a href="/" className="inline-flex items-center gap-2 text-cream/50 hover:text-cream text-sm mb-8 transition-colors">
+          <a href="/" className="inline-flex items-center gap-2 text-beige/50 hover:text-beige text-sm mb-8 transition-colors">
             <Icon name="ArrowLeft" size={14} /> На главную
           </a>
           <div className="flex items-center gap-3 mb-4">
-            <div className="h-px w-8 bg-gold/50" />
-            <span className="text-gold text-xs tracking-[0.2em] uppercase font-golos">Новости</span>
+            <div className="h-px w-8 bg-beige/40" />
+            <span className="text-beige/70 text-xs tracking-[0.2em] uppercase font-golos">Новости</span>
           </div>
-          <h1 className="font-cormorant text-cream text-5xl md:text-7xl font-light leading-tight mb-6">
-            Лента<br/><em className="text-gold not-italic font-semibold">ВКонтакте</em>
+          <h1 className="font-cormorant text-beige text-5xl md:text-7xl font-light leading-tight mb-6">
+            Лента<br/><span className="font-semibold">ВКонтакте</span>
           </h1>
-          <p className="text-cream/60 max-w-md leading-relaxed">
+          <p className="text-beige/60 max-w-md leading-relaxed">
             Актуальные публикации нашей группы{" "}
-            <a href={VK_GROUP_URL} target="_blank" rel="noopener noreferrer" className="text-gold hover:underline">
+            <a href={VK_GROUP_URL} target="_blank" rel="noopener noreferrer" className="text-beige/90 hover:underline">
               vk.com/spasenienadezhdi
             </a>
           </p>
@@ -150,13 +150,13 @@ export default function News() {
         {loading && (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="bg-cream-dark animate-pulse">
-                <div className="aspect-video bg-forest/10" />
+              <div key={i} className="bg-beige-mid rounded-sm overflow-hidden">
+                <div className="aspect-video skeleton" />
                 <div className="p-6 space-y-3">
-                  <div className="h-3 bg-forest/10 rounded w-1/4" />
-                  <div className="h-4 bg-forest/10 rounded" />
-                  <div className="h-4 bg-forest/10 rounded w-4/5" />
-                  <div className="h-4 bg-forest/10 rounded w-3/5" />
+                  <div className="skeleton h-3 rounded w-1/4" />
+                  <div className="skeleton h-4 rounded" />
+                  <div className="skeleton h-4 rounded w-4/5" />
+                  <div className="skeleton h-4 rounded w-3/5" />
                 </div>
               </div>
             ))}
@@ -170,7 +170,7 @@ export default function News() {
             <p className="text-muted-foreground text-sm mb-6">{error}</p>
             <button
               onClick={() => fetchPosts(0)}
-              className="px-6 py-3 bg-forest text-cream text-sm font-golos uppercase tracking-wide hover:bg-forest-mid transition-colors"
+              className="px-6 py-3 bg-sage text-beige text-sm font-golos uppercase tracking-wide rounded-sm hover:bg-sage-dark transition-colors"
             >
               Попробовать снова
             </button>
@@ -191,7 +191,7 @@ export default function News() {
                 href={VK_GROUP_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 text-sm text-forest hover:text-gold transition-colors"
+                className="flex items-center gap-2 text-sm text-sage hover:underline transition-colors"
               >
                 Открыть группу <Icon name="ExternalLink" size={14} />
               </a>
@@ -208,7 +208,7 @@ export default function News() {
                 <button
                   onClick={() => fetchPosts(offset, true)}
                   disabled={loadingMore}
-                  className="px-10 py-4 bg-forest text-cream font-golos font-semibold text-sm tracking-wide uppercase hover:bg-forest-mid transition-all duration-300 disabled:opacity-50"
+                  className="px-10 py-3.5 bg-sage text-beige font-golos font-semibold text-sm tracking-wide uppercase rounded-sm hover:bg-sage-dark transition-all duration-300 disabled:opacity-50"
                 >
                   {loadingMore ? "Загружаю..." : "Загрузить ещё"}
                 </button>
