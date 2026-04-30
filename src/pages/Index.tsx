@@ -69,6 +69,102 @@ const NEWS_ITEMS = [
   },
 ];
 
+const VIDEO_ITEMS = [
+  {
+    href: "https://vk.com/wall-229898882_327",
+    img: "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/82a9f428-4386-466d-88e0-0ad976b369c3.jpg",
+    date: "Апрель 2025",
+    title: "Ровно год. И мы — одна семья",
+    sub: "40 мам · 50 детей · 11 выпускниц",
+  },
+];
+
+function VideoSlider() {
+  const [current, setCurrent] = useState(0);
+  const total = VIDEO_ITEMS.length;
+  const visible = 3;
+  const max = Math.max(0, total - visible);
+
+  const prev = () => setCurrent((c) => Math.max(0, c - 1));
+  const next = () => setCurrent((c) => Math.min(max, c + 1));
+
+  return (
+    <div>
+      <div className="overflow-hidden">
+        <div
+          className="flex gap-6 transition-transform duration-500 ease-in-out"
+          style={{ transform: `translateX(calc(-${current} * (100% / ${visible} + 8px)))` }}
+        >
+          {VIDEO_ITEMS.map((item) => (
+            <a
+              key={item.href}
+              href={item.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-beige rounded-sm overflow-hidden hover:shadow-md transition-all duration-300 hover:-translate-y-1 group flex-shrink-0"
+              style={{ width: `calc((100% - ${(visible - 1) * 24}px) / ${visible})` }}
+            >
+              <div className="aspect-video bg-sage-pale relative overflow-hidden flex items-center justify-center">
+                {item.img && (
+                  <img src={item.img} alt={item.title} className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-500" />
+                )}
+                <div className="relative w-14 h-14 rounded-full bg-beige/80 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                  <Icon name="Play" size={22} className="text-sage ml-1" />
+                </div>
+              </div>
+              <div className="p-5">
+                <div className="text-muted-foreground text-xs mb-2">{item.date}</div>
+                <h3 className="font-cormorant text-ink text-lg font-semibold leading-snug group-hover:text-sage transition-colors">{item.title}</h3>
+                {item.sub && <p className="text-muted-foreground text-xs mt-1">{item.sub}</p>}
+              </div>
+            </a>
+          ))}
+
+          {/* Заглушки до 3 */}
+          {Array.from({ length: Math.max(0, visible - VIDEO_ITEMS.length) }).map((_, i) => (
+            <div key={i} className="bg-beige rounded-sm overflow-hidden flex-shrink-0" style={{ width: `calc((100% - ${(visible - 1) * 24}px) / ${visible})` }}>
+              <div className="aspect-video bg-sage-pale flex items-center justify-center">
+                <div className="w-14 h-14 rounded-full bg-sage/20 flex items-center justify-center">
+                  <Icon name="Play" size={24} className="text-sage ml-1" />
+                </div>
+              </div>
+              <div className="p-5 space-y-2">
+                <div className="skeleton h-4 rounded w-4/5" />
+                <div className="skeleton h-3 rounded w-3/5" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between mt-8">
+        <p className="text-muted-foreground text-sm">
+          Больше видео →{" "}
+          <a href="/video" className="text-sage hover:underline">открыть раздел</a>
+        </p>
+        {max > 0 && (
+          <div className="flex items-center gap-3">
+            <button onClick={prev} disabled={current === 0}
+              className="w-10 h-10 rounded-full border border-sage/30 flex items-center justify-center text-sage hover:bg-sage-pale transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
+              <Icon name="ChevronLeft" size={18} />
+            </button>
+            <div className="flex gap-1.5">
+              {Array.from({ length: max + 1 }).map((_, i) => (
+                <button key={i} onClick={() => setCurrent(i)}
+                  className={`w-2 h-2 rounded-full transition-all duration-300 ${i === current ? "bg-sage w-5" : "bg-sage/25"}`} />
+              ))}
+            </div>
+            <button onClick={next} disabled={current === max}
+              className="w-10 h-10 rounded-full border border-sage/30 flex items-center justify-center text-sage hover:bg-sage-pale transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
+              <Icon name="ChevronRight" size={18} />
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function NewsSlider() {
   const [current, setCurrent] = useState(0);
   const total = NEWS_ITEMS.length;
@@ -469,7 +565,7 @@ export default function Index() {
         </div>
       </section>
 
-      {/* ВИДЕО — превью */}
+      {/* ВИДЕО — слайдер */}
       <section className="py-28 bg-beige-mid">
         <div className="max-w-7xl mx-auto px-6">
           <Reveal>
@@ -487,42 +583,7 @@ export default function Index() {
                 Все видео <Icon name="ArrowRight" size={14} />
               </a>
             </div>
-
-            <div className="grid md:grid-cols-3 gap-6">
-              <a href="https://vk.com/wall-229898882_327" target="_blank" rel="noopener noreferrer"
-                className="bg-beige rounded-sm overflow-hidden hover:shadow-md transition-all duration-300 hover:-translate-y-1 group">
-                <div className="aspect-video bg-sage-pale relative overflow-hidden flex items-center justify-center">
-                  <img src="https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/82a9f428-4386-466d-88e0-0ad976b369c3.jpg"
-                    alt="Ровно год" className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-500" />
-                  <div className="relative w-14 h-14 rounded-full bg-beige/80 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                    <Icon name="Play" size={22} className="text-sage ml-1" />
-                  </div>
-                </div>
-                <div className="p-5">
-                  <div className="text-muted-foreground text-xs mb-2">Апрель 2025</div>
-                  <h3 className="font-cormorant text-ink text-lg font-semibold leading-snug group-hover:text-sage transition-colors">Ровно год. И мы — одна семья</h3>
-                  <p className="text-muted-foreground text-xs mt-1">40 мам · 50 детей · 11 выпускниц</p>
-                </div>
-              </a>
-
-              {[1,2].map((i) => (
-                <div key={i} className="bg-beige rounded-sm overflow-hidden hover:shadow-md transition-shadow duration-300">
-                  <div className="aspect-video bg-sage-pale flex items-center justify-center">
-                    <div className="w-14 h-14 rounded-full bg-sage/20 flex items-center justify-center">
-                      <Icon name="Play" size={24} className="text-sage ml-1" />
-                    </div>
-                  </div>
-                  <div className="p-5">
-                    <div className="skeleton h-4 rounded mb-2" />
-                    <div className="skeleton h-3 rounded w-3/5" />
-                  </div>
-                </div>
-              ))}
-            </div>
-            <p className="text-center text-muted-foreground text-sm mt-6">
-              Видео загружаются из группы ВКонтакте после добавления токена →{" "}
-              <a href="/video" className="text-sage hover:underline">открыть раздел</a>
-            </p>
+            <VideoSlider />
           </Reveal>
         </div>
       </section>
