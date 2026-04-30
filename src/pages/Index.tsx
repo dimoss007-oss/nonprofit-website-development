@@ -373,19 +373,41 @@ export default function Index() {
                 </div>
               </a>
 
-              {[1,2].map((i) => (
-                <div key={i} className="bg-beige rounded-sm overflow-hidden">
-                  <div className="aspect-video skeleton" />
-                  <div className="h-1 bg-gradient-to-r from-sage to-sage-light" />
-                  <div className="p-6">
-                    <div className="skeleton h-3 rounded w-1/3 mb-4" />
-                    <div className="skeleton h-4 rounded mb-2" />
-                    <div className="skeleton h-4 rounded w-4/5 mb-2" />
-                    <div className="skeleton h-4 rounded w-3/5 mb-5" />
-                    <div className="skeleton h-3 rounded w-1/4" />
+              <a href="https://vk.com/wall-229898882_352" target="_blank" rel="noopener noreferrer"
+                className="bg-beige rounded-sm overflow-hidden hover:shadow-md transition-all duration-300 hover:-translate-y-1 group">
+                <div className="aspect-video overflow-hidden bg-sage-pale flex items-center justify-center">
+                  <div className="text-center px-6">
+                    <div className="text-5xl mb-3">🏛️</div>
+                    <div className="font-cormorant text-sage text-lg font-semibold">Круглый стол</div>
+                    <div className="text-muted-foreground text-xs mt-1">Ульяновская область, 28 апреля</div>
                   </div>
                 </div>
-              ))}
+                <div className="h-1 bg-gradient-to-r from-sage to-sage-light" />
+                <div className="p-6">
+                  <div className="text-muted-foreground text-xs mb-3">28 апреля 2025</div>
+                  <h3 className="font-cormorant text-ink text-xl font-semibold leading-snug mb-3 group-hover:text-sage transition-colors">
+                    Нас пригласили поделиться опытом
+                  </h3>
+                  <p className="text-foreground/60 text-sm leading-relaxed line-clamp-3">
+                    Учредитель Василий Сайфуллин и директор Дмитрий Чуйкин выступили на круглом столе о восстановлении родительских прав и воссоединении семей. Уникальный опыт кризисного центра — реабилитация без разлучения родителей и детей.
+                  </p>
+                  <div className="mt-4 flex items-center gap-1 text-sage text-xs font-golos uppercase tracking-wider">
+                    Читать в ВКонтакте <Icon name="ArrowRight" size={12} />
+                  </div>
+                </div>
+              </a>
+
+              <div className="bg-beige rounded-sm overflow-hidden">
+                <div className="aspect-video skeleton" />
+                <div className="h-1 bg-gradient-to-r from-sage to-sage-light" />
+                <div className="p-6">
+                  <div className="skeleton h-3 rounded w-1/3 mb-4" />
+                  <div className="skeleton h-4 rounded mb-2" />
+                  <div className="skeleton h-4 rounded w-4/5 mb-2" />
+                  <div className="skeleton h-4 rounded w-3/5 mb-5" />
+                  <div className="skeleton h-3 rounded w-1/4" />
+                </div>
+              </div>
             </div>
             <p className="text-center text-muted-foreground text-sm mt-6">
               Больше новостей в группе ВКонтакте →{" "}
