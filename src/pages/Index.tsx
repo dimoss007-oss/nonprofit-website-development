@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import Icon from "@/components/ui/icon";
 
-const HERO_IMG = "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/files/2f04b4eb-3162-4cce-86d9-50a2cb12022e.jpg";
+const HERO_IMG = "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/82a9f428-4386-466d-88e0-0ad976b369c3.jpg";
 const VK_URL = "https://vk.com/spasenienadezhdi";
 
 function useReveal(threshold = 0.12) {
