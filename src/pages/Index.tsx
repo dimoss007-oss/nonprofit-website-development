@@ -165,7 +165,7 @@ export default function Index() {
             {[
               { num: "с 2024", label: "года помогаем семьям" },
               { num: "30+", label: "семей получили помощь" },
-              { num: "150+", label: "волонтёров" },
+              { num: "10+", label: "детей вернули в семьи" },
               { num: "100%", label: "прозрачность расходов" },
             ].map(({ num, label }) => (
               <div key={num} className="bg-white/70 backdrop-blur border border-beige-dark rounded-sm p-5 hover:shadow-md transition-shadow duration-300">
