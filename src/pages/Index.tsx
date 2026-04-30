@@ -551,7 +551,7 @@ export default function Index() {
                   {[
                     { icon: "ExternalLink", label: "ВКонтакте", value: "vk.com/spasenienadezhdi", href: VK_URL },
                     { icon: "Mail", label: "Email", value: "info@spasenienadezhdi.ru", href: "mailto:info@spasenienadezhdi.ru" },
-                    { icon: "Phone", label: "Телефон", value: "+7 (000) 000-00-00", href: "tel:+70000000000" },
+                    { icon: "Phone", label: "Телефон", value: "8 800 300-86-85", href: "tel:88003008685" },
                     { icon: "Clock", label: "Часы работы", value: "Пн–Пт, 10:00 – 18:00", href: null },
                   ].map(({ icon, label, value, href }) => (
                     <div key={label} className="flex gap-4 items-start">
