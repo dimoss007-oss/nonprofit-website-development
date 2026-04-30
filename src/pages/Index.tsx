@@ -38,6 +38,123 @@ const teamMembers = [
 
 const donationAmounts = [300, 500, 1000, 3000];
 
+const NEWS_ITEMS = [
+  {
+    href: "https://vk.com/wall-229898882_352",
+    img: "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/9bed1cfa-a4c2-43a2-91e1-7ded0e5f6576.jpg",
+    date: "28 апреля 2025",
+    title: "Нас пригласили поделиться опытом",
+    text: "Учредитель Василий Сайфуллин и директор Дмитрий Чуйкин выступили на круглом столе о восстановлении родительских прав. Уникальный опыт кризисного центра — реабилитация без разлучения родителей и детей.",
+  },
+  {
+    href: "https://vk.com/wall-229898882_344",
+    img: "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/5f84e431-89c1-4bba-bbc8-159bbd2b508c.jpg",
+    date: "Апрель 2025 · Москва",
+    title: "Конференция «Устойчивость» для лидеров НКО",
+    text: "Директор Дмитрий Чуйкин и фандрайзер Надежда на конференции в РЭУ им. Плеханова. Устойчивость — это про маму, которая не сорвалась, и ребёнка, который остался с семьёй.",
+  },
+  {
+    href: "https://vk.com/wall-229898882_316",
+    img: null,
+    date: "9 апреля 2025 · Пенза",
+    title: "Презентация проекта на межрегиональном форуме",
+    text: "Учредитель Василий Сайфуллин выступил на форуме «Мир. Женщина. Семья» — о структуре центра, формате «равный-равному» и взаимодействии с соцслужбами. Встречен овациями.",
+  },
+  {
+    href: "https://vk.com/wall-229898882_304",
+    img: "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/bee92c70-daa2-4e47-b246-e7d063269312.jpg",
+    date: "Апрель 2025",
+    title: "Спасибо MEBELDOF!",
+    text: "За заботу, за внимание, за подарки для наших детей — кухню, автопарк и детскую мебель. Вы делаете мир лучше! Дети в восторге 😍",
+  },
+];
+
+function NewsSlider() {
+  const [current, setCurrent] = useState(0);
+  const total = NEWS_ITEMS.length;
+  const visible = 3;
+  const max = total - visible;
+
+  const prev = () => setCurrent((c) => Math.max(0, c - 1));
+  const next = () => setCurrent((c) => Math.min(max, c + 1));
+
+  return (
+    <div>
+      <div className="overflow-hidden">
+        <div
+          className="flex gap-6 transition-transform duration-500 ease-in-out"
+          style={{ transform: `translateX(calc(-${current} * (100% / ${visible} + 8px)))` }}
+        >
+          {NEWS_ITEMS.map((item) => (
+            <a
+              key={item.href}
+              href={item.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-beige rounded-sm overflow-hidden hover:shadow-md transition-all duration-300 hover:-translate-y-1 group flex-shrink-0"
+              style={{ width: `calc((100% - ${(visible - 1) * 24}px) / ${visible})` }}
+            >
+              <div className="aspect-video overflow-hidden">
+                {item.img ? (
+                  <img src={item.img} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                ) : (
+                  <div className="w-full h-full bg-sage-pale flex items-center justify-center">
+                    <div className="text-center">
+                      <div className="text-4xl mb-2">🏛️</div>
+                      <div className="text-sage text-xs font-golos uppercase tracking-wider">Форум</div>
+                    </div>
+                  </div>
+                )}
+              </div>
+              <div className="h-1 bg-gradient-to-r from-sage to-sage-light" />
+              <div className="p-6">
+                <div className="text-muted-foreground text-xs mb-3">{item.date}</div>
+                <h3 className="font-cormorant text-ink text-xl font-semibold leading-snug mb-3 group-hover:text-sage transition-colors">{item.title}</h3>
+                <p className="text-foreground/60 text-sm leading-relaxed line-clamp-3">{item.text}</p>
+                <div className="mt-4 flex items-center gap-1 text-sage text-xs font-golos uppercase tracking-wider">
+                  Читать в ВКонтакте <Icon name="ArrowRight" size={12} />
+                </div>
+              </div>
+            </a>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between mt-8">
+        <p className="text-muted-foreground text-sm">
+          Больше новостей →{" "}
+          <a href="/news" className="text-sage hover:underline">открыть ленту</a>
+        </p>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={prev}
+            disabled={current === 0}
+            className="w-10 h-10 rounded-full border border-sage/30 flex items-center justify-center text-sage hover:bg-sage-pale transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+          >
+            <Icon name="ChevronLeft" size={18} />
+          </button>
+          <div className="flex gap-1.5">
+            {Array.from({ length: max + 1 }).map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setCurrent(i)}
+                className={`w-2 h-2 rounded-full transition-all duration-300 ${i === current ? "bg-sage w-5" : "bg-sage/25"}`}
+              />
+            ))}
+          </div>
+          <button
+            onClick={next}
+            disabled={current === max}
+            className="w-10 h-10 rounded-full border border-sage/30 flex items-center justify-center text-sage hover:bg-sage-pale transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+          >
+            <Icon name="ChevronRight" size={18} />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Index() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("главная");
@@ -329,7 +446,7 @@ export default function Index() {
         </div>
       </section>
 
-      {/* НОВОСТИ — превью */}
+      {/* НОВОСТИ — слайдер */}
       <section className="py-28 bg-white">
         <div className="max-w-7xl mx-auto px-6">
           <Reveal>
@@ -347,84 +464,7 @@ export default function Index() {
                 Все новости <Icon name="ArrowRight" size={14} />
               </a>
             </div>
-
-            <div className="grid md:grid-cols-3 gap-6">
-              <a href="https://vk.com/wall-229898882_304" target="_blank" rel="noopener noreferrer"
-                className="bg-beige rounded-sm overflow-hidden hover:shadow-md transition-all duration-300 hover:-translate-y-1 group">
-                <div className="aspect-video overflow-hidden">
-                  <img
-                    src="https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/bee92c70-daa2-4e47-b246-e7d063269312.jpg"
-                    alt="Спасибо MEBELDOF"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                </div>
-                <div className="h-1 bg-gradient-to-r from-sage to-sage-light" />
-                <div className="p-6">
-                  <div className="text-muted-foreground text-xs mb-3">Апрель 2025</div>
-                  <h3 className="font-cormorant text-ink text-xl font-semibold leading-snug mb-3 group-hover:text-sage transition-colors">
-                    Спасибо MEBELDOF!
-                  </h3>
-                  <p className="text-foreground/60 text-sm leading-relaxed line-clamp-3">
-                    За заботу, за внимание, за подарки для наших детей — кухню, автопарк и детскую мебель. Вы делаете мир лучше! Дети в восторге 😍
-                  </p>
-                  <div className="mt-4 flex items-center gap-1 text-sage text-xs font-golos uppercase tracking-wider">
-                    Читать в ВКонтакте <Icon name="ArrowRight" size={12} />
-                  </div>
-                </div>
-              </a>
-
-              <a href="https://vk.com/wall-229898882_352" target="_blank" rel="noopener noreferrer"
-                className="bg-beige rounded-sm overflow-hidden hover:shadow-md transition-all duration-300 hover:-translate-y-1 group">
-                <div className="aspect-video overflow-hidden">
-                  <img
-                    src="https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/9bed1cfa-a4c2-43a2-91e1-7ded0e5f6576.jpg"
-                    alt="Круглый стол"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                </div>
-                <div className="h-1 bg-gradient-to-r from-sage to-sage-light" />
-                <div className="p-6">
-                  <div className="text-muted-foreground text-xs mb-3">28 апреля 2025</div>
-                  <h3 className="font-cormorant text-ink text-xl font-semibold leading-snug mb-3 group-hover:text-sage transition-colors">
-                    Нас пригласили поделиться опытом
-                  </h3>
-                  <p className="text-foreground/60 text-sm leading-relaxed line-clamp-3">
-                    Учредитель Василий Сайфуллин и директор Дмитрий Чуйкин выступили на круглом столе о восстановлении родительских прав и воссоединении семей. Уникальный опыт кризисного центра — реабилитация без разлучения родителей и детей.
-                  </p>
-                  <div className="mt-4 flex items-center gap-1 text-sage text-xs font-golos uppercase tracking-wider">
-                    Читать в ВКонтакте <Icon name="ArrowRight" size={12} />
-                  </div>
-                </div>
-              </a>
-
-              <a href="https://vk.com/wall-229898882_344" target="_blank" rel="noopener noreferrer"
-                className="bg-beige rounded-sm overflow-hidden hover:shadow-md transition-all duration-300 hover:-translate-y-1 group">
-                <div className="aspect-video overflow-hidden">
-                  <img
-                    src="https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/5f84e431-89c1-4bba-bbc8-159bbd2b508c.jpg"
-                    alt="Конференция Устойчивость"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                </div>
-                <div className="h-1 bg-gradient-to-r from-sage to-sage-light" />
-                <div className="p-6">
-                  <div className="text-muted-foreground text-xs mb-3">Апрель 2025 · Москва</div>
-                  <h3 className="font-cormorant text-ink text-xl font-semibold leading-snug mb-3 group-hover:text-sage transition-colors">
-                    Конференция «Устойчивость» для лидеров НКО
-                  </h3>
-                  <p className="text-foreground/60 text-sm leading-relaxed line-clamp-3">
-                    Директор Дмитрий Чуйкин и фандрайзер Надежда на конференции в РЭУ им. Плеханова. Устойчивость — это про маму, которая не сорвалась, и ребёнка, который остался с семьёй.
-                  </p>
-                  <div className="mt-4 flex items-center gap-1 text-sage text-xs font-golos uppercase tracking-wider">
-                    Читать в ВКонтакте <Icon name="ArrowRight" size={12} />
-                  </div>
-                </div>
-              </a>
-            </div>
-            <p className="text-center text-muted-foreground text-sm mt-6">
-              Больше новостей в группе ВКонтакте →{" "}
-              <a href="/news" className="text-sage hover:underline">открыть ленту</a>
-            </p>
+            <NewsSlider />
           </Reveal>
         </div>
       </section>
