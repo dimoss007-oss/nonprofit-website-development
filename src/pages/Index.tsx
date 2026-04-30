@@ -84,6 +84,13 @@ const VIDEO_ITEMS = [
     title: "Видео кризисного центра «Спасение Надежды»",
     sub: "Смотреть на VK Видео",
   },
+  {
+    href: "https://vkvideo.ru/video-229898882_456239407?t=2m37s",
+    img: null,
+    date: "2025",
+    title: "Видео кризисного центра «Спасение Надежды»",
+    sub: "Смотреть на VK Видео",
+  },
 ];
 
 function VideoSlider() {
