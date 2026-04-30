@@ -375,12 +375,12 @@ export default function Index() {
 
               <a href="https://vk.com/wall-229898882_352" target="_blank" rel="noopener noreferrer"
                 className="bg-beige rounded-sm overflow-hidden hover:shadow-md transition-all duration-300 hover:-translate-y-1 group">
-                <div className="aspect-video overflow-hidden bg-sage-pale flex items-center justify-center">
-                  <div className="text-center px-6">
-                    <div className="text-5xl mb-3">🏛️</div>
-                    <div className="font-cormorant text-sage text-lg font-semibold">Круглый стол</div>
-                    <div className="text-muted-foreground text-xs mt-1">Ульяновская область, 28 апреля</div>
-                  </div>
+                <div className="aspect-video overflow-hidden">
+                  <img
+                    src="https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/9bed1cfa-a4c2-43a2-91e1-7ded0e5f6576.jpg"
+                    alt="Круглый стол"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
                 </div>
                 <div className="h-1 bg-gradient-to-r from-sage to-sage-light" />
                 <div className="p-6">
