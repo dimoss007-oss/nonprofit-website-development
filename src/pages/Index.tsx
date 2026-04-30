@@ -349,8 +349,33 @@ export default function Index() {
             </div>
 
             <div className="grid md:grid-cols-3 gap-6">
-              {[1,2,3].map((i) => (
-                <div key={i} className="bg-beige rounded-sm overflow-hidden hover:shadow-md transition-shadow duration-300">
+              <a href="https://vk.com/wall-229898882_304" target="_blank" rel="noopener noreferrer"
+                className="bg-beige rounded-sm overflow-hidden hover:shadow-md transition-all duration-300 hover:-translate-y-1 group">
+                <div className="aspect-video overflow-hidden">
+                  <img
+                    src="https://sun9-35.userapi.com/s/v1/ig2/plptZ6TlOU1VNVh98nkpvW6MyQpZkt9FYkkyOXi4VGzw8jtPENEDFOJVFwqNFTTRUG0VxSpu2gsvHORcF2gWxuJX.jpg?quality=95&as=640x853&from=bu&cs=640x0"
+                    alt="Спасибо MEBELDOF"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                </div>
+                <div className="h-1 bg-gradient-to-r from-sage to-sage-light" />
+                <div className="p-6">
+                  <div className="text-muted-foreground text-xs mb-3">Апрель 2025</div>
+                  <h3 className="font-cormorant text-ink text-xl font-semibold leading-snug mb-3 group-hover:text-sage transition-colors">
+                    Спасибо MEBELDOF!
+                  </h3>
+                  <p className="text-foreground/60 text-sm leading-relaxed line-clamp-3">
+                    За заботу, за внимание, за подарки для наших детей — кухню, автопарк и детскую мебель. Вы делаете мир лучше! Дети в восторге 😍
+                  </p>
+                  <div className="mt-4 flex items-center gap-1 text-sage text-xs font-golos uppercase tracking-wider">
+                    Читать в ВКонтакте <Icon name="ArrowRight" size={12} />
+                  </div>
+                </div>
+              </a>
+
+              {[1,2].map((i) => (
+                <div key={i} className="bg-beige rounded-sm overflow-hidden">
+                  <div className="aspect-video skeleton" />
                   <div className="h-1 bg-gradient-to-r from-sage to-sage-light" />
                   <div className="p-6">
                     <div className="skeleton h-3 rounded w-1/3 mb-4" />
@@ -363,7 +388,7 @@ export default function Index() {
               ))}
             </div>
             <p className="text-center text-muted-foreground text-sm mt-6">
-              Новости загружаются автоматически из группы ВКонтакте →{" "}
+              Больше новостей в группе ВКонтакте →{" "}
               <a href="/news" className="text-sage hover:underline">открыть ленту</a>
             </p>
           </Reveal>
