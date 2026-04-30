@@ -8,8 +8,7 @@ const teamMembers = [
   { name: "Чуйкин Дмитрий Юрьевич", role: "Генеральный директор", initial: "Д", emoji: "🤝" },
   { name: "Хайдарова Назира", role: "Заместитель директора по социальной работе", initial: "Н", emoji: "💚" },
   { name: "Тузкова Евгения Юрьевна", role: "Психолог", initial: "Е", emoji: "🌱" },
-  { name: "Координатор программ", role: "Программный директор", initial: "К", emoji: "💚" },
-  { name: "Куратор волонтёров", role: "Волонтёрский менеджер", initial: "В", emoji: "🌱" },
+
 ];
 
 function useReveal(threshold = 0.12) {
