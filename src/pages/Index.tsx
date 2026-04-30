@@ -77,6 +77,13 @@ const VIDEO_ITEMS = [
     title: "Ровно год. И мы — одна семья",
     sub: "40 мам · 50 детей · 11 выпускниц",
   },
+  {
+    href: "https://vkvideo.ru/video-229898882_456239393",
+    img: null,
+    date: "2025",
+    title: "Видео кризисного центра «Спасение Надежды»",
+    sub: "Смотреть на VK Видео",
+  },
 ];
 
 function VideoSlider() {
