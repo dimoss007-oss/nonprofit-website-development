@@ -6,6 +6,7 @@ const VK_URL = "https://vk.com/spasenienadezhdi";
 const teamMembers = [
   { name: "Сайфуллин Василий Валерьевич", role: "Учредитель", initial: "С", emoji: "🌿", photo: "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/d5b098f1-b52e-4625-82c1-06bd3c4b4aec.jpg" },
   { name: "Чуйкин Дмитрий Юрьевич", role: "Генеральный директор", initial: "Д", emoji: "🤝" },
+  { name: "Хайдарова Назира", role: "Заместитель директора по социальной работе", initial: "Н", emoji: "💚" },
   { name: "Координатор программ", role: "Программный директор", initial: "К", emoji: "💚" },
   { name: "Куратор волонтёров", role: "Волонтёрский менеджер", initial: "В", emoji: "🌱" },
 ];
