@@ -302,7 +302,7 @@ export default function Index() {
                 <div key={m.name} className="group bg-beige rounded-sm p-7 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
                   <div className="w-16 h-16 rounded-full bg-sage-pale flex items-center justify-center text-3xl mb-5 overflow-hidden">
                     {m.photo
-                      ? <img src={m.photo} alt={m.name} className="w-full h-full object-cover" />
+                      ? <img src={m.photo} alt={m.name} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-125" />
                       : m.emoji}
                   </div>
                   <h3 className="font-cormorant text-ink text-xl font-semibold mb-1">{m.name}</h3>
