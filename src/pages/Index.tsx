@@ -397,17 +397,29 @@ export default function Index() {
                 </div>
               </a>
 
-              <div className="bg-beige rounded-sm overflow-hidden">
-                <div className="aspect-video skeleton" />
+              <a href="https://vk.com/wall-229898882_344" target="_blank" rel="noopener noreferrer"
+                className="bg-beige rounded-sm overflow-hidden hover:shadow-md transition-all duration-300 hover:-translate-y-1 group">
+                <div className="aspect-video overflow-hidden">
+                  <img
+                    src="https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/5f84e431-89c1-4bba-bbc8-159bbd2b508c.jpg"
+                    alt="Конференция Устойчивость"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                </div>
                 <div className="h-1 bg-gradient-to-r from-sage to-sage-light" />
                 <div className="p-6">
-                  <div className="skeleton h-3 rounded w-1/3 mb-4" />
-                  <div className="skeleton h-4 rounded mb-2" />
-                  <div className="skeleton h-4 rounded w-4/5 mb-2" />
-                  <div className="skeleton h-4 rounded w-3/5 mb-5" />
-                  <div className="skeleton h-3 rounded w-1/4" />
+                  <div className="text-muted-foreground text-xs mb-3">Апрель 2025 · Москва</div>
+                  <h3 className="font-cormorant text-ink text-xl font-semibold leading-snug mb-3 group-hover:text-sage transition-colors">
+                    Конференция «Устойчивость» для лидеров НКО
+                  </h3>
+                  <p className="text-foreground/60 text-sm leading-relaxed line-clamp-3">
+                    Директор Дмитрий Чуйкин и фандрайзер Надежда на конференции в РЭУ им. Плеханова. Устойчивость — это про маму, которая не сорвалась, и ребёнка, который остался с семьёй.
+                  </p>
+                  <div className="mt-4 flex items-center gap-1 text-sage text-xs font-golos uppercase tracking-wider">
+                    Читать в ВКонтакте <Icon name="ArrowRight" size={12} />
+                  </div>
                 </div>
-              </div>
+              </a>
             </div>
             <p className="text-center text-muted-foreground text-sm mt-6">
               Больше новостей в группе ВКонтакте →{" "}
