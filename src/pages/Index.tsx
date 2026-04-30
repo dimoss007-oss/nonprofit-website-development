@@ -30,7 +30,7 @@ function Reveal({ children, className = "" }: { children: React.ReactNode; class
 }
 
 const teamMembers = [
-  { name: "Сайфуллин Василий Валерьевич", role: "Учредитель", initial: "С", emoji: "🌿" },
+  { name: "Сайфуллин Василий Валерьевич", role: "Учредитель", initial: "С", emoji: "🌿", photo: "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/d5b098f1-b52e-4625-82c1-06bd3c4b4aec.jpg" },
   { name: "Руководитель организации", role: "Директор", initial: "Р", emoji: "🤝" },
   { name: "Координатор программ", role: "Программный директор", initial: "К", emoji: "💚" },
   { name: "Куратор волонтёров", role: "Волонтёрский менеджер", initial: "В", emoji: "🌱" },
@@ -300,8 +300,10 @@ export default function Index() {
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
               {teamMembers.map((m) => (
                 <div key={m.name} className="group bg-beige rounded-sm p-7 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-                  <div className="w-16 h-16 rounded-full bg-sage-pale flex items-center justify-center text-3xl mb-5">
-                    {m.emoji}
+                  <div className="w-16 h-16 rounded-full bg-sage-pale flex items-center justify-center text-3xl mb-5 overflow-hidden">
+                    {m.photo
+                      ? <img src={m.photo} alt={m.name} className="w-full h-full object-cover" />
+                      : m.emoji}
                   </div>
                   <h3 className="font-cormorant text-ink text-xl font-semibold mb-1">{m.name}</h3>
                   <p className="text-muted-foreground text-sm">{m.role}</p>
