@@ -52,9 +52,9 @@ const VIDEO_ITEMS = [
   },
   {
     href: "https://vkvideo.ru/video-229898882_456239407?t=2m37s",
-    img: null,
-    date: "2025",
-    title: "Видео кризисного центра «Спасение Надежды»",
+    img: "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/945c2459-a992-4736-8200-f1fc85bdf450.png",
+    date: "9 апреля 2025 · Пенза",
+    title: "«Спасение Надежды» на форуме «Мир. Женщина. Семья»",
     sub: "Смотреть на VK Видео",
   },
 ];
