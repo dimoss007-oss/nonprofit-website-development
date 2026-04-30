@@ -449,7 +449,23 @@ export default function Index() {
             </div>
 
             <div className="grid md:grid-cols-3 gap-6">
-              {[1,2,3].map((i) => (
+              <a href="https://vk.com/wall-229898882_327" target="_blank" rel="noopener noreferrer"
+                className="bg-beige rounded-sm overflow-hidden hover:shadow-md transition-all duration-300 hover:-translate-y-1 group">
+                <div className="aspect-video bg-sage-pale relative overflow-hidden flex items-center justify-center">
+                  <img src="https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/82a9f428-4386-466d-88e0-0ad976b369c3.jpg"
+                    alt="Ровно год" className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-500" />
+                  <div className="relative w-14 h-14 rounded-full bg-beige/80 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                    <Icon name="Play" size={22} className="text-sage ml-1" />
+                  </div>
+                </div>
+                <div className="p-5">
+                  <div className="text-muted-foreground text-xs mb-2">Апрель 2025</div>
+                  <h3 className="font-cormorant text-ink text-lg font-semibold leading-snug group-hover:text-sage transition-colors">Ровно год. И мы — одна семья</h3>
+                  <p className="text-muted-foreground text-xs mt-1">40 мам · 50 детей · 11 выпускниц</p>
+                </div>
+              </a>
+
+              {[1,2].map((i) => (
                 <div key={i} className="bg-beige rounded-sm overflow-hidden hover:shadow-md transition-shadow duration-300">
                   <div className="aspect-video bg-sage-pale flex items-center justify-center">
                     <div className="w-14 h-14 rounded-full bg-sage/20 flex items-center justify-center">
