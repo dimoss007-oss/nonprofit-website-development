@@ -163,7 +163,7 @@ export default function Index() {
 
           <div className="animate-fade-up delay-300 grid grid-cols-2 gap-4">
             {[
-              { num: "8+ лет", label: "помогаем людям" },
+              { num: "1+ год", label: "помогаем семьям" },
               { num: "2 400+", label: "человек получили помощь" },
               { num: "150+", label: "волонтёров" },
               { num: "100%", label: "прозрачность расходов" },
