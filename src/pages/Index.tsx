@@ -83,7 +83,7 @@ export default function Index() {
             <img src="https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/4ca974da-fec3-4fd3-834d-c7dccc97fca9.jpg" alt="Спасение надежды" className="w-14 h-14 object-contain" />
             <div>
               <div className="font-cormorant text-ink text-lg font-semibold leading-none">Спасение надежды</div>
-              <div className="text-muted-foreground text-[10px] uppercase tracking-wider">Некоммерческая организация</div>
+              <div className="text-muted-foreground text-[10px] uppercase tracking-wider">Кризисный центр</div>
             </div>
           </a>
 
