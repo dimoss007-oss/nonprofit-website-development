@@ -30,10 +30,10 @@ function Reveal({ children, className = "" }: { children: React.ReactNode; class
 }
 
 const teamMembers = [
-  { name: "Руководитель организации", role: "Директор", initial: "Р", emoji: "🌿" },
-  { name: "Координатор программ", role: "Программный директор", initial: "К", emoji: "🤝" },
-  { name: "Куратор волонтёров", role: "Волонтёрский менеджер", initial: "В", emoji: "💚" },
-  { name: "Специалист по связям", role: "PR и коммуникации", initial: "С", emoji: "🌱" },
+  { name: "Сайфуллин Василий Валерьевич", role: "Учредитель", initial: "С", emoji: "🌿" },
+  { name: "Руководитель организации", role: "Директор", initial: "Р", emoji: "🤝" },
+  { name: "Координатор программ", role: "Программный директор", initial: "К", emoji: "💚" },
+  { name: "Куратор волонтёров", role: "Волонтёрский менеджер", initial: "В", emoji: "🌱" },
 ];
 
 const donationAmounts = [300, 500, 1000, 3000];
