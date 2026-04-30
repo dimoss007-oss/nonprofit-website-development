@@ -127,6 +127,7 @@ export default function Index() {
         <div className="absolute inset-0">
           <img src={HERO_IMG} alt="Спасение надежды" className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-r from-beige/95 via-beige/80 to-beige/30" />
+          <img src="https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/4ca974da-fec3-4fd3-834d-c7dccc97fca9.jpg" alt="Логотип" className="absolute bottom-8 right-8 w-28 h-28 object-contain opacity-90" />
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-6 py-20 grid lg:grid-cols-2 gap-16 items-center">
