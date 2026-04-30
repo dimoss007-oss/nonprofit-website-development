@@ -80,9 +80,7 @@ export default function Index() {
       <nav className="fixed top-0 left-0 right-0 z-50 bg-beige/95 backdrop-blur-sm border-b border-beige-dark">
         <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
           <a href="/" className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-sage flex items-center justify-center">
-              <Icon name="Heart" size={16} className="text-beige" />
-            </div>
+            <img src="https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/4ca974da-fec3-4fd3-834d-c7dccc97fca9.jpg" alt="Спасение надежды" className="w-12 h-12 rounded-full object-cover" />
             <div>
               <div className="font-cormorant text-ink text-lg font-semibold leading-none">Спасение надежды</div>
               <div className="text-muted-foreground text-[10px] uppercase tracking-wider">Некоммерческая организация</div>
