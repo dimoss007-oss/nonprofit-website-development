@@ -45,7 +45,7 @@ const VIDEO_ITEMS = [
   },
   {
     href: "https://vkvideo.ru/video-229898882_456239393",
-    img: null,
+    img: "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/653c15d3-9214-4272-bc83-1737592f3039.png",
     date: "2025",
     title: "Динамическая группа (подростки 11+)",
     sub: "Смотреть на VK Видео",
