@@ -101,6 +101,11 @@ export default function Index() {
             ))}
           </div>
 
+          <a href="tel:88003008685" className="hidden md:flex items-center gap-2 text-sage font-golos font-semibold text-sm hover:text-sage-dark transition-colors">
+            <Icon name="Phone" size={14} />
+            8 800 300-86-85
+          </a>
+
           <button onClick={() => setMenuOpen(!menuOpen)} className="lg:hidden text-ink">
             <Icon name={menuOpen ? "X" : "Menu"} size={22} />
           </button>
