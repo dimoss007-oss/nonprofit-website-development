@@ -353,7 +353,7 @@ export default function Index() {
                 className="bg-beige rounded-sm overflow-hidden hover:shadow-md transition-all duration-300 hover:-translate-y-1 group">
                 <div className="aspect-video overflow-hidden">
                   <img
-                    src="https://sun9-35.userapi.com/s/v1/ig2/plptZ6TlOU1VNVh98nkpvW6MyQpZkt9FYkkyOXi4VGzw8jtPENEDFOJVFwqNFTTRUG0VxSpu2gsvHORcF2gWxuJX.jpg?quality=95&as=640x853&from=bu&cs=640x0"
+                    src="https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/bee92c70-daa2-4e47-b246-e7d063269312.jpg"
                     alt="Спасибо MEBELDOF"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
