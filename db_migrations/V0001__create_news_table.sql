@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS news (
+  id SERIAL PRIMARY KEY,
+  title TEXT NOT NULL,
+  text TEXT NOT NULL,
+  photos TEXT[] DEFAULT '{}',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);

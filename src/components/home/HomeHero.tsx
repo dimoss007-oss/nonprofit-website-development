@@ -13,6 +13,7 @@ const navItemsBefore = [
 ];
 
 const navItemsAfter = [
+  { label: "новости", id: "/news" },
   { label: "поддержать нас", id: "podderzhka" },
   { label: "контакты", id: "kontakty" },
 ];
