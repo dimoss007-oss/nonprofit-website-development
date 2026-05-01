@@ -20,6 +20,9 @@ def handler(event: dict, context) -> dict:
     correct_login = os.environ.get('ADMIN_LOGIN', '') or ''
     correct_password = os.environ.get('ADMIN_PASSWORD', '') or ''
 
+    print(f"DEBUG login_received='{login}' login_expected='{correct_login}' match={login==correct_login}")
+    print(f"DEBUG pass_received='{password}' pass_expected='{correct_password}' match={password==correct_password}")
+
     login_ok = hmac.compare_digest(login, correct_login)
     password_ok = hmac.compare_digest(password, correct_password)
 
