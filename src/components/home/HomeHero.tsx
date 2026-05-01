@@ -199,8 +199,8 @@ export default function HomeHero({ onScrollTo, activeSection, setActiveSection }
               key={src}
               src={src}
               alt="Спасение надежды"
-              className="absolute inset-0 w-full h-full object-cover object-top transition-opacity duration-1000"
-              style={{ opacity: i === slideIndex ? 1 : 0 }}
+              className="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000"
+              style={{ opacity: i === slideIndex ? 1 : 0, objectPosition: i === 1 ? "center 30%" : "top" }}
             />
           ))}
           <div className="absolute inset-0 bg-gradient-to-r from-beige/95 via-beige/80 to-beige/30" />
