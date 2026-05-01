@@ -211,22 +211,6 @@ export default function HomeHero({ onScrollTo, activeSection, setActiveSection }
             <p className="text-foreground/65 text-lg leading-relaxed max-w-lg mb-10">
               Мы помогаем семьям, которые столкнулись с проблемой зависимости.
             </p>
-            <div className="flex flex-wrap gap-4 justify-center">
-              <button
-                onClick={() => onScrollTo("podderzhka")}
-                className="px-8 py-3.5 bg-sage text-beige font-golos font-semibold text-sm uppercase tracking-wide rounded-full hover:bg-sage-dark transition-all duration-300 hover:scale-105"
-              >
-                Помочь организации
-              </button>
-              <a
-                href={VK_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-8 py-3.5 border border-sage/40 text-sage font-golos text-sm uppercase tracking-wide rounded-full hover:border-sage hover:bg-sage-pale transition-all duration-300 flex items-center gap-2"
-              >
-                <Icon name="ExternalLink" size={14} /> Наша группа ВК
-              </a>
-            </div>
           </div>
 
           <div className="animate-fade-up delay-300 relative">
@@ -259,6 +243,22 @@ export default function HomeHero({ onScrollTo, activeSection, setActiveSection }
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-6 pb-16 grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <button
+            onClick={() => onScrollTo("podderzhka")}
+            className="px-4 py-3.5 bg-sage text-beige font-golos font-semibold text-sm uppercase tracking-wide rounded-full hover:bg-sage-dark transition-all duration-300 hover:scale-105"
+          >
+            Помочь организации
+          </button>
+          <a
+            href={VK_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-4 py-3.5 border border-sage/40 text-sage font-golos text-sm uppercase tracking-wide rounded-full hover:border-sage hover:bg-sage-pale transition-all duration-300 flex items-center justify-center gap-2"
+          >
+            <Icon name="ExternalLink" size={14} /> Наша группа ВК
+          </a>
+          <div className="hidden lg:block" />
+          <div className="hidden lg:block" />
           {[
             { icon: "Heart", title: "С 2024 года", text: "Помогаем семьям в трудных жизненных ситуациях" },
             { icon: "Users", title: "30+ семей", text: "Получили реальную помощь и поддержку организации" },
