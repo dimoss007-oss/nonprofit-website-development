@@ -197,7 +197,7 @@ export default function HomeHero({ onScrollTo, activeSection, setActiveSection }
           <div className="absolute inset-0 bg-gradient-to-br from-beige via-beige to-sage-pale/40" />
         </div>
 
-        <div className="relative z-10 max-w-7xl mx-auto px-6 pt-10 pb-16 grid lg:grid-cols-2 gap-12 items-start">
+        <div className="relative z-10 max-w-7xl mx-auto px-6 pt-10 pb-16 grid lg:grid-cols-2 gap-12 items-center">
           <div className="animate-fade-up pt-4">
             <div className="inline-flex items-center gap-2 bg-sage-pale text-sage px-4 py-2 rounded-full text-xs font-golos uppercase tracking-widest mb-8">
               <Icon name="Heart" size={12} />
