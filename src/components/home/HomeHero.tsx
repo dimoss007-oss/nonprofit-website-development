@@ -194,26 +194,8 @@ export default function HomeHero({ onScrollTo, activeSection, setActiveSection }
       {/* HERO */}
       <section id="glavnaya" className="relative min-h-screen flex items-center overflow-hidden pt-16">
         <div className="absolute inset-0">
-          {HERO_IMGS.map((src, i) => (
-            <img
-              key={src}
-              src={src}
-              alt="Спасение надежды"
-              className="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000"
-              style={{ opacity: i === slideIndex ? 1 : 0, objectPosition: i === 1 ? "center 30%" : "top" }}
-            />
-          ))}
-          <div className="absolute inset-0 bg-gradient-to-r from-beige/95 via-beige/80 to-beige/30" />
-          <img src={LOGO_IMG} alt="Логотип" className="absolute bottom-8 right-8 w-28 h-28 object-contain opacity-30" />
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-            {HERO_IMGS.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setSlideIndex(i)}
-                className={`w-2 h-2 rounded-full transition-all duration-300 ${i === slideIndex ? "bg-sage w-5" : "bg-beige-dark/60"}`}
-              />
-            ))}
-          </div>
+          <div className="absolute inset-0 bg-gradient-to-br from-beige via-beige to-sage-pale/40" />
+          <img src={LOGO_IMG} alt="Логотип" className="absolute bottom-8 right-8 w-28 h-28 object-contain opacity-10" />
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-6 py-20 grid lg:grid-cols-2 gap-16 items-center">
@@ -248,18 +230,27 @@ export default function HomeHero({ onScrollTo, activeSection, setActiveSection }
             </div>
           </div>
 
-          <div className="animate-fade-up delay-300 grid grid-cols-2 gap-4">
-            {[
-              { num: "с 2024", label: "года помогаем семьям" },
-              { num: "30+", label: "семей получили помощь" },
-              { num: "10+", label: "детей вернули в семьи" },
-              { num: "100%", label: "прозрачность расходов" },
-            ].map(({ num, label }) => (
-              <div key={num} className="bg-white/70 backdrop-blur border border-beige-dark rounded-sm p-5 hover:shadow-md transition-shadow duration-300">
-                <div className="font-cormorant text-sage text-4xl font-semibold mb-1">{num}</div>
-                <div className="text-muted-foreground text-sm leading-snug">{label}</div>
+          <div className="animate-fade-up delay-300 relative">
+            <div className="relative rounded-sm overflow-hidden shadow-2xl aspect-[4/3]">
+              {HERO_IMGS.map((src, i) => (
+                <img
+                  key={src}
+                  src={src}
+                  alt="Спасение надежды"
+                  className="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000"
+                  style={{ opacity: i === slideIndex ? 1 : 0, objectPosition: i === 1 ? "center 30%" : "top" }}
+                />
+              ))}
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+                {HERO_IMGS.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setSlideIndex(i)}
+                    className={`h-2 rounded-full transition-all duration-300 ${i === slideIndex ? "bg-white w-5" : "bg-white/50 w-2"}`}
+                  />
+                ))}
               </div>
-            ))}
+            </div>
           </div>
         </div>
 
