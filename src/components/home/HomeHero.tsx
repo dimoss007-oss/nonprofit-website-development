@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Icon from "@/components/ui/icon";
 
 const HERO_IMG = "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/82a9f428-4386-466d-88e0-0ad976b369c3.jpg";
@@ -16,6 +16,13 @@ const navItems = [
   { label: "контакты", id: "kontakty" },
 ];
 
+const helpItems = [
+  { label: "Зависимости", id: "zavisimosti" },
+  { label: "Психолог", id: "psiholog" },
+  { label: "Сопровождение", id: "soprovozhdenie" },
+  { label: "Кризис", id: "krizis" },
+];
+
 interface Props {
   onScrollTo: (id: string) => void;
   activeSection: string;
@@ -24,11 +31,24 @@ interface Props {
 
 export default function HomeHero({ onScrollTo, activeSection, setActiveSection }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
+  const helpRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (helpRef.current && !helpRef.current.contains(e.target as Node)) {
+        setHelpOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   const handleNav = (label: string, id: string) => {
     setActiveSection(label);
     onScrollTo(id);
     setMenuOpen(false);
+    setHelpOpen(false);
   };
 
   return (
@@ -54,6 +74,28 @@ export default function HomeHero({ onScrollTo, activeSection, setActiveSection }
                 {label}
               </button>
             ))}
+            <div ref={helpRef} className="relative">
+              <button
+                onClick={() => setHelpOpen(!helpOpen)}
+                className="nav-link flex items-center gap-1"
+              >
+                мы помогаем!
+                <Icon name="ChevronDown" size={12} className={`transition-transform duration-200 ${helpOpen ? "rotate-180" : ""}`} />
+              </button>
+              {helpOpen && (
+                <div className="absolute top-full left-0 mt-2 bg-white border border-beige-dark rounded-sm shadow-lg py-1 min-w-[160px] z-50">
+                  {helpItems.map(({ label, id }) => (
+                    <button
+                      key={id}
+                      onClick={() => handleNav(label, id)}
+                      className="w-full text-left px-4 py-2.5 text-xs uppercase tracking-widest text-ink/70 hover:text-primary hover:bg-sage-pale transition-colors duration-150 font-golos"
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           <a href="tel:88003008685" className="hidden md:flex items-center gap-2 text-sage font-golos font-semibold text-sm hover:text-sage-dark transition-colors">
@@ -74,6 +116,16 @@ export default function HomeHero({ onScrollTo, activeSection, setActiveSection }
                   {label}
                 </button>
               ))}
+              <div className="col-span-2 border-t border-beige-dark pt-3 mt-1">
+                <div className="text-xs uppercase tracking-widest text-primary font-golos font-semibold mb-2">Мы помогаем!</div>
+                <div className="grid grid-cols-2 gap-3">
+                  {helpItems.map(({ label, id }) => (
+                    <button key={id} onClick={() => handleNav(label, id)} className="nav-link text-left py-2">
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         )}
