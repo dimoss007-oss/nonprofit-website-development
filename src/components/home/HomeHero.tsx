@@ -1,7 +1,10 @@
 import { useState, useRef, useEffect } from "react";
 import Icon from "@/components/ui/icon";
 
-const HERO_IMG = "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/82a9f428-4386-466d-88e0-0ad976b369c3.jpg";
+const HERO_IMGS = [
+  "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/82a9f428-4386-466d-88e0-0ad976b369c3.jpg",
+  "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/8c3c42ea-1fc4-4248-985b-aa5c922bfada.jpg",
+];
 const LOGO_IMG = "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/4ca974da-fec3-4fd3-834d-c7dccc97fca9.jpg";
 const VK_URL = "https://vk.com/spasenienadezhdi";
 
@@ -39,6 +42,7 @@ export default function HomeHero({ onScrollTo, activeSection, setActiveSection }
   const [menuOpen, setMenuOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [slideIndex, setSlideIndex] = useState(0);
   const helpRef = useRef<HTMLDivElement>(null);
   const aboutRef = useRef<HTMLDivElement>(null);
 
@@ -49,6 +53,13 @@ export default function HomeHero({ onScrollTo, activeSection, setActiveSection }
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setSlideIndex(i => (i + 1) % HERO_IMGS.length);
+    }, 5000);
+    return () => clearInterval(timer);
   }, []);
 
   const handleNav = (label: string, id: string) => {
@@ -183,9 +194,26 @@ export default function HomeHero({ onScrollTo, activeSection, setActiveSection }
       {/* HERO */}
       <section id="glavnaya" className="relative min-h-screen flex items-center overflow-hidden pt-16">
         <div className="absolute inset-0">
-          <img src={HERO_IMG} alt="Спасение надежды" className="w-full h-full object-cover object-top" />
+          {HERO_IMGS.map((src, i) => (
+            <img
+              key={src}
+              src={src}
+              alt="Спасение надежды"
+              className="absolute inset-0 w-full h-full object-cover object-top transition-opacity duration-1000"
+              style={{ opacity: i === slideIndex ? 1 : 0 }}
+            />
+          ))}
           <div className="absolute inset-0 bg-gradient-to-r from-beige/95 via-beige/80 to-beige/30" />
           <img src={LOGO_IMG} alt="Логотип" className="absolute bottom-8 right-8 w-28 h-28 object-contain opacity-30" />
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+            {HERO_IMGS.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setSlideIndex(i)}
+                className={`w-2 h-2 rounded-full transition-all duration-300 ${i === slideIndex ? "bg-sage w-5" : "bg-beige-dark/60"}`}
+              />
+            ))}
+          </div>
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-6 py-20 grid lg:grid-cols-2 gap-16 items-center">
