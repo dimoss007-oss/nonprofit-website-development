@@ -5,8 +5,11 @@ const HERO_IMG = "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-33010
 const LOGO_IMG = "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/4ca974da-fec3-4fd3-834d-c7dccc97fca9.jpg";
 const VK_URL = "https://vk.com/spasenienadezhdi";
 
-const navItems = [
+const navItemsBefore = [
   { label: "главная", id: "glavnaya" },
+];
+
+const navItemsAfter = [
   { label: "поддержка", id: "podderzhka" },
   { label: "контакты", id: "kontakty" },
 ];
@@ -70,7 +73,7 @@ export default function HomeHero({ onScrollTo, activeSection, setActiveSection }
           </a>
 
           <div className="hidden lg:flex items-center gap-6">
-            {navItems.map(({ label, id }) => (
+            {navItemsBefore.map(({ label, id }) => (
               <button
                 key={id}
                 onClick={() => handleNav(label, id)}
@@ -123,6 +126,15 @@ export default function HomeHero({ onScrollTo, activeSection, setActiveSection }
                 </div>
               )}
             </div>
+            {navItemsAfter.map(({ label, id }) => (
+              <button
+                key={id}
+                onClick={() => handleNav(label, id)}
+                className={`nav-link ${activeSection === label ? "active" : ""}`}
+              >
+                {label}
+              </button>
+            ))}
           </div>
 
           <a href="tel:88003008685" className="hidden md:flex items-center gap-2 text-sage font-golos font-semibold text-sm hover:text-sage-dark transition-colors">
@@ -138,7 +150,7 @@ export default function HomeHero({ onScrollTo, activeSection, setActiveSection }
         {menuOpen && (
           <div className="lg:hidden bg-beige border-t border-beige-dark">
             <div className="px-6 py-4 grid grid-cols-2 gap-3">
-              {navItems.map(({ label, id }) => (
+              {[...navItemsBefore, ...navItemsAfter].map(({ label, id }) => (
                 <button key={id} onClick={() => handleNav(label, id)} className="nav-link text-left py-2">
                   {label}
                 </button>
