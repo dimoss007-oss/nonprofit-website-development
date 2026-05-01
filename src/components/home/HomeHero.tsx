@@ -211,7 +211,7 @@ export default function HomeHero({ onScrollTo, activeSection, setActiveSection }
             <p className="text-foreground/65 text-lg leading-relaxed max-w-lg mb-10">
               Мы помогаем семьям, которые столкнулись с проблемой зависимости.
             </p>
-            <div className="flex flex-wrap gap-4">
+            <div className="flex flex-wrap gap-4 justify-center">
               <button
                 onClick={() => onScrollTo("podderzhka")}
                 className="px-8 py-3.5 bg-sage text-beige font-golos font-semibold text-sm uppercase tracking-wide rounded-full hover:bg-sage-dark transition-all duration-300 hover:scale-105"
