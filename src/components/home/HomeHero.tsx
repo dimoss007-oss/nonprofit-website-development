@@ -208,7 +208,7 @@ export default function HomeHero({ onScrollTo, activeSection, setActiveSection }
               надежду!
             </h1>
             <p className="text-foreground/65 text-lg leading-relaxed max-w-lg mb-10">
-              Мы помогаем семьям, которые столкнулись с проблемой зависимости.
+              Мы помогаем семьям справиться с зависимостью и ее негативными последствиями.
             </p>
             <div className="flex flex-wrap gap-4">
               <button
