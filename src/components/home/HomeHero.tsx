@@ -205,11 +205,11 @@ export default function HomeHero({ onScrollTo, activeSection, setActiveSection }
             </div>
             <h1 className="font-cormorant text-ink text-6xl md:text-7xl font-light leading-[1.0] mb-6">
               Там, где<br/>
-              <span className="text-sage font-semibold">нужна</span><br/>
-              надежда
+              <span className="text-sage font-semibold">спасают</span><br/>
+              надежду!
             </h1>
             <p className="text-foreground/65 text-lg leading-relaxed max-w-lg mb-10">
-              Мы помогаем людям в трудных жизненных ситуациях — оказываем социальную поддержку, восстанавливаем надежду и возвращаем уверенность в завтрашнем дне.
+              Мы помогаем семьям, которые столкнулись с проблемой зависимости.
             </p>
             <div className="flex flex-wrap gap-4">
               <button
