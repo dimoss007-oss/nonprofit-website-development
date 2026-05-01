@@ -214,7 +214,7 @@ export default function HomeHero({ onScrollTo, activeSection, setActiveSection }
             <div className="flex flex-wrap gap-4">
               <button
                 onClick={() => onScrollTo("podderzhka")}
-                className="px-8 py-3.5 bg-sage text-beige font-golos font-semibold text-sm uppercase tracking-wide rounded-sm hover:bg-sage-dark transition-all duration-300 hover:scale-105"
+                className="px-8 py-3.5 bg-sage text-beige font-golos font-semibold text-sm uppercase tracking-wide rounded-full hover:bg-sage-dark transition-all duration-300 hover:scale-105"
               >
                 Помочь организации
               </button>
@@ -222,7 +222,7 @@ export default function HomeHero({ onScrollTo, activeSection, setActiveSection }
                 href={VK_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-8 py-3.5 border border-sage/40 text-sage font-golos text-sm uppercase tracking-wide rounded-sm hover:border-sage hover:bg-sage-pale transition-all duration-300 flex items-center gap-2"
+                className="px-8 py-3.5 border border-sage/40 text-sage font-golos text-sm uppercase tracking-wide rounded-full hover:border-sage hover:bg-sage-pale transition-all duration-300 flex items-center gap-2"
               >
                 <Icon name="ExternalLink" size={14} /> Наша группа ВК
               </a>
