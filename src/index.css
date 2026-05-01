@@ -4,54 +4,54 @@
 
 @layer base {
   :root {
-    /* Светло-зелёная + бежевая палитра */
-    --background: 42 35% 97%;
-    --foreground: 140 20% 15%;
+    /* Палитра логотипа: красно-оранжевый + бирюзовый + синий */
+    --background: 0 0% 98%;
+    --foreground: 225 45% 20%;
 
-    --card: 42 30% 95%;
-    --card-foreground: 140 20% 15%;
+    --card: 0 0% 100%;
+    --card-foreground: 225 45% 20%;
 
-    --popover: 42 30% 95%;
-    --popover-foreground: 140 20% 15%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 225 45% 20%;
 
-    --primary: 138 35% 42%;
-    --primary-foreground: 42 35% 97%;
+    --primary: 9 75% 58%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 40 30% 90%;
-    --secondary-foreground: 140 20% 15%;
+    --secondary: 178 42% 90%;
+    --secondary-foreground: 225 45% 20%;
 
-    --muted: 40 25% 90%;
-    --muted-foreground: 140 10% 45%;
+    --muted: 210 20% 94%;
+    --muted-foreground: 225 20% 45%;
 
-    --accent: 138 30% 88%;
-    --accent-foreground: 140 20% 15%;
+    --accent: 178 42% 55%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 42 35% 97%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 40 20% 84%;
-    --input: 40 20% 84%;
-    --ring: 138 35% 42%;
+    --border: 210 20% 86%;
+    --input: 210 20% 86%;
+    --ring: 9 75% 58%;
     --radius: 0.375rem;
 
     --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-foreground: 225 45% 20%;
+    --sidebar-primary: 9 75% 58%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 178 42% 90%;
+    --sidebar-accent-foreground: 225 45% 20%;
+    --sidebar-border: 210 20% 86%;
+    --sidebar-ring: 9 75% 58%;
 
-    /* Brand tokens */
-    --sage: 138 35% 42%;
-    --sage-light: 138 28% 58%;
-    --sage-pale: 138 25% 90%;
-    --sage-dark: 140 30% 28%;
-    --beige: 42 35% 97%;
-    --beige-mid: 40 28% 91%;
-    --beige-dark: 38 22% 82%;
-    --ink: 140 20% 15%;
+    /* Brand tokens (переиспользуем переменные) */
+    --sage: 9 75% 58%;
+    --sage-light: 9 70% 68%;
+    --sage-pale: 178 42% 90%;
+    --sage-dark: 9 65% 40%;
+    --beige: 0 0% 98%;
+    --beige-mid: 210 20% 94%;
+    --beige-dark: 210 20% 86%;
+    --ink: 225 45% 20%;
   }
 }
 
@@ -138,7 +138,7 @@
   background: linear-gradient(
     90deg,
     transparent,
-    hsl(var(--sage-light)),
+    hsl(178 42% 55%),
     transparent
   );
 }
