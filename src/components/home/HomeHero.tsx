@@ -258,6 +258,21 @@ export default function HomeHero({ onScrollTo, activeSection, setActiveSection }
           </div>
         </div>
 
+        <div className="relative z-10 max-w-7xl mx-auto px-6 pb-16 grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {[
+            { icon: "Heart", title: "С 2024 года", text: "Помогаем семьям в трудных жизненных ситуациях" },
+            { icon: "Users", title: "30+ семей", text: "Получили реальную помощь и поддержку организации" },
+            { icon: "Baby", title: "10+ детей", text: "Возвращены в родные семьи благодаря нашей работе" },
+            { icon: "Shield", title: "100% открытость", text: "Полная прозрачность в расходовании всех средств" },
+          ].map(({ icon, title, text }) => (
+            <div key={title} className="bg-white/60 backdrop-blur border border-sage/20 rounded-2xl p-5 flex flex-col gap-2">
+              <Icon name={icon as "Heart"} size={18} className="text-sage" />
+              <div className="font-cormorant text-ink text-xl font-semibold leading-tight">{title}</div>
+              <div className="text-foreground/60 text-sm leading-snug">{text}</div>
+            </div>
+          ))}
+        </div>
+
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 text-ink/30 animate-float">
           <span className="text-xs tracking-widest uppercase">листайте</span>
           <Icon name="ChevronDown" size={14} />
