@@ -203,7 +203,7 @@ export default function HomeHero({ onScrollTo, activeSection, setActiveSection }
               <Icon name="Heart" size={12} />
               АНО «Спасение надежды»
             </div>
-            <h1 className="font-cormorant text-ink text-6xl md:text-7xl font-bold leading-[1.0] mb-6">
+            <h1 className="text-ink text-6xl md:text-7xl leading-[1.05] mb-6" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 900 }}>
               Там, где<br/>
               <span className="text-sage font-semibold">спасают</span><br/>
               надежду!
