@@ -204,7 +204,7 @@ export default function HomeHero({ onScrollTo, activeSection, setActiveSection }
               АНО «Спасение надежды»
             </div>
             <h1 className="font-golos text-6xl md:text-7xl leading-[1.05] mb-6 font-bold" style={{ color: '#0ABAB5' }}>
-              Там, где<br/>
+              Место, где<br/>
               <span>спасают</span><br/>
               надежду!
             </h1>
