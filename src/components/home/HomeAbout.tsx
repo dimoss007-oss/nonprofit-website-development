@@ -157,7 +157,7 @@ export default function HomeAbout() {
               Люди, которые<br/><span className="text-sage font-semibold">делают это возможным</span>
             </h2>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
               {teamMembers.map((m) => (
                 <div key={m.name} className="group bg-beige rounded-sm p-7 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
                   <div className="w-28 h-28 rounded-full bg-sage-pale flex items-center justify-center text-3xl mb-5 overflow-hidden">
