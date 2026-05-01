@@ -203,9 +203,9 @@ export default function HomeHero({ onScrollTo, activeSection, setActiveSection }
               <Icon name="Heart" size={12} />
               АНО «Спасение надежды»
             </div>
-            <h1 className="text-ink text-6xl md:text-7xl leading-[1.05] mb-6" style={{ fontFamily: "'Fraunces', serif", fontWeight: 900 }}>
+            <h1 className="text-6xl md:text-7xl leading-[1.05] mb-6" style={{ fontFamily: "'Fraunces', serif", fontWeight: 900, color: '#0ABAB5' }}>
               Там, где<br/>
-              <span className="text-sage font-semibold">спасают</span><br/>
+              <span style={{ color: '#0ABAB5' }}>спасают</span><br/>
               надежду!
             </h1>
             <p className="text-foreground/65 text-lg leading-relaxed max-w-lg mb-10">
