@@ -8,12 +8,15 @@ const VK_URL = "https://vk.com/spasenienadezhdi";
 const navItems = [
   { label: "главная", id: "glavnaya" },
   { label: "о нас", id: "o-nas" },
-  { label: "миссия", id: "missiya" },
-  { label: "команда", id: "komanda" },
-  { label: "новости", id: "/news" },
-  { label: "видео", id: "/video" },
   { label: "поддержка", id: "podderzhka" },
   { label: "контакты", id: "kontakty" },
+];
+
+const menuItems = [
+  { label: "Миссия", id: "missiya" },
+  { label: "Команда", id: "komanda" },
+  { label: "Новости", id: "/news" },
+  { label: "Видео", id: "/video" },
 ];
 
 const helpItems = [
@@ -32,13 +35,14 @@ interface Props {
 export default function HomeHero({ onScrollTo, activeSection, setActiveSection }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
   const helpRef = useRef<HTMLDivElement>(null);
+  const moreRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (helpRef.current && !helpRef.current.contains(e.target as Node)) {
-        setHelpOpen(false);
-      }
+      if (helpRef.current && !helpRef.current.contains(e.target as Node)) setHelpOpen(false);
+      if (moreRef.current && !moreRef.current.contains(e.target as Node)) setMoreOpen(false);
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
@@ -49,6 +53,7 @@ export default function HomeHero({ onScrollTo, activeSection, setActiveSection }
     onScrollTo(id);
     setMenuOpen(false);
     setHelpOpen(false);
+    setMoreOpen(false);
   };
 
   return (
@@ -74,6 +79,28 @@ export default function HomeHero({ onScrollTo, activeSection, setActiveSection }
                 {label}
               </button>
             ))}
+            <div ref={moreRef} className="relative">
+              <button
+                onClick={() => setMoreOpen(!moreOpen)}
+                className="nav-link flex items-center gap-1"
+              >
+                меню
+                <Icon name="ChevronDown" size={12} className={`transition-transform duration-200 ${moreOpen ? "rotate-180" : ""}`} />
+              </button>
+              {moreOpen && (
+                <div className="absolute top-full left-0 mt-2 bg-white border border-beige-dark rounded-sm shadow-lg py-1 min-w-[160px] z-50">
+                  {menuItems.map(({ label, id }) => (
+                    <button
+                      key={id}
+                      onClick={() => handleNav(label, id)}
+                      className="w-full text-left px-4 py-2.5 text-xs uppercase tracking-widest text-ink/70 hover:text-primary hover:bg-sage-pale transition-colors duration-150 font-golos"
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
             <div ref={helpRef} className="relative">
               <button
                 onClick={() => setHelpOpen(!helpOpen)}
@@ -116,6 +143,16 @@ export default function HomeHero({ onScrollTo, activeSection, setActiveSection }
                   {label}
                 </button>
               ))}
+              <div className="col-span-2 border-t border-beige-dark pt-3 mt-1">
+                <div className="text-xs uppercase tracking-widest text-ink/40 font-golos font-semibold mb-2">Меню</div>
+                <div className="grid grid-cols-2 gap-3">
+                  {menuItems.map(({ label, id }) => (
+                    <button key={id} onClick={() => handleNav(label, id)} className="nav-link text-left py-2">
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
               <div className="col-span-2 border-t border-beige-dark pt-3 mt-1">
                 <div className="text-xs uppercase tracking-widest text-primary font-golos font-semibold mb-2">Мы помогаем!</div>
                 <div className="grid grid-cols-2 gap-3">
