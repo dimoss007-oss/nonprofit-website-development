@@ -230,7 +230,7 @@ export default function HomeHero({ onScrollTo, activeSection, setActiveSection }
           </div>
 
           <div className="animate-fade-up delay-300 relative">
-            <div className="relative rounded-sm overflow-hidden shadow-2xl" style={{ aspectRatio: "4/3" }}>
+            <div className="relative rounded-2xl overflow-hidden shadow-2xl" style={{ aspectRatio: "4/3" }}>
               {HERO_IMGS.map((src, i) => (
                 <img
                   key={src}
