@@ -192,14 +192,13 @@ export default function HomeHero({ onScrollTo, activeSection, setActiveSection }
       </nav>
 
       {/* HERO */}
-      <section id="glavnaya" className="relative min-h-screen flex items-center overflow-hidden pt-16">
+      <section id="glavnaya" className="relative min-h-screen overflow-hidden pt-16">
         <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-br from-beige via-beige to-sage-pale/40" />
-          <img src={LOGO_IMG} alt="Логотип" className="absolute bottom-8 right-8 w-28 h-28 object-contain opacity-10" />
         </div>
 
-        <div className="relative z-10 max-w-7xl mx-auto px-6 py-20 grid lg:grid-cols-2 gap-16 items-center">
-          <div className="animate-fade-up">
+        <div className="relative z-10 max-w-7xl mx-auto px-6 pt-10 pb-16 grid lg:grid-cols-2 gap-12 items-start">
+          <div className="animate-fade-up pt-4">
             <div className="inline-flex items-center gap-2 bg-sage-pale text-sage px-4 py-2 rounded-full text-xs font-golos uppercase tracking-widest mb-8">
               <Icon name="Heart" size={12} />
               АНО «Спасение надежды»
@@ -231,7 +230,7 @@ export default function HomeHero({ onScrollTo, activeSection, setActiveSection }
           </div>
 
           <div className="animate-fade-up delay-300 relative">
-            <div className="relative rounded-sm overflow-hidden shadow-2xl aspect-[4/3]">
+            <div className="relative rounded-sm overflow-hidden shadow-2xl" style={{ aspectRatio: "4/3" }}>
               {HERO_IMGS.map((src, i) => (
                 <img
                   key={src}
@@ -241,6 +240,11 @@ export default function HomeHero({ onScrollTo, activeSection, setActiveSection }
                   style={{ opacity: i === slideIndex ? 1 : 0, objectPosition: i === 1 ? "center 30%" : "top" }}
                 />
               ))}
+              <img
+                src={LOGO_IMG}
+                alt="Логотип"
+                className="absolute top-4 right-4 w-16 h-16 object-contain z-10 drop-shadow-lg opacity-80"
+              />
               <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
                 {HERO_IMGS.map((_, i) => (
                   <button
