@@ -265,10 +265,10 @@ export default function HomeHero({ onScrollTo, activeSection, setActiveSection }
             { icon: "Baby", title: "10+ детей", text: "Возвращены в родные семьи благодаря нашей работе" },
             { icon: "Shield", title: "100% открытость", text: "Полная прозрачность в расходовании всех средств" },
           ].map(({ icon, title, text }) => (
-            <div key={title} className="bg-white/60 backdrop-blur border border-sage/20 rounded-2xl p-5 flex flex-col gap-2">
-              <Icon name={icon as "Heart"} size={18} className="text-sage" />
-              <div className="font-cormorant text-ink text-xl font-semibold leading-tight">{title}</div>
-              <div className="text-foreground/60 text-sm leading-snug">{text}</div>
+            <div key={title} className="backdrop-blur rounded-2xl p-5 flex flex-col gap-2" style={{ backgroundColor: '#0ABAB5' }}>
+              <Icon name={icon as "Heart"} size={18} className="text-white/80" />
+              <div className="font-cormorant text-white text-xl font-semibold leading-tight">{title}</div>
+              <div className="text-white/75 text-sm leading-snug">{text}</div>
             </div>
           ))}
         </div>
