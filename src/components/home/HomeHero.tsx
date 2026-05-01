@@ -183,7 +183,7 @@ export default function HomeHero({ onScrollTo, activeSection, setActiveSection }
       {/* HERO */}
       <section id="glavnaya" className="relative min-h-screen flex items-center overflow-hidden pt-16">
         <div className="absolute inset-0">
-          <img src={HERO_IMG} alt="Спасение надежды" className="w-full h-full object-cover" />
+          <img src={HERO_IMG} alt="Спасение надежды" className="w-full h-full object-cover object-top" />
           <div className="absolute inset-0 bg-gradient-to-r from-beige/95 via-beige/80 to-beige/30" />
           <img src={LOGO_IMG} alt="Логотип" className="absolute bottom-8 right-8 w-28 h-28 object-contain opacity-30" />
         </div>
