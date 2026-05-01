@@ -18,11 +18,24 @@ function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" });
 }
 
-function fileToBase64(file: File): Promise<string> {
+function compressAndConvert(file: File, maxWidth = 1600, quality = 0.82): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
     reader.onerror = reject;
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onerror = reject;
+      img.onload = () => {
+        const scale = Math.min(1, maxWidth / Math.max(img.width, img.height));
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        const ctx = canvas.getContext("2d")!;
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL("image/jpeg", quality));
+      };
+      img.src = e.target!.result as string;
+    };
     reader.readAsDataURL(file);
   });
 }
@@ -170,7 +183,7 @@ export default function AdminNews() {
     if (!title.trim() || !text.trim()) return;
     setSaving(true);
     try {
-      const photosB64 = await Promise.all(photos.map((p) => fileToBase64(p.file)));
+      const photosB64 = await Promise.all(photos.map((p) => compressAndConvert(p.file)));
       const res = await fetch(NEWS_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
