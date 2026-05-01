@@ -10,8 +10,6 @@ const navItems = [
   { label: "о нас", id: "o-nas" },
   { label: "миссия", id: "missiya" },
   { label: "команда", id: "komanda" },
-  { label: "новости", id: "/news" },
-  { label: "видео", id: "/video" },
   { label: "поддержка", id: "podderzhka" },
   { label: "контакты", id: "kontakty" },
 ];
