@@ -10,7 +10,7 @@ const navItemsBefore = [
 ];
 
 const navItemsAfter = [
-  { label: "поддержка", id: "podderzhka" },
+  { label: "поддержать нас", id: "podderzhka" },
   { label: "контакты", id: "kontakty" },
 ];
 
