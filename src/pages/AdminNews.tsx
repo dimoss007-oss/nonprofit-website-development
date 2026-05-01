@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import Icon from "@/components/ui/icon";
 
 const NEWS_URL = "https://functions.poehali.dev/b33c4df8-295a-4694-a485-e771aec3d9ce";
+const AUTH_URL = "https://functions.poehali.dev/a964c253-7e52-4d10-9000-b278238e84e4";
 const LOGO_IMG = "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/4ca974da-fec3-4fd3-834d-c7dccc97fca9.jpg";
+const SESSION_KEY = "admin_auth";
 
 interface NewsItem {
   id: number;
@@ -25,7 +27,109 @@ function fileToBase64(file: File): Promise<string> {
   });
 }
 
+function LoginScreen({ onAuth }: { onAuth: () => void }) {
+  const [login, setLogin] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [showPass, setShowPass] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+    try {
+      const res = await fetch(AUTH_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ login, password }),
+      });
+      if (res.ok) {
+        sessionStorage.setItem(SESSION_KEY, "1");
+        onAuth();
+      } else {
+        setError("Неверный логин или пароль");
+      }
+    } catch {
+      setError("Ошибка соединения. Попробуйте снова.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-beige-mid font-golos flex items-center justify-center px-4">
+      <div className="w-full max-w-sm">
+        <div className="text-center mb-8">
+          <img src={LOGO_IMG} alt="Спасение надежды" className="w-16 h-16 object-contain mx-auto mb-4" />
+          <div className="font-cormorant text-ink text-2xl font-semibold">Спасение надежды</div>
+          <div className="text-muted-foreground text-xs uppercase tracking-widest mt-1">Панель управления</div>
+        </div>
+
+        <form onSubmit={handleSubmit} className="bg-white rounded-sm p-8 shadow-sm space-y-5">
+          <div>
+            <label className="block text-xs uppercase tracking-widest text-ink/50 mb-2">Логин</label>
+            <input
+              type="text"
+              value={login}
+              onChange={(e) => setLogin(e.target.value)}
+              placeholder="Введите логин"
+              autoComplete="username"
+              className="w-full border border-beige-dark rounded-sm px-4 py-3 text-ink placeholder-ink/30 focus:outline-none focus:border-sage transition-colors bg-beige/50"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs uppercase tracking-widest text-ink/50 mb-2">Пароль</label>
+            <div className="relative">
+              <input
+                type={showPass ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Введите пароль"
+                autoComplete="current-password"
+                className="w-full border border-beige-dark rounded-sm px-4 py-3 pr-11 text-ink placeholder-ink/30 focus:outline-none focus:border-sage transition-colors bg-beige/50"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPass(!showPass)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-ink/30 hover:text-ink/60 transition-colors"
+              >
+                <Icon name={showPass ? "EyeOff" : "Eye"} size={16} />
+              </button>
+            </div>
+          </div>
+
+          {error && (
+            <div className="flex items-center gap-2 text-destructive text-sm bg-red-50 px-4 py-3 rounded-sm">
+              <Icon name="AlertCircle" size={14} />
+              {error}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-sage text-white py-3.5 rounded-sm font-golos font-semibold uppercase tracking-wider text-sm hover:bg-sage-dark transition-colors disabled:opacity-60"
+          >
+            {loading ? "Проверяем..." : "Войти"}
+          </button>
+        </form>
+
+        <div className="text-center mt-6">
+          <a href="/" className="text-ink/40 hover:text-ink/70 text-sm transition-colors">
+            ← На главную
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function AdminNews() {
+  const [authed, setAuthed] = useState(() => sessionStorage.getItem(SESSION_KEY) === "1");
   const [news, setNews] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [title, setTitle] = useState("");
@@ -44,7 +148,7 @@ export default function AdminNews() {
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => { loadNews(); }, []);
+  useEffect(() => { if (authed) loadNews(); }, [authed]);
 
   const handleFiles = async (files: FileList | null) => {
     if (!files) return;
@@ -93,6 +197,15 @@ export default function AdminNews() {
     loadNews();
   };
 
+  const handleLogout = () => {
+    sessionStorage.removeItem(SESSION_KEY);
+    setAuthed(false);
+  };
+
+  if (!authed) {
+    return <LoginScreen onAuth={() => setAuthed(true)} />;
+  }
+
   return (
     <div className="min-h-screen bg-beige-mid font-golos">
       {/* NAV */}
@@ -109,10 +222,13 @@ export default function AdminNews() {
             <a href="/news" className="text-sm text-ink/60 hover:text-ink transition-colors">
               Просмотр новостей
             </a>
-            <a href="/" className="flex items-center gap-2 text-ink/60 hover:text-ink text-sm transition-colors">
-              <Icon name="ArrowLeft" size={14} />
-              На главную
-            </a>
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-2 text-ink/60 hover:text-ink text-sm transition-colors"
+            >
+              <Icon name="LogOut" size={14} />
+              Выйти
+            </button>
           </div>
         </div>
       </nav>
