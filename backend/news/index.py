@@ -6,7 +6,7 @@ import psycopg2
 import boto3
 
 def handler(event: dict, context) -> dict:
-    """Получение и создание новостей. GET — список, POST — создать новость с фото."""
+    """Получение и создание новостей. GET — список, POST — создать новость с фото и видео."""
     cors = {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
@@ -22,7 +22,11 @@ def handler(event: dict, context) -> dict:
     try:
         if method == 'GET':
             cur = conn.cursor()
-            cur.execute("SELECT id, title, text, photos, created_at FROM news ORDER BY created_at DESC")
+            cur.execute("""
+                SELECT id, title, text, photos, video_url, published_at, created_at
+                FROM news
+                ORDER BY published_at DESC
+            """)
             rows = cur.fetchall()
             news = [
                 {
@@ -30,7 +34,9 @@ def handler(event: dict, context) -> dict:
                     'title': r[1],
                     'text': r[2],
                     'photos': r[3] or [],
-                    'created_at': r[4].isoformat(),
+                    'video_url': r[4] or '',
+                    'published_at': r[5].isoformat() if r[5] else r[6].isoformat(),
+                    'created_at': r[6].isoformat(),
                 }
                 for r in rows
             ]
@@ -41,11 +47,12 @@ def handler(event: dict, context) -> dict:
             title = body.get('title', '').strip()
             text = body.get('text', '').strip()
             photos_b64 = body.get('photos', [])
+            video_url = body.get('video_url', '').strip()
+            published_at = body.get('published_at', None)
 
             if not title or not text:
                 return {'statusCode': 400, 'headers': cors, 'body': json.dumps({'error': 'title and text required'})}
 
-            # Upload photos to S3
             s3 = boto3.client(
                 's3',
                 endpoint_url='https://bucket.poehali.dev',
@@ -65,22 +72,26 @@ def handler(event: dict, context) -> dict:
                         ext = 'webp'
                 img_bytes = base64.b64decode(data_str)
                 filename = f"news/{uuid.uuid4()}.{ext}"
-                content_type = f"image/{ext}"
-                s3.put_object(Bucket='files', Key=filename, Body=img_bytes, ContentType=content_type)
-                url = f"https://cdn.poehali.dev/projects/{key_id}/bucket/{filename}"
-                photo_urls.append(url)
+                s3.put_object(Bucket='files', Key=filename, Body=img_bytes, ContentType=f"image/{ext}")
+                photo_urls.append(f"https://cdn.poehali.dev/projects/{key_id}/bucket/{filename}")
 
             cur = conn.cursor()
-            cur.execute(
-                "INSERT INTO news (title, text, photos) VALUES (%s, %s, %s) RETURNING id, created_at",
-                (title, text, photo_urls)
-            )
+            if published_at:
+                cur.execute(
+                    "INSERT INTO news (title, text, photos, video_url, published_at) VALUES (%s, %s, %s, %s, %s) RETURNING id, published_at",
+                    (title, text, photo_urls, video_url, published_at)
+                )
+            else:
+                cur.execute(
+                    "INSERT INTO news (title, text, photos, video_url) VALUES (%s, %s, %s, %s) RETURNING id, published_at",
+                    (title, text, photo_urls, video_url)
+                )
             row = cur.fetchone()
             conn.commit()
             return {
                 'statusCode': 201,
                 'headers': cors,
-                'body': json.dumps({'id': row[0], 'created_at': row[1].isoformat()}, ensure_ascii=False)
+                'body': json.dumps({'id': row[0], 'published_at': row[1].isoformat()}, ensure_ascii=False)
             }
 
         if method == 'DELETE':

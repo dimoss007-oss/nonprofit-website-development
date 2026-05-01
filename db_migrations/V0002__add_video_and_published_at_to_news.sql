@@ -1,0 +1,4 @@
+ALTER TABLE news ADD COLUMN IF NOT EXISTS video_url TEXT DEFAULT '';
+ALTER TABLE news ADD COLUMN IF NOT EXISTS published_at TIMESTAMPTZ;
+UPDATE news SET published_at = created_at WHERE published_at IS NULL;
+ALTER TABLE news ALTER COLUMN published_at SET DEFAULT NOW();

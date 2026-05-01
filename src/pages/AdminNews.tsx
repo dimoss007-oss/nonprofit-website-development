@@ -11,6 +11,8 @@ interface NewsItem {
   title: string;
   text: string;
   photos: string[];
+  video_url: string;
+  published_at: string;
   created_at: string;
 }
 
@@ -147,6 +149,8 @@ export default function AdminNews() {
   const [loading, setLoading] = useState(true);
   const [title, setTitle] = useState("");
   const [text, setText] = useState("");
+  const [videoUrl, setVideoUrl] = useState("");
+  const [publishedAt, setPublishedAt] = useState(() => new Date().toISOString().slice(0, 10));
   const [photos, setPhotos] = useState<{ file: File; preview: string }[]>([]);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -187,11 +191,13 @@ export default function AdminNews() {
       const res = await fetch(NEWS_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, text, photos: photosB64 }),
+        body: JSON.stringify({ title, text, photos: photosB64, video_url: videoUrl, published_at: publishedAt }),
       });
       if (res.ok) {
         setTitle("");
         setText("");
+        setVideoUrl("");
+        setPublishedAt(new Date().toISOString().slice(0, 10));
         setPhotos([]);
         setSuccess(true);
         setTimeout(() => setSuccess(false), 3000);
@@ -282,6 +288,28 @@ export default function AdminNews() {
               />
             </div>
 
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-xs uppercase tracking-widest text-ink/50 mb-2">Видео (ВКонтакте / Rutube / YouTube)</label>
+                <input
+                  type="url"
+                  value={videoUrl}
+                  onChange={(e) => setVideoUrl(e.target.value)}
+                  placeholder="https://vk.com/video... или https://rutube.ru/video/..."
+                  className="w-full border border-beige-dark rounded-sm px-4 py-3 text-ink placeholder-ink/30 focus:outline-none focus:border-sage transition-colors bg-beige/50 text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-xs uppercase tracking-widest text-ink/50 mb-2">Дата публикации</label>
+                <input
+                  type="date"
+                  value={publishedAt}
+                  onChange={(e) => setPublishedAt(e.target.value)}
+                  className="w-full border border-beige-dark rounded-sm px-4 py-3 text-ink focus:outline-none focus:border-sage transition-colors bg-beige/50"
+                />
+              </div>
+            </div>
+
             <div>
               <label className="block text-xs uppercase tracking-widest text-ink/50 mb-3">Фотографии</label>
               <input
@@ -350,7 +378,7 @@ export default function AdminNews() {
                     <img src={item.photos[0]} alt="" className="w-20 h-20 object-cover rounded-sm flex-shrink-0" />
                   )}
                   <div className="flex-1 min-w-0">
-                    <time className="text-muted-foreground text-xs">{formatDate(item.created_at)}</time>
+                    <time className="text-muted-foreground text-xs">{formatDate(item.published_at)}</time>
                     <h3 className="font-cormorant text-ink text-xl font-semibold mt-1 mb-1 truncate">{item.title}</h3>
                     <p className="text-foreground/60 text-sm line-clamp-2">{item.text}</p>
                     {item.photos.length > 1 && (

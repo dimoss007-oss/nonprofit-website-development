@@ -9,11 +9,27 @@ interface NewsItem {
   title: string;
   text: string;
   photos: string[];
+  video_url: string;
+  published_at: string;
   created_at: string;
 }
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" });
+}
+
+function getEmbedUrl(url: string): string | null {
+  if (!url) return null;
+  // VK видео
+  const vkMatch = url.match(/vk\.com\/video(-?\d+_\d+)/) || url.match(/vkvideo\.ru\/video(-?\d+_\d+)/);
+  if (vkMatch) return `https://vk.com/video_ext.php?oid=${vkMatch[1].split('_')[0]}&id=${vkMatch[1].split('_')[1]}&hd=2`;
+  // Rutube
+  const rutubeMatch = url.match(/rutube\.ru\/video\/([a-zA-Z0-9]+)/);
+  if (rutubeMatch) return `https://rutube.ru/play/embed/${rutubeMatch[1]}`;
+  // YouTube
+  const ytMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([a-zA-Z0-9_-]+)/);
+  if (ytMatch) return `https://www.youtube.com/embed/${ytMatch[1]}`;
+  return null;
 }
 
 export default function News() {
@@ -30,7 +46,6 @@ export default function News() {
 
   return (
     <div className="min-h-screen bg-beige font-golos">
-      {/* NAV */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-beige/95 backdrop-blur-sm border-b border-beige-dark">
         <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
           <a href="/" className="flex items-center gap-3">
@@ -48,7 +63,6 @@ export default function News() {
       </nav>
 
       <div className="pt-24 pb-20 max-w-5xl mx-auto px-6">
-        {/* Header */}
         <div className="mb-14">
           <div className="flex items-center gap-3 mb-5">
             <div className="h-px w-8 bg-sage" />
@@ -59,7 +73,6 @@ export default function News() {
           </h1>
         </div>
 
-        {/* Content */}
         {loading ? (
           <div className="space-y-8">
             {[1, 2, 3].map((i) => (
@@ -78,74 +91,77 @@ export default function News() {
           </div>
         ) : (
           <div className="space-y-10">
-            {news.map((item) => (
-              <article key={item.id} className="bg-white rounded-sm overflow-hidden shadow-sm">
-                <div className="p-8 md:p-10">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="h-px w-5 bg-sage" />
-                    <time className="text-muted-foreground text-xs uppercase tracking-wider">{formatDate(item.created_at)}</time>
+            {news.map((item) => {
+              const embedUrl = getEmbedUrl(item.video_url);
+              return (
+                <article key={item.id} className="bg-white rounded-sm overflow-hidden shadow-sm">
+                  <div className="p-8 md:p-10">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="h-px w-5 bg-sage" />
+                      <time className="text-muted-foreground text-xs uppercase tracking-wider">{formatDate(item.published_at)}</time>
+                    </div>
+                    <h2 className="font-cormorant text-ink text-3xl font-semibold leading-snug mb-5">{item.title}</h2>
+                    <p className="text-foreground/70 leading-relaxed whitespace-pre-wrap">{item.text}</p>
                   </div>
-                  <h2 className="font-cormorant text-ink text-3xl font-semibold leading-snug mb-5">{item.title}</h2>
-                  <p className="text-foreground/70 leading-relaxed whitespace-pre-wrap">{item.text}</p>
-                </div>
 
-                {item.photos.length > 0 && (
-                  <div className={`px-8 md:px-10 pb-8 grid gap-3 ${
-                    item.photos.length === 1 ? "grid-cols-1" :
-                    item.photos.length === 2 ? "grid-cols-2" :
-                    "grid-cols-2 md:grid-cols-3"
-                  }`}>
-                    {item.photos.map((url, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => setLightbox({ photos: item.photos, idx })}
-                        className="overflow-hidden rounded-sm aspect-video bg-beige-mid hover:opacity-90 transition-opacity"
-                      >
-                        <img src={url} alt="" className="w-full h-full object-cover" />
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </article>
-            ))}
+                  {embedUrl && (
+                    <div className="px-8 md:px-10 pb-6">
+                      <div className="aspect-video w-full rounded-sm overflow-hidden bg-black">
+                        <iframe
+                          src={embedUrl}
+                          className="w-full h-full"
+                          allowFullScreen
+                          allow="autoplay; encrypted-media; fullscreen"
+                          frameBorder="0"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {item.photos.length > 0 && (
+                    <div className={`px-8 md:px-10 pb-8 grid gap-3 ${
+                      item.photos.length === 1 ? "grid-cols-1" :
+                      item.photos.length === 2 ? "grid-cols-2" :
+                      "grid-cols-2 md:grid-cols-3"
+                    }`}>
+                      {item.photos.map((url, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => setLightbox({ photos: item.photos, idx })}
+                          className="overflow-hidden rounded-sm aspect-video bg-beige-mid hover:opacity-90 transition-opacity"
+                        >
+                          <img src={url} alt="" className="w-full h-full object-cover" />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </article>
+              );
+            })}
           </div>
         )}
       </div>
 
-      {/* Lightbox */}
       {lightbox && (
-        <div
-          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center"
-          onClick={() => setLightbox(null)}
-        >
-          <button
-            className="absolute top-4 right-4 text-white/70 hover:text-white"
-            onClick={() => setLightbox(null)}
-          >
+        <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center" onClick={() => setLightbox(null)}>
+          <button className="absolute top-4 right-4 text-white/70 hover:text-white" onClick={() => setLightbox(null)}>
             <Icon name="X" size={28} />
           </button>
           {lightbox.photos.length > 1 && (
             <>
-              <button
-                className="absolute left-4 text-white/70 hover:text-white"
-                onClick={(e) => { e.stopPropagation(); setLightbox(l => l && l.idx > 0 ? { ...l, idx: l.idx - 1 } : l); }}
-              >
+              <button className="absolute left-4 text-white/70 hover:text-white"
+                onClick={(e) => { e.stopPropagation(); setLightbox(l => l && l.idx > 0 ? { ...l, idx: l.idx - 1 } : l); }}>
                 <Icon name="ChevronLeft" size={36} />
               </button>
-              <button
-                className="absolute right-4 text-white/70 hover:text-white"
-                onClick={(e) => { e.stopPropagation(); setLightbox(l => l && l.idx < l.photos.length - 1 ? { ...l, idx: l.idx + 1 } : l); }}
-              >
+              <button className="absolute right-4 text-white/70 hover:text-white"
+                onClick={(e) => { e.stopPropagation(); setLightbox(l => l && l.idx < l.photos.length - 1 ? { ...l, idx: l.idx + 1 } : l); }}>
                 <Icon name="ChevronRight" size={36} />
               </button>
             </>
           )}
-          <img
-            src={lightbox.photos[lightbox.idx]}
-            alt=""
+          <img src={lightbox.photos[lightbox.idx]} alt=""
             className="max-h-[90vh] max-w-[90vw] object-contain rounded-sm"
-            onClick={(e) => e.stopPropagation()}
-          />
+            onClick={(e) => e.stopPropagation()} />
         </div>
       )}
     </div>
