@@ -21,8 +21,6 @@ const aboutItems = [
   { label: "О нас", id: "o-nas" },
   { label: "Миссия", id: "missiya" },
   { label: "Команда", id: "komanda" },
-  { label: "Новости", id: "/news" },
-  { label: "Видео", id: "/video" },
 ];
 
 const helpItems = [
