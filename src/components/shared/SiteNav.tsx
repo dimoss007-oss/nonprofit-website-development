@@ -53,6 +53,13 @@ export default function SiteNav() {
             <div className="text-muted-foreground text-[10px] uppercase tracking-wider">Кризисный центр</div>
           </div>
         </a>
+        <a href="https://президентскиегранты.рф" target="_blank" rel="noopener noreferrer" title="Фонд президентских грантов">
+          <img
+            src="http://xn--80afcdbalict6afooklqi5o.xn--p1ai/public/static/img/Fpg/fpg-logo.png"
+            alt="Фонд президентских грантов"
+            className="h-10 w-auto object-contain opacity-90 hover:opacity-100 transition-opacity"
+          />
+        </a>
 
         <div className="hidden lg:flex items-center gap-6">
           {navItemsBefore.map(({ label, href }) => (
