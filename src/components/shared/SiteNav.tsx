@@ -55,7 +55,7 @@ export default function SiteNav() {
         </a>
         <a href="https://президентскиегранты.рф" target="_blank" rel="noopener noreferrer" title="Фонд президентских грантов">
           <img
-            src="http://xn--80afcdbalict6afooklqi5o.xn--p1ai/public/static/img/Fpg/fpg-logo.png"
+            src="https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/8dfc4329-da21-4a7e-a0eb-ea9fc74765fc.png"
             alt="Фонд президентских грантов"
             className="h-10 w-auto object-contain opacity-90 hover:opacity-100 transition-opacity"
           />
