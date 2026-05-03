@@ -14,6 +14,9 @@ function SectionDetail({ section }: { section: Section }) {
           {block.text && (
             <p className="text-foreground/65 text-sm leading-relaxed">{block.text}</p>
           )}
+          {block.image && (
+            <img src={block.image} alt="" className="w-full rounded-sm object-cover max-h-80 mt-1" />
+          )}
           {block.items && (
             <ul className="space-y-1.5 mt-1">
               {block.items.map((item, j) => (

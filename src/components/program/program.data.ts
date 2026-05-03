@@ -2,6 +2,7 @@ export type SectionBlock = {
   heading?: string;
   items?: string[];
   text?: string;
+  image?: string;
 };
 
 export type Section = {
@@ -86,6 +87,9 @@ export const sections: Section[] = [
       {
         heading: "Структура программы",
         text: "Программа реализуется в двух форматах: стационарный (180 дней) — с проживанием и полным погружением в терапевтическую среду; амбулаторный (90 дней) — при сохранении социальной активности клиента.",
+      },
+      {
+        image: "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/619c1d72-13e3-4d03-b25d-62db9ce33ff8.jpg",
       },
       {
         heading: "Этапы реабилитации",
