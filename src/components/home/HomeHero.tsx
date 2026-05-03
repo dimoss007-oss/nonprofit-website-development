@@ -77,13 +77,22 @@ export default function HomeHero({ onScrollTo, activeSection, setActiveSection }
       {/* NAV */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-beige/95 backdrop-blur-sm border-b border-beige-dark">
         <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
-          <a href="/" className="flex items-center gap-3">
-            <img src={LOGO_IMG} alt="Спасение надежды" className="w-14 h-14 object-contain" />
-            <div>
-              <div className="font-cormorant text-ink text-lg font-semibold leading-none">Спасение надежды</div>
-              <div className="text-muted-foreground text-[10px] uppercase tracking-wider">Кризисный центр</div>
-            </div>
-          </a>
+          <div className="flex items-center gap-4">
+            <a href="/" className="flex items-center gap-3">
+              <img src={LOGO_IMG} alt="Спасение надежды" className="w-14 h-14 object-contain" />
+              <div>
+                <div className="font-cormorant text-ink text-lg font-semibold leading-none">Спасение надежды</div>
+                <div className="text-muted-foreground text-[10px] uppercase tracking-wider">Кризисный центр</div>
+              </div>
+            </a>
+            <a href="https://президентскиегранты.рф" target="_blank" rel="noopener noreferrer" className="hidden sm:block border-l border-beige-dark pl-4">
+              <img
+                src="https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/fe35576e-c533-469d-97ee-1a6ffde86c77.png"
+                alt="Фонд президентских грантов"
+                className="h-8 w-auto object-contain"
+              />
+            </a>
+          </div>
 
           <div className="hidden lg:flex items-center gap-6">
             {navItemsBefore.map(({ label, id }) => (
