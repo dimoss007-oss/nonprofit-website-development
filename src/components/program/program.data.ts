@@ -112,6 +112,9 @@ export const sections: Section[] = [
         ],
       },
       {
+        image: "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/94c69c7f-6b9f-44eb-ad94-adebcbfa1bae.jpg",
+      },
+      {
         heading: "Принципы работы",
         items: [
           "Добровольность — участие только по личному согласию",
