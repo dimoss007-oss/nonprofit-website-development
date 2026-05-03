@@ -1,12 +1,12 @@
 import Icon from "@/components/ui/icon";
-import ProgramNav from "@/components/program/ProgramNav";
+import SiteNav from "@/components/shared/SiteNav";
 import ProgramFamily from "@/components/program/ProgramFamily";
 import ProgramDirections from "@/components/program/ProgramDirections";
 
 export default function Program() {
   return (
     <div className="min-h-screen bg-beige font-golos">
-      <ProgramNav />
+      <SiteNav />
 
       <div className="pt-28 pb-24 max-w-5xl mx-auto px-6">
         <ProgramFamily />
