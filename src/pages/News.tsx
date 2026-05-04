@@ -43,77 +43,84 @@ function cleanText(text: string, title: string) {
   return t;
 }
 
-interface ImgSize { url: string; w: number; h: number; }
+function PhotoBtn({ url, idx, onOpen, className, style }: { url: string; idx: number; onOpen: (i: number) => void; className?: string; style?: React.CSSProperties }) {
+  return (
+    <button
+      onClick={() => onOpen(idx)}
+      className={`overflow-hidden rounded-sm hover:opacity-90 transition-opacity ${className ?? ""}`}
+      style={style}
+    >
+      <img src={url} alt="" className="w-full h-full object-cover" />
+    </button>
+  );
+}
 
 function PhotoGrid({ photos, onOpen }: { photos: string[]; onOpen: (idx: number) => void }) {
-  const [sizes, setSizes] = useState<ImgSize[]>([]);
+  const n = photos.length;
+  const gap = "gap-1";
 
-  useEffect(() => {
-    let alive = true;
-    Promise.all(
-      photos.map(
-        (url) =>
-          new Promise<ImgSize>((resolve) => {
-            const img = new Image();
-            img.onload = () => resolve({ url, w: img.naturalWidth, h: img.naturalHeight });
-            img.onerror = () => resolve({ url, w: 4, h: 3 });
-            img.src = url;
-          })
-      )
-    ).then((s) => { if (alive) setSizes(s); });
-    return () => { alive = false; };
-  }, [photos]);
-
-  if (sizes.length === 0) return null;
-
-  const count = sizes.length;
-
-  // 1 фото — полная ширина с реальными пропорциями
-  if (count === 1) {
-    const { url, w, h } = sizes[0];
-    const ratio = (h / w) * 100;
-    return (
-      <div className="px-8 md:px-10 pb-8">
-        <button onClick={() => onOpen(0)} className="w-full overflow-hidden rounded-sm hover:opacity-95 transition-opacity" style={{ paddingBottom: `${Math.min(ratio, 75)}%`, position: "relative" }}>
-          <img src={url} alt="" className="absolute inset-0 w-full h-full object-cover" />
-        </button>
-      </div>
-    );
-  }
-
-  // 2 фото — две колонки с пропорциями
-  if (count === 2) {
-    return (
-      <div className="px-8 md:px-10 pb-8 flex gap-3">
-        {sizes.map(({ url, w, h }, idx) => {
-          const ratio = (h / w) * 100;
-          return (
-            <button key={idx} onClick={() => onOpen(idx)} className="flex-1 overflow-hidden rounded-sm hover:opacity-95 transition-opacity relative" style={{ paddingBottom: `${Math.min(ratio, 80)}%` }}>
-              <img src={url} alt="" className="absolute inset-0 w-full h-full object-cover" />
-            </button>
-          );
-        })}
-      </div>
-    );
-  }
-
-  // 3+ фото — masonry через CSS columns
-  return (
+  // 1 фото
+  if (n === 1) return (
     <div className="px-8 md:px-10 pb-8">
-      <div style={{ columns: count >= 4 ? 3 : 2, columnGap: "12px" }}>
-        {sizes.map(({ url, w, h }, idx) => {
-          const ratio = (h / w) * 100;
-          return (
-            <button
-              key={idx}
-              onClick={() => onOpen(idx)}
-              className="w-full overflow-hidden rounded-sm hover:opacity-95 transition-opacity relative mb-3 block"
-              style={{ paddingBottom: `${Math.min(ratio, 120)}%` }}
-            >
-              <img src={url} alt="" className="absolute inset-0 w-full h-full object-cover" />
-            </button>
-          );
-        })}
+      <PhotoBtn url={photos[0]} idx={0} onOpen={onOpen} className="w-full aspect-video" />
+    </div>
+  );
+
+  // 2 фото
+  if (n === 2) return (
+    <div className={`px-8 md:px-10 pb-8 grid grid-cols-2 ${gap}`}>
+      {photos.map((url, i) => <PhotoBtn key={i} url={url} idx={i} onOpen={onOpen} className="aspect-[4/3]" />)}
+    </div>
+  );
+
+  // 3 фото — одно большое слева, два маленьких справа
+  if (n === 3) return (
+    <div className={`px-8 md:px-10 pb-8 grid grid-cols-3 ${gap}`} style={{ height: 320 }}>
+      <PhotoBtn url={photos[0]} idx={0} onOpen={onOpen} className="col-span-2 row-span-2 h-full" />
+      <PhotoBtn url={photos[1]} idx={1} onOpen={onOpen} className="h-full" />
+      <PhotoBtn url={photos[2]} idx={2} onOpen={onOpen} className="h-full" />
+    </div>
+  );
+
+  // 4 фото — сетка 2×2
+  if (n === 4) return (
+    <div className={`px-8 md:px-10 pb-8 grid grid-cols-2 ${gap}`}>
+      {photos.map((url, i) => <PhotoBtn key={i} url={url} idx={i} onOpen={onOpen} className="aspect-[4/3]" />)}
+    </div>
+  );
+
+  // 5 фото — 2 сверху большие + 3 снизу маленькие
+  if (n === 5) return (
+    <div className={`px-8 md:px-10 pb-8 flex flex-col ${gap}`}>
+      <div className={`grid grid-cols-2 ${gap}`}>
+        {photos.slice(0, 2).map((url, i) => <PhotoBtn key={i} url={url} idx={i} onOpen={onOpen} className="aspect-[4/3]" />)}
+      </div>
+      <div className={`grid grid-cols-3 ${gap}`}>
+        {photos.slice(2, 5).map((url, i) => <PhotoBtn key={i+2} url={url} idx={i+2} onOpen={onOpen} className="aspect-[4/3]" />)}
+      </div>
+    </div>
+  );
+
+  // 6+ фото — 3 колонки, первое большое
+  const shown = photos.slice(0, 9);
+  const extra = n - 9;
+  return (
+    <div className={`px-8 md:px-10 pb-8 flex flex-col ${gap}`}>
+      <div className={`grid grid-cols-3 ${gap}`} style={{ height: 280 }}>
+        <PhotoBtn url={shown[0]} idx={0} onOpen={onOpen} className="col-span-2 h-full" />
+        <PhotoBtn url={shown[1]} idx={1} onOpen={onOpen} className="h-full" />
+      </div>
+      <div className={`grid grid-cols-3 ${gap}`}>
+        {shown.slice(2).map((url, i) => (
+          <div key={i+2} className="relative aspect-[4/3]">
+            <PhotoBtn url={url} idx={i+2} onOpen={onOpen} className="absolute inset-0 w-full h-full" />
+            {i === shown.length - 3 && extra > 0 && (
+              <button onClick={() => onOpen(i+2)} className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-2xl font-semibold rounded-sm">
+                +{extra}
+              </button>
+            )}
+          </div>
+        ))}
       </div>
     </div>
   );
