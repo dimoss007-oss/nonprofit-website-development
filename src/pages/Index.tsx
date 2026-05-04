@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Helmet } from "react-helmet-async";
 import HomeHero from "@/components/home/HomeHero";
 import HomeAbout from "@/components/home/HomeAbout";
+import HomeNews from "@/components/home/HomeNews";
 import HomeSupport from "@/components/home/HomeSupport";
 
 export default function Index() {
@@ -23,6 +24,8 @@ export default function Index() {
       </Helmet>
 
       <HomeHero onScrollTo={scrollTo} activeSection={activeSection} setActiveSection={setActiveSection} />
+
+      <HomeNews />
 
       <HomeAbout />
 
