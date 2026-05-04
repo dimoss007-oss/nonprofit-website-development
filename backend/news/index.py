@@ -22,9 +22,11 @@ def handler(event: dict, context) -> dict:
     try:
         if method == 'GET':
             cur = conn.cursor()
+            schema = os.environ.get('MAIN_DB_SCHEMA', 'public')
             cur.execute("""
                 SELECT id, title, text, photos, video_url, published_at, created_at
-                FROM news
+                FROM """ + schema + """.news
+                WHERE vk_id IS DISTINCT FROM -1
                 ORDER BY published_at DESC
             """)
             rows = cur.fetchall()

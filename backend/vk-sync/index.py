@@ -97,12 +97,9 @@ def handler(event: dict, context) -> dict:
 
         vk_id = item["id"]
         owner_id = item.get("owner_id", 0)
-        vk_url = f"https://vk.com/wall{owner_id}_{vk_id}"
 
-        search_str = f"%{vk_url}%"
         cur.execute(
-            "SELECT id FROM " + SCHEMA + ".news WHERE text LIKE '" + vk_url.replace("'", "''") + "' OR text LIKE %s LIMIT 1",
-            (search_str,)
+            "SELECT id FROM " + SCHEMA + ".news WHERE vk_id = " + str(int(vk_id)) + " LIMIT 1"
         )
         if cur.fetchone():
             skipped += 1
@@ -118,8 +115,8 @@ def handler(event: dict, context) -> dict:
         post_dt = datetime.fromtimestamp(item["date"], tz=timezone.utc)
 
         cur.execute(
-            "INSERT INTO " + SCHEMA + ".news (title, text, photos, video_url, published_at, created_at) VALUES (%s, %s, %s, %s, %s, NOW())",
-            (title, body_text, photos, video_url, post_dt)
+            "INSERT INTO " + SCHEMA + ".news (title, text, photos, video_url, published_at, created_at, vk_id) VALUES (%s, %s, %s, %s, %s, NOW(), %s)",
+            (title, body_text, photos, video_url, post_dt, vk_id)
         )
         added += 1
 

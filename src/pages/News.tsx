@@ -33,8 +33,14 @@ function getEmbedUrl(url: string): string | null {
   return null;
 }
 
-function cleanText(text: string) {
-  return text.replace(/\n\n?—?\s*https:\/\/vk\.com\/wall[^\n]*/g, "").trim();
+function cleanText(text: string, title: string) {
+  let t = text.replace(/\n\n?—?\s*https:\/\/vk\.com\/wall[^\n]*/g, "").trim();
+  // Убираем первую строку если она совпадает с заголовком
+  const firstLine = t.split("\n")[0].trim();
+  if (firstLine === title.trim() || t.startsWith(title.trim())) {
+    t = t.slice(firstLine.length).replace(/^\n+/, "").trim();
+  }
+  return t;
 }
 
 interface ImgSize { url: string; w: number; h: number; }
@@ -133,7 +139,7 @@ export default function News() {
       .then((d) => {
         const cleaned = (d.news || []).map((n: NewsItem) => ({
           ...n,
-          text: cleanText(n.text),
+          text: cleanText(n.text, n.title),
         }));
         setAllNews(cleaned);
       })
