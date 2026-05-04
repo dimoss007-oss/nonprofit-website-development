@@ -3,6 +3,8 @@ import Icon from "@/components/ui/icon";
 import SiteNav from "@/components/shared/SiteNav";
 
 const NEWS_URL = "https://functions.poehali.dev/b33c4df8-295a-4694-a485-e771aec3d9ce";
+const VK_SYNC_URL = "https://functions.poehali.dev/ce64965a-09e0-411a-bbed-d25e01b5c170";
+const SYNC_KEY = "vk_last_sync";
 
 interface NewsItem {
   id: number;
@@ -38,6 +40,13 @@ export default function News() {
   const [lightbox, setLightbox] = useState<{ photos: string[]; idx: number } | null>(null);
 
   useEffect(() => {
+    const lastSync = localStorage.getItem(SYNC_KEY);
+    const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
+    if (!lastSync || Number(lastSync) < oneDayAgo) {
+      fetch(VK_SYNC_URL, { method: "POST" }).then(() => {
+        localStorage.setItem(SYNC_KEY, String(Date.now()));
+      });
+    }
     fetch(NEWS_URL)
       .then((r) => r.json())
       .then((d) => setNews(d.news || []))
