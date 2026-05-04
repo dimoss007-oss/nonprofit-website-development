@@ -68,29 +68,6 @@ export default function SiteNav() {
             <a key={href} href={href} className="nav-link">{label}</a>
           ))}
 
-          <div ref={aboutRef} className="relative">
-            <button
-              onClick={() => setAboutOpen(!aboutOpen)}
-              className="nav-link flex items-center gap-1"
-            >
-              о нас
-              <Icon name="ChevronDown" size={12} className={`transition-transform duration-200 ${aboutOpen ? "rotate-180" : ""}`} />
-            </button>
-            {aboutOpen && (
-              <div className="absolute top-full left-0 mt-2 bg-white border border-beige-dark rounded-sm shadow-lg py-1 min-w-[160px] z-50">
-                {aboutItems.map(({ label, anchor }) => (
-                  <button
-                    key={anchor}
-                    onClick={() => navigateToAnchor(anchor)}
-                    className="w-full text-left px-4 py-2.5 text-xs uppercase tracking-widest text-ink/70 hover:text-primary hover:bg-sage-pale transition-colors duration-150 font-golos"
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
           {navItemsAfter.map(({ label, href }) => (
             <a key={href} href={href} className="nav-link">{label}</a>
           ))}
@@ -120,17 +97,6 @@ export default function SiteNav() {
             ))}
             <button onClick={() => navigateTo("/#podderzhka")} className="nav-link text-left py-2">поддержать нас</button>
             <button onClick={() => navigateTo("/#kontakty")} className="nav-link text-left py-2">контакты</button>
-
-            <div className="col-span-2 border-t border-beige-dark pt-3 mt-1">
-              <div className="text-xs uppercase tracking-widest text-ink/40 font-golos font-semibold mb-2">О нас</div>
-              <div className="grid grid-cols-2 gap-3">
-                {aboutItems.map(({ label, anchor }) => (
-                  <button key={anchor} onClick={() => navigateToAnchor(anchor)} className="nav-link text-left py-2">
-                    {label}
-                  </button>
-                ))}
-              </div>
-            </div>
 
             <div className="col-span-2 border-t border-beige-dark pt-3 mt-1">
               <a href={VK_URL} target="_blank" rel="noopener noreferrer" className="nav-link text-left py-2 block">
