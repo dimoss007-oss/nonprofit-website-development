@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import Icon from "@/components/ui/icon";
 import SiteNav from "@/components/shared/SiteNav";
@@ -6,6 +6,7 @@ import SiteNav from "@/components/shared/SiteNav";
 const NEWS_URL = "https://functions.poehali.dev/b33c4df8-295a-4694-a485-e771aec3d9ce";
 const VK_SYNC_URL = "https://functions.poehali.dev/ce64965a-09e0-411a-bbed-d25e01b5c170";
 const SYNC_KEY = "vk_last_sync";
+const PAGE_SIZE = 10;
 
 interface NewsItem {
   id: number;
@@ -23,22 +24,25 @@ function formatDate(iso: string) {
 
 function getEmbedUrl(url: string): string | null {
   if (!url) return null;
-  // VK видео
   const vkMatch = url.match(/vk\.com\/video(-?\d+_\d+)/) || url.match(/vkvideo\.ru\/video(-?\d+_\d+)/);
   if (vkMatch) return `https://vk.com/video_ext.php?oid=${vkMatch[1].split('_')[0]}&id=${vkMatch[1].split('_')[1]}&hd=2`;
-  // Rutube
   const rutubeMatch = url.match(/rutube\.ru\/video\/([a-zA-Z0-9]+)/);
   if (rutubeMatch) return `https://rutube.ru/play/embed/${rutubeMatch[1]}`;
-  // YouTube
   const ytMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([a-zA-Z0-9_-]+)/);
   if (ytMatch) return `https://www.youtube.com/embed/${ytMatch[1]}`;
   return null;
 }
 
+function cleanText(text: string) {
+  return text.replace(/\n\n?—?\s*https:\/\/vk\.com\/wall[^\n]*/g, "").trim();
+}
+
 export default function News() {
-  const [news, setNews] = useState<NewsItem[]>([]);
+  const [allNews, setAllNews] = useState<NewsItem[]>([]);
+  const [visible, setVisible] = useState(PAGE_SIZE);
   const [loading, setLoading] = useState(true);
   const [lightbox, setLightbox] = useState<{ photos: string[]; idx: number } | null>(null);
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const lastSync = localStorage.getItem(SYNC_KEY);
@@ -53,12 +57,29 @@ export default function News() {
       .then((d) => {
         const cleaned = (d.news || []).map((n: NewsItem) => ({
           ...n,
-          text: n.text.replace(/\n\n?—?\s*https:\/\/vk\.com\/wall[^\n]*/g, "").trim(),
+          text: cleanText(n.text),
         }));
-        setNews(cleaned);
+        setAllNews(cleaned);
       })
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (!sentinelRef.current) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setVisible((v) => Math.min(v + PAGE_SIZE, allNews.length));
+        }
+      },
+      { threshold: 0.1 }
+    );
+    observer.observe(sentinelRef.current);
+    return () => observer.disconnect();
+  }, [allNews.length]);
+
+  const news = allNews.slice(0, visible);
+  const hasMore = visible < allNews.length;
 
   return (
     <div className="min-h-screen bg-beige font-golos">
@@ -147,6 +168,16 @@ export default function News() {
                 </article>
               );
             })}
+
+            <div ref={sentinelRef} className="py-4 flex justify-center">
+              {hasMore && (
+                <div className="flex gap-2 items-center text-sage/50 text-sm">
+                  <div className="w-1.5 h-1.5 rounded-full bg-sage/40 animate-bounce" style={{ animationDelay: "0ms" }} />
+                  <div className="w-1.5 h-1.5 rounded-full bg-sage/40 animate-bounce" style={{ animationDelay: "150ms" }} />
+                  <div className="w-1.5 h-1.5 rounded-full bg-sage/40 animate-bounce" style={{ animationDelay: "300ms" }} />
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
