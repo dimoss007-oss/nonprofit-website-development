@@ -50,7 +50,13 @@ export default function News() {
     }
     fetch(NEWS_URL)
       .then((r) => r.json())
-      .then((d) => setNews(d.news || []))
+      .then((d) => {
+        const cleaned = (d.news || []).map((n: NewsItem) => ({
+          ...n,
+          text: n.text.replace(/\n\n?—?\s*https:\/\/vk\.com\/wall[^\n]*/g, "").trim(),
+        }));
+        setNews(cleaned);
+      })
       .finally(() => setLoading(false));
   }, []);
 
