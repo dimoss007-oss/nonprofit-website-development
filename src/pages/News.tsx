@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Helmet } from "react-helmet-async";
 import Icon from "@/components/ui/icon";
 import SiteNav from "@/components/shared/SiteNav";
 
@@ -55,6 +56,13 @@ export default function News() {
 
   return (
     <div className="min-h-screen bg-beige font-golos">
+      <Helmet>
+        <title>Новости — АНО «Спасение надежды»</title>
+        <meta name="description" content="Актуальные новости кризисного центра «Спасение надежды» в Пензе. Помощь семьям в трудной жизненной ситуации." />
+        <meta property="og:title" content="Новости — АНО «Спасение надежды»" />
+        <meta property="og:description" content="Актуальные новости кризисного центра «Спасение надежды» в Пензе." />
+        <link rel="canonical" href="https://spasenie58.ru/news" />
+      </Helmet>
       <SiteNav />
 
       <div className="pt-24 pb-20 max-w-5xl mx-auto px-6">

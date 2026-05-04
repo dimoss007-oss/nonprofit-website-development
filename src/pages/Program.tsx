@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import Icon from "@/components/ui/icon";
 import SiteNav from "@/components/shared/SiteNav";
 import ProgramFamily from "@/components/program/ProgramFamily";
@@ -6,6 +7,13 @@ import ProgramDirections from "@/components/program/ProgramDirections";
 export default function Program() {
   return (
     <div className="min-h-screen bg-beige font-golos">
+      <Helmet>
+        <title>Программы — АНО «Спасение надежды»</title>
+        <meta name="description" content="Программы помощи семьям кризисного центра «Спасение надежды» в Пензе: реабилитация, психологическая поддержка, социальная помощь." />
+        <meta property="og:title" content="Программы — АНО «Спасение надежды»" />
+        <meta property="og:description" content="Программы помощи семьям: реабилитация, психологическая поддержка, социальная помощь." />
+        <link rel="canonical" href="https://spasenie58.ru/program" />
+      </Helmet>
       <SiteNav />
 
       <div className="pt-28 pb-24 max-w-5xl mx-auto px-6">
