@@ -34,7 +34,11 @@ function getEmbedUrl(url: string): string | null {
 }
 
 function cleanText(text: string, title: string) {
-  let t = text.replace(/\n\n?—?\s*https:\/\/vk\.com\/wall[^\n]*/g, "").trim();
+  let t = text
+    .replace(/\n\n?—?\s*https:\/\/vk\.com\/wall[^\n]*/g, "")
+    .replace(/\[club\d+\|([^\]]*)\]/g, "$1")
+    .replace(/\[id\d+\|([^\]]*)\]/g, "$1")
+    .trim();
   // Убираем первую строку если она совпадает с заголовком
   const firstLine = t.split("\n")[0].trim();
   if (firstLine === title.trim() || t.startsWith(title.trim())) {
