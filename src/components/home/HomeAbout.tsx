@@ -44,63 +44,7 @@ function Reveal({ children, className = "" }: { children: React.ReactNode; class
 export default function HomeAbout() {
   return (
     <>
-      {/* О НАС */}
-      <section id="o-nas" className="py-28 bg-white">
-        <div className="max-w-7xl mx-auto px-6">
-          <Reveal>
-            <div className="grid lg:grid-cols-2 gap-20 items-center">
-              <div>
-                <div className="flex items-center gap-3 mb-5">
-                  <div className="h-px w-8 bg-sage" />
-                  <span className="text-sage text-xs tracking-[0.2em] uppercase font-golos">О нас</span>
-                </div>
-                <h2 className="font-cormorant text-ink text-5xl font-light leading-tight mb-7">
-                  АНО «Спасение надежды» —<br/>
-                  <span className="text-sage font-semibold">рядом в трудный момент</span>
-                </h2>
-                <div className="space-y-4 text-foreground/65 leading-relaxed">
-                  <p>
-                    Автономная некоммерческая организация «Спасение надежды» была создана, чтобы помогать людям, оказавшимся в сложных жизненных ситуациях: потерявшим жильё, работу, оказавшимся в социальной изоляции.
-                  </p>
-                  <p>
-                    Мы верим, что каждый человек заслуживает поддержки и шанса на лучшую жизнь. Наши волонтёры и специалисты работают каждый день, чтобы эта вера становилась реальностью.
-                  </p>
-                  <p>
-                    Следите за нашей работой в группе ВКонтакте — там мы публикуем новости, истории и отчёты о деятельности.
-                  </p>
-                </div>
-                <div className="mt-8">
-                  <a
-                    href={VK_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 text-sage font-golos font-semibold text-sm hover:underline"
-                  >
-                    Подписаться на группу ВК <Icon name="ArrowRight" size={14} />
-                  </a>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                {[
-                  { icon: "Home", title: "Помощь с жильём", text: "Поддерживаем людей, оказавшихся без крыши над головой" },
-                  { icon: "BookOpen", title: "Образование", text: "Организуем курсы и мастерские для повышения квалификации" },
-                  { icon: "Users", title: "Сообщество", text: "Создаём среду взаимопомощи и социальных связей" },
-                  { icon: "HandHeart", title: "Адресная помощь", text: "Адресная поддержка семей и одиноких людей" },
-                ].map(({ icon, title, text }) => (
-                  <div key={title} className="bg-sage-pale/60 p-5 rounded-sm hover:bg-sage-pale transition-colors duration-200">
-                    <div className="w-10 h-10 bg-sage/15 rounded-full flex items-center justify-center mb-3">
-                      <Icon name={icon as "Home"} size={18} className="text-sage" />
-                    </div>
-                    <div className="font-cormorant text-ink text-lg font-semibold mb-1">{title}</div>
-                    <div className="text-muted-foreground text-xs leading-relaxed">{text}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </Reveal>
-        </div>
-      </section>
+      {/* О НАС — скрыто временно */}
 
       {/* МИССИЯ */}
       <section id="missiya" className="py-28 bg-sage relative overflow-hidden">
