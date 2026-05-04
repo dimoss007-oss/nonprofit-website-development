@@ -59,6 +59,13 @@ function PhotoGrid({ photos, onOpen }: { photos: string[]; onOpen: (idx: number)
   const n = photos.length;
   const gap = "gap-1";
 
+  // Разбиваем на строки по 3, последняя строка выравнивается
+  function rows(items: string[], cols: number) {
+    const result: string[][] = [];
+    for (let i = 0; i < items.length; i += cols) result.push(items.slice(i, i + cols));
+    return result;
+  }
+
   // 1 фото
   if (n === 1) return (
     <div className="px-8 md:px-10 pb-8">
@@ -75,53 +82,78 @@ function PhotoGrid({ photos, onOpen }: { photos: string[]; onOpen: (idx: number)
 
   // 3 фото — одно большое слева, два маленьких справа
   if (n === 3) return (
-    <div className={`px-8 md:px-10 pb-8 grid grid-cols-3 ${gap}`} style={{ height: 320 }}>
-      <PhotoBtn url={photos[0]} idx={0} onOpen={onOpen} className="col-span-2 row-span-2 h-full" />
+    <div className={`px-8 md:px-10 pb-8 grid grid-cols-3 ${gap}`} style={{ height: 300 }}>
+      <PhotoBtn url={photos[0]} idx={0} onOpen={onOpen} className="col-span-2 h-full" style={{ gridRow: "1 / 3" }} />
       <PhotoBtn url={photos[1]} idx={1} onOpen={onOpen} className="h-full" />
       <PhotoBtn url={photos[2]} idx={2} onOpen={onOpen} className="h-full" />
     </div>
   );
 
-  // 4 фото — сетка 2×2
+  // 4 фото — 2 сверху + 2 снизу
   if (n === 4) return (
     <div className={`px-8 md:px-10 pb-8 grid grid-cols-2 ${gap}`}>
       {photos.map((url, i) => <PhotoBtn key={i} url={url} idx={i} onOpen={onOpen} className="aspect-[4/3]" />)}
     </div>
   );
 
-  // 5 фото — 2 сверху большие + 3 снизу маленькие
+  // 5 фото — 2 сверху + 3 снизу
   if (n === 5) return (
     <div className={`px-8 md:px-10 pb-8 flex flex-col ${gap}`}>
       <div className={`grid grid-cols-2 ${gap}`}>
         {photos.slice(0, 2).map((url, i) => <PhotoBtn key={i} url={url} idx={i} onOpen={onOpen} className="aspect-[4/3]" />)}
       </div>
       <div className={`grid grid-cols-3 ${gap}`}>
-        {photos.slice(2, 5).map((url, i) => <PhotoBtn key={i+2} url={url} idx={i+2} onOpen={onOpen} className="aspect-[4/3]" />)}
+        {photos.slice(2).map((url, i) => <PhotoBtn key={i+2} url={url} idx={i+2} onOpen={onOpen} className="aspect-[4/3]" />)}
       </div>
     </div>
   );
 
-  // 6+ фото — 3 колонки, первое большое
+  // 6 фото — 3+3
+  if (n === 6) return (
+    <div className={`px-8 md:px-10 pb-8 grid grid-cols-3 ${gap}`}>
+      {photos.map((url, i) => <PhotoBtn key={i} url={url} idx={i} onOpen={onOpen} className="aspect-[4/3]" />)}
+    </div>
+  );
+
+  // 7 фото — 3+4 → показываем 3+3 и прячем остальное за +N
+  // 8 фото — 3+3+2 → 3+3+2 нормально
+  // Универсально: показываем до 9, прячем остальное
   const shown = photos.slice(0, 9);
   const extra = n - 9;
+  // Строим строки: первые 6 по 3, остаток — равномерно
+  const firstRows = rows(shown.slice(0, 6), 3);
+  const lastChunk = shown.slice(6);
+  // Последняя строка: определяем число колонок чтобы не было одиноких
+  const lastCols = lastChunk.length === 1 ? 3 : lastChunk.length === 2 ? 2 : 3;
+
   return (
     <div className={`px-8 md:px-10 pb-8 flex flex-col ${gap}`}>
-      <div className={`grid grid-cols-3 ${gap}`} style={{ height: 280 }}>
-        <PhotoBtn url={shown[0]} idx={0} onOpen={onOpen} className="col-span-2 h-full" />
-        <PhotoBtn url={shown[1]} idx={1} onOpen={onOpen} className="h-full" />
-      </div>
-      <div className={`grid grid-cols-3 ${gap}`}>
-        {shown.slice(2).map((url, i) => (
-          <div key={i+2} className="relative aspect-[4/3]">
-            <PhotoBtn url={url} idx={i+2} onOpen={onOpen} className="absolute inset-0 w-full h-full" />
-            {i === shown.length - 3 && extra > 0 && (
-              <button onClick={() => onOpen(i+2)} className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-2xl font-semibold rounded-sm">
-                +{extra}
-              </button>
-            )}
-          </div>
-        ))}
-      </div>
+      {firstRows.map((row, ri) => (
+        <div key={ri} className={`grid grid-cols-3 ${gap}`}>
+          {row.map((url, ci) => {
+            const idx = ri * 3 + ci;
+            return <PhotoBtn key={idx} url={url} idx={idx} onOpen={onOpen} className="aspect-[4/3]" />;
+          })}
+        </div>
+      ))}
+      {lastChunk.length > 0 && (
+        <div className={`grid grid-cols-${lastCols} ${gap}`} style={{ gridTemplateColumns: `repeat(${lastCols}, 1fr)` }}>
+          {lastChunk.map((url, i) => {
+            const idx = 6 + i;
+            const isLast = i === lastChunk.length - 1;
+            return (
+              <div key={idx} className="relative aspect-[4/3]">
+                <PhotoBtn url={url} idx={idx} onOpen={onOpen} className="absolute inset-0 w-full h-full" />
+                {isLast && extra > 0 && (
+                  <button onClick={() => onOpen(idx)} className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-2xl font-semibold rounded-sm">
+                    +{extra}
+                  </button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
