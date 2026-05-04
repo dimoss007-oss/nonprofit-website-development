@@ -33,6 +33,16 @@ function getEmbedUrl(url: string): string | null {
   return null;
 }
 
+function linkify(text: string) {
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const parts = text.split(urlRegex);
+  return parts.map((part, i) =>
+    urlRegex.test(part)
+      ? <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="text-sage underline hover:opacity-75 break-all">{part}</a>
+      : part
+  );
+}
+
 function cleanText(text: string, title: string) {
   let t = text
     .replace(/\n\n?—?\s*https:\/\/vk\.com\/wall[^\n]*/g, "")
@@ -256,7 +266,7 @@ export default function News() {
                       <time className="text-muted-foreground text-xs uppercase tracking-wider">{formatDate(item.published_at)}</time>
                     </div>
                     <h2 className="font-cormorant text-ink text-3xl font-semibold leading-snug mb-5">{item.title}</h2>
-                    <p className="text-foreground/70 leading-relaxed whitespace-pre-wrap">{item.text}</p>
+                    <p className="text-foreground/70 leading-relaxed whitespace-pre-wrap">{linkify(item.text)}</p>
                   </div>
 
                   {embedUrl && (
