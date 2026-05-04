@@ -113,7 +113,7 @@ def handler(event: dict, context) -> dict:
         video_url = extract_video_url(attachments)
         title = parse_title(text)
 
-        body_text = text + f"\n\n— {vk_url}"
+        body_text = text
 
         post_dt = datetime.fromtimestamp(item["date"], tz=timezone.utc)
 
