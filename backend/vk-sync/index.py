@@ -74,11 +74,10 @@ def handler(event: dict, context) -> dict:
         return {"statusCode": 200, "headers": cors, "body": ""}
 
     token = os.environ.get("VK_ACCESS_TOKEN", "")
-
     params = event.get("queryStringParameters") or {}
     count = int(params.get("count", 50))
 
-    items = fetch_vk_posts(token, count=count)
+    items = fetch_vk_posts(token=token, count=count)
 
     conn = psycopg2.connect(os.environ["DATABASE_URL"])
     cur = conn.cursor()

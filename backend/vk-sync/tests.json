@@ -1,10 +1,11 @@
 {
   "tests": [
     {
-      "name": "OPTIONS preflight",
-      "method": "OPTIONS",
+      "name": "Sync VK posts",
+      "method": "POST",
       "path": "/",
       "expectedStatus": 200,
+      "expectedBody": {"added": 0, "skipped": 0},
       "bodyMatcher": "partial"
     }
   ]
