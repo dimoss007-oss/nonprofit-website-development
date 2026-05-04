@@ -3,6 +3,7 @@ import Icon from "@/components/ui/icon";
 
 const NEWS_URL = "https://functions.poehali.dev/b33c4df8-295a-4694-a485-e771aec3d9ce";
 const AUTH_URL = "https://functions.poehali.dev/a964c253-7e52-4d10-9000-b278238e84e4";
+const VK_SYNC_URL = "https://functions.poehali.dev/ce64965a-09e0-411a-bbed-d25e01b5c170";
 const LOGO_IMG = "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/4ca974da-fec3-4fd3-834d-c7dccc97fca9.jpg";
 const SESSION_KEY = "admin_auth";
 
@@ -155,6 +156,8 @@ export default function AdminNews() {
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
   const [deleting, setDeleting] = useState<number | null>(null);
+  const [syncing, setSyncing] = useState(false);
+  const [syncResult, setSyncResult] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const loadNews = () => {
@@ -216,6 +219,26 @@ export default function AdminNews() {
     loadNews();
   };
 
+  const handleVkSync = async () => {
+    setSyncing(true);
+    setSyncResult(null);
+    try {
+      const res = await fetch(VK_SYNC_URL, { method: "POST" });
+      const data = await res.json();
+      if (res.ok) {
+        setSyncResult(`Добавлено: ${data.added}, пропущено: ${data.skipped}`);
+        loadNews();
+      } else {
+        setSyncResult(`Ошибка: ${data.error || "неизвестная"}`);
+      }
+    } catch {
+      setSyncResult("Ошибка соединения");
+    } finally {
+      setSyncing(false);
+      setTimeout(() => setSyncResult(null), 5000);
+    }
+  };
+
   const handleLogout = () => {
     sessionStorage.removeItem(SESSION_KEY);
     setAuthed(false);
@@ -238,6 +261,17 @@ export default function AdminNews() {
             </div>
           </a>
           <div className="flex items-center gap-4">
+            <button
+              onClick={handleVkSync}
+              disabled={syncing}
+              className="flex items-center gap-2 text-sm bg-[#4a76a8] text-white px-4 py-2 rounded-sm hover:bg-[#3d6491] transition-colors disabled:opacity-60"
+            >
+              <Icon name="RefreshCw" size={14} className={syncing ? "animate-spin" : ""} />
+              {syncing ? "Синхронизация..." : "Загрузить из ВК"}
+            </button>
+            {syncResult && (
+              <span className="text-xs text-ink/60">{syncResult}</span>
+            )}
             <a href="/news" className="text-sm text-ink/60 hover:text-ink transition-colors">
               Просмотр новостей
             </a>
