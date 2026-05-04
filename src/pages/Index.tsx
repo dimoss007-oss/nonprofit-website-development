@@ -27,7 +27,7 @@ export default function Index() {
 
       <HomeNews />
 
-      <HomeAbout />
+      {/* <HomeAbout /> */}
 
       <HomeSupport onScrollTo={scrollTo} />
 
