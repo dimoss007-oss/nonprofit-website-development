@@ -108,11 +108,11 @@ export default function HomeNews() {
               {news.map((item) => (
                 <a key={item.id} href="/news" className="group bg-beige rounded-sm overflow-hidden hover:shadow-md transition-shadow duration-300 flex flex-col">
                   {item.photos?.[0] && (
-                    <div className="aspect-video overflow-hidden">
+                    <div className="overflow-hidden bg-beige-dark">
                       <img
                         src={item.photos[0]}
                         alt=""
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        className="w-full h-auto object-contain group-hover:scale-105 transition-transform duration-500"
                       />
                     </div>
                   )}
