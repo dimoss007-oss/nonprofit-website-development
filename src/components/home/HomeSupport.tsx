@@ -200,9 +200,9 @@ export default function HomeSupport({ onScrollTo }: Props) {
                 <div className="space-y-5">
                   {[
                     { icon: "ExternalLink", label: "ВКонтакте", value: "vk.com/spasenienadezhdi", href: VK_URL },
-                    { icon: "Mail", label: "Email", value: "info@spasenienadezhdi.ru", href: "mailto:info@spasenienadezhdi.ru" },
+                    { icon: "Mail", label: "Email", value: "spasenienadezhdi@bk.ru", href: "mailto:spasenienadezhdi@bk.ru" },
                     { icon: "Phone", label: "Телефон", value: "8 800 300-86-85", href: "tel:88003008685" },
-                    { icon: "Clock", label: "Часы работы", value: "Пн–Пт, 10:00 – 18:00", href: null },
+                    { icon: "Clock", label: "Часы работы", value: "Пн–Пт, 9:00 – 18:00 МСК", href: null },
                   ].map(({ icon, label, value, href }) => (
                     <div key={label} className="flex gap-4 items-start">
                       <div className="w-9 h-9 rounded-full bg-sage/10 flex items-center justify-center flex-shrink-0 mt-0.5">
