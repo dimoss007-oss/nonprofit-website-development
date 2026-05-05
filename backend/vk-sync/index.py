@@ -98,8 +98,19 @@ def handler(event: dict, context) -> dict:
         vk_id = item["id"]
         owner_id = item.get("owner_id", 0)
 
+        post_dt = datetime.fromtimestamp(item["date"], tz=timezone.utc)
+        title = parse_title(text)
+
         cur.execute(
             "SELECT id FROM " + SCHEMA + ".news WHERE vk_id = " + str(int(vk_id)) + " LIMIT 1"
+        )
+        if cur.fetchone():
+            skipped += 1
+            continue
+
+        cur.execute(
+            "SELECT id FROM " + SCHEMA + ".news WHERE title = %s AND published_at = %s LIMIT 1",
+            (title, post_dt)
         )
         if cur.fetchone():
             skipped += 1
@@ -108,11 +119,7 @@ def handler(event: dict, context) -> dict:
         attachments = item.get("attachments", [])
         photos = extract_photos(attachments)
         video_url = extract_video_url(attachments)
-        title = parse_title(text)
-
         body_text = text
-
-        post_dt = datetime.fromtimestamp(item["date"], tz=timezone.utc)
 
         cur.execute(
             "INSERT INTO " + SCHEMA + ".news (title, text, photos, video_url, published_at, created_at, vk_id) VALUES (%s, %s, %s, %s, %s, NOW(), %s)",
