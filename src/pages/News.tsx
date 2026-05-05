@@ -182,23 +182,18 @@ export default function News() {
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const lastSync = localStorage.getItem(SYNC_KEY);
-    const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
-    if (!lastSync || Number(lastSync) < oneDayAgo) {
-      fetch(VK_SYNC_URL, { method: "POST" }).then(() => {
-        localStorage.setItem(SYNC_KEY, String(Date.now()));
-      });
-    }
-    fetch(NEWS_URL)
-      .then((r) => r.json())
-      .then((d) => {
-        const cleaned = (d.news || []).map((n: NewsItem) => ({
-          ...n,
-          text: cleanText(n.text, n.title),
-        }));
-        setAllNews(cleaned);
-      })
-      .finally(() => setLoading(false));
+    fetch(VK_SYNC_URL, { method: "POST" }).then(() => {
+      fetch(NEWS_URL)
+        .then((r) => r.json())
+        .then((d) => {
+          const cleaned = (d.news || []).map((n: NewsItem) => ({
+            ...n,
+            text: cleanText(n.text, n.title),
+          }));
+          setAllNews(cleaned);
+        })
+        .finally(() => setLoading(false));
+    });
   }, []);
 
   useEffect(() => {
