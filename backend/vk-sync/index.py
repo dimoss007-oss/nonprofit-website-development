@@ -1,6 +1,6 @@
 """
 Синхронизация постов из ВКонтакте (группа spasenienadezhdi) в таблицу news.
-POST — запустить синхронизацию вручную. v2
+POST — запустить синхронизацию вручную. v3 — с лайками и просмотрами.
 """
 import os
 import json
@@ -84,6 +84,7 @@ def handler(event: dict, context) -> dict:
 
     added = 0
     skipped = 0
+    updated = 0
 
     for item in items:
         if item.get("marked_as_ads"):
@@ -96,34 +97,44 @@ def handler(event: dict, context) -> dict:
             continue
 
         vk_id = item["id"]
-        owner_id = item.get("owner_id", 0)
-
         post_dt = datetime.fromtimestamp(item["date"], tz=timezone.utc)
         title = parse_title(text)
+
+        likes = item.get("likes", {}).get("count", 0)
+        views = item.get("views", {}).get("count", 0)
 
         cur.execute(
             "SELECT id FROM " + SCHEMA + ".news WHERE vk_id = " + str(int(vk_id)) + " LIMIT 1"
         )
-        if cur.fetchone():
-            skipped += 1
+        row = cur.fetchone()
+        if row:
+            cur.execute(
+                "UPDATE " + SCHEMA + ".news SET likes = %s, views = %s WHERE id = %s",
+                (likes, views, row[0])
+            )
+            updated += 1
             continue
 
         cur.execute(
             "SELECT id FROM " + SCHEMA + ".news WHERE title = %s AND published_at = %s LIMIT 1",
             (title, post_dt)
         )
-        if cur.fetchone():
-            skipped += 1
+        row = cur.fetchone()
+        if row:
+            cur.execute(
+                "UPDATE " + SCHEMA + ".news SET likes = %s, views = %s, vk_id = %s WHERE id = %s",
+                (likes, views, vk_id, row[0])
+            )
+            updated += 1
             continue
 
         attachments = item.get("attachments", [])
         photos = extract_photos(attachments)
         video_url = extract_video_url(attachments)
-        body_text = text
 
         cur.execute(
-            "INSERT INTO " + SCHEMA + ".news (title, text, photos, video_url, published_at, created_at, vk_id) VALUES (%s, %s, %s, %s, %s, NOW(), %s)",
-            (title, body_text, photos, video_url, post_dt, vk_id)
+            "INSERT INTO " + SCHEMA + ".news (title, text, photos, video_url, published_at, created_at, vk_id, likes, views) VALUES (%s, %s, %s, %s, %s, NOW(), %s, %s, %s)",
+            (title, text, photos, video_url, post_dt, vk_id, likes, views)
         )
         added += 1
 
@@ -134,5 +145,5 @@ def handler(event: dict, context) -> dict:
     return {
         "statusCode": 200,
         "headers": {**cors, "Content-Type": "application/json"},
-        "body": json.dumps({"added": added, "skipped": skipped, "total_processed": len(items)}, ensure_ascii=False),
+        "body": json.dumps({"added": added, "updated": updated, "skipped": skipped, "total_processed": len(items)}, ensure_ascii=False),
     }

@@ -24,8 +24,8 @@ def handler(event: dict, context) -> dict:
             cur = conn.cursor()
             schema = os.environ.get('MAIN_DB_SCHEMA', 'public')
             cur.execute("""
-                SELECT id, title, text, photos, video_url, published_at, created_at FROM (
-                    SELECT DISTINCT ON (title, published_at) id, title, text, photos, video_url, published_at, created_at
+                SELECT id, title, text, photos, video_url, published_at, created_at, likes, views FROM (
+                    SELECT DISTINCT ON (title, published_at) id, title, text, photos, video_url, published_at, created_at, likes, views
                     FROM """ + schema + """.news
                     WHERE vk_id IS DISTINCT FROM -1
                     ORDER BY title, published_at, id ASC
@@ -42,6 +42,8 @@ def handler(event: dict, context) -> dict:
                     'video_url': r[4] or '',
                     'published_at': r[5].isoformat() if r[5] else r[6].isoformat(),
                     'created_at': r[6].isoformat(),
+                    'likes': r[7] or 0,
+                    'views': r[8] or 0,
                 }
                 for r in rows
             ]

@@ -16,6 +16,8 @@ interface NewsItem {
   video_url: string;
   published_at: string;
   created_at: string;
+  likes: number;
+  views: number;
 }
 
 function formatDate(iso: string) {
@@ -267,6 +269,22 @@ export default function News() {
                     </div>
                     <h2 className="font-cormorant text-ink text-3xl font-semibold leading-snug mb-5">{item.title}</h2>
                     <p className="text-foreground/70 leading-relaxed whitespace-pre-wrap">{linkify(item.text)}</p>
+                    {(item.likes > 0 || item.views > 0) && (
+                      <div className="flex items-center gap-5 mt-5 pt-4 border-t border-foreground/10">
+                        {item.views > 0 && (
+                          <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                            <Icon name="Eye" size={15} />
+                            {item.views.toLocaleString("ru-RU")}
+                          </span>
+                        )}
+                        {item.likes > 0 && (
+                          <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                            <Icon name="Heart" size={15} />
+                            {item.likes.toLocaleString("ru-RU")}
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   {embedUrl && (
