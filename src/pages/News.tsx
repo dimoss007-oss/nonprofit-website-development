@@ -36,13 +36,17 @@ function getEmbedUrl(url: string): string | null {
 }
 
 function linkify(text: string) {
-  const urlRegex = /(https?:\/\/[^\s]+)/g;
-  const parts = text.split(urlRegex);
-  return parts.map((part, i) =>
-    urlRegex.test(part)
-      ? <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="text-sage underline hover:opacity-75 break-all">{part}</a>
-      : part
-  );
+  const fullRegex = /(https?:\/\/[^\s]+|vk\.com\/[^\s]+)/g;
+  const parts = text.split(fullRegex);
+  return parts.map((part, i) => {
+    if (/^https?:\/\//.test(part)) {
+      return <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="text-sage underline hover:opacity-75 break-all">{part}</a>;
+    }
+    if (/^vk\.com\//.test(part)) {
+      return <a key={i} href={`https://${part}`} target="_blank" rel="noopener noreferrer" className="text-sage underline hover:opacity-75 break-all">{part}</a>;
+    }
+    return part;
+  });
 }
 
 function cleanText(text: string, title: string) {
