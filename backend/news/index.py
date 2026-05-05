@@ -28,7 +28,7 @@ def handler(event: dict, context) -> dict:
                     SELECT DISTINCT ON (title, published_at) id, title, text, photos, video_url, published_at, created_at, likes, views
                     FROM """ + schema + """.news
                     WHERE vk_id IS DISTINCT FROM -1
-                    ORDER BY title, published_at, id ASC
+                    ORDER BY title, published_at, vk_id DESC NULLS LAST, id ASC
                 ) sub
                 ORDER BY published_at DESC
             """)
