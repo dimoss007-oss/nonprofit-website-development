@@ -267,6 +267,10 @@ export default function HomeSupport({ onScrollTo }: Props) {
             </a>
           </div>
           <div className="deco-line mb-5" />
+          <div className="text-center text-beige/25 text-xs space-y-1 mb-3">
+            <p>АНО «Спасение надежды» | ОГРН 1245800010114 | ИНН 5800011843 | КПП 580001001</p>
+            <p>Юридический адрес: г. Пенза, ул. 8 марта 17Б</p>
+          </div>
           <p className="text-center text-beige/25 text-xs">
             © 2026 АНО «Спасение надежды». Все права защищены.
           </p>
