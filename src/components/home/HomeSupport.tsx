@@ -172,7 +172,12 @@ export default function HomeSupport({ onScrollTo }: Props) {
                     >
                       Пожертвовать {finalAmount ? `${finalAmount.toLocaleString()} ₽` : ""}{isRecurring ? " / мес" : ""}
                     </button>
-                    <p className="text-beige/35 text-xs text-center">Ваши данные в безопасности</p>
+                    <p className="text-beige/35 text-xs text-center">
+                      Ваши данные в безопасности ·{" "}
+                      <a href="/donation-terms" target="_blank" rel="noopener noreferrer" className="underline hover:text-beige/60 transition-colors">
+                        Условия внесения пожертвования
+                      </a>
+                    </p>
                   </form>
                 )}
               </div>
