@@ -12,6 +12,7 @@ import Program from "./pages/Program";
 import DonationTerms from "./pages/DonationTerms";
 import NotFound from "./pages/NotFound";
 import Gallery from "./pages/Gallery";
+import AdminGallery from "./pages/AdminGallery";
 
 const queryClient = new QueryClient();
 
@@ -26,6 +27,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/news" element={<News />} />
           <Route path="/admin/news" element={<AdminNews />} />
+          <Route path="/admin/gallery" element={<AdminGallery />} />
           <Route path="/program" element={<Program />} />
           <Route path="/donation-terms" element={<DonationTerms />} />
           <Route path="/gallery" element={<Gallery />} />

@@ -1,24 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import Icon from "@/components/ui/icon";
 
-const NEWS_URL = "https://functions.poehali.dev/b33c4df8-295a-4694-a485-e771aec3d9ce";
+const GALLERY_URL = "https://functions.poehali.dev/abf6fa73-1b43-4ff7-af96-8b6e8ca2b46a";
 const AUTH_URL = "https://functions.poehali.dev/a964c253-7e52-4d10-9000-b278238e84e4";
-const VK_SYNC_URL = "https://functions.poehali.dev/ce64965a-09e0-411a-bbed-d25e01b5c170";
 const LOGO_IMG = "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/4ca974da-fec3-4fd3-834d-c7dccc97fca9.jpg";
 const SESSION_KEY = "admin_auth";
 
-interface NewsItem {
+interface GalleryPhoto {
   id: number;
   title: string;
-  text: string;
-  photos: string[];
-  video_url: string;
-  published_at: string;
+  photo_url: string;
   created_at: string;
-}
-
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" });
 }
 
 function compressAndConvert(file: File, maxWidth = 1600, quality = 0.82): Promise<string> {
@@ -81,7 +73,6 @@ function LoginScreen({ onAuth }: { onAuth: () => void }) {
           <div className="font-cormorant text-ink text-2xl font-semibold">Спасение надежды</div>
           <div className="text-muted-foreground text-xs uppercase tracking-widest mt-1">Панель управления</div>
         </div>
-
         <form onSubmit={handleSubmit} className="bg-white rounded-sm p-8 shadow-sm space-y-5">
           <div>
             <label className="block text-xs uppercase tracking-widest text-ink/50 mb-2">Логин</label>
@@ -95,7 +86,6 @@ function LoginScreen({ onAuth }: { onAuth: () => void }) {
               required
             />
           </div>
-
           <div>
             <label className="block text-xs uppercase tracking-widest text-ink/50 mb-2">Пароль</label>
             <div className="relative">
@@ -117,14 +107,12 @@ function LoginScreen({ onAuth }: { onAuth: () => void }) {
               </button>
             </div>
           </div>
-
           {error && (
             <div className="flex items-center gap-2 text-destructive text-sm bg-red-50 px-4 py-3 rounded-sm">
               <Icon name="AlertCircle" size={14} />
               {error}
             </div>
           )}
-
           <button
             type="submit"
             disabled={loading}
@@ -133,111 +121,77 @@ function LoginScreen({ onAuth }: { onAuth: () => void }) {
             {loading ? "Проверяем..." : "Войти"}
           </button>
         </form>
-
         <div className="text-center mt-6">
-          <a href="/" className="text-ink/40 hover:text-ink/70 text-sm transition-colors">
-            ← На главную
-          </a>
+          <a href="/" className="text-ink/40 hover:text-ink/70 text-sm transition-colors">← На главную</a>
         </div>
       </div>
     </div>
   );
 }
 
-export default function AdminNews() {
+export default function AdminGallery() {
   const [authed, setAuthed] = useState(() => sessionStorage.getItem(SESSION_KEY) === "1");
-
-  const [news, setNews] = useState<NewsItem[]>([]);
+  const [photos, setPhotos] = useState<GalleryPhoto[]>([]);
   const [loading, setLoading] = useState(true);
-  const [title, setTitle] = useState("");
-  const [text, setText] = useState("");
-  const [videoUrl, setVideoUrl] = useState("");
-  const [publishedAt, setPublishedAt] = useState(() => new Date().toISOString().slice(0, 10));
-  const [photos, setPhotos] = useState<{ file: File; preview: string }[]>([]);
+  const [photoTitle, setPhotoTitle] = useState("");
+  const [pendingFiles, setPendingFiles] = useState<{ file: File; preview: string }[]>([]);
   const [saving, setSaving] = useState(false);
-  const [success, setSuccess] = useState(false);
+  const [savedCount, setSavedCount] = useState(0);
   const [deleting, setDeleting] = useState<number | null>(null);
-  const [syncing, setSyncing] = useState(false);
-  const [syncResult, setSyncResult] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const loadNews = () => {
+  const loadPhotos = () => {
     setLoading(true);
-    fetch(NEWS_URL)
+    fetch(GALLERY_URL)
       .then((r) => r.json())
-      .then((d) => setNews(d.news || []))
+      .then((d) => setPhotos(d.photos || []))
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => { if (authed) loadNews(); }, [authed]);
+  useEffect(() => { if (authed) loadPhotos(); }, [authed]);
 
-  const handleFiles = async (files: FileList | null) => {
+  const handleFiles = (files: FileList | null) => {
     if (!files) return;
-    const newItems = await Promise.all(
-      Array.from(files).map(async (file) => ({
-        file,
-        preview: URL.createObjectURL(file),
-      }))
-    );
-    setPhotos((prev) => [...prev, ...newItems]);
+    const items = Array.from(files).map((file) => ({
+      file,
+      preview: URL.createObjectURL(file),
+    }));
+    setPendingFiles((prev) => [...prev, ...items]);
   };
 
-  const removePhoto = (idx: number) => {
-    setPhotos((prev) => prev.filter((_, i) => i !== idx));
+  const removeFile = (idx: number) => {
+    setPendingFiles((prev) => prev.filter((_, i) => i !== idx));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim() || !text.trim()) return;
+    if (!pendingFiles.length) return;
     setSaving(true);
+    setSavedCount(0);
     try {
-      const photosB64 = await Promise.all(photos.map((p) => compressAndConvert(p.file)));
-      const res = await fetch(NEWS_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, text, photos: photosB64, video_url: videoUrl, published_at: publishedAt }),
-      });
-      if (res.ok) {
-        setTitle("");
-        setText("");
-        setVideoUrl("");
-        setPublishedAt(new Date().toISOString().slice(0, 10));
-        setPhotos([]);
-        setSuccess(true);
-        setTimeout(() => setSuccess(false), 3000);
-        loadNews();
+      for (const item of pendingFiles) {
+        const b64 = await compressAndConvert(item.file);
+        await fetch(GALLERY_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ photo: b64, title: photoTitle }),
+        });
+        setSavedCount((c) => c + 1);
       }
+      setPhotoTitle("");
+      setPendingFiles([]);
+      loadPhotos();
     } finally {
       setSaving(false);
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm("Удалить новость?")) return;
+    if (!confirm("Удалить фото из галереи?")) return;
     setDeleting(id);
-    await fetch(`${NEWS_URL}?id=${id}`, { method: "DELETE" });
+    await fetch(`${GALLERY_URL}?id=${id}`, { method: "DELETE" });
     setDeleting(null);
-    loadNews();
-  };
-
-  const handleVkSync = async () => {
-    setSyncing(true);
-    setSyncResult(null);
-    try {
-      const res = await fetch(VK_SYNC_URL, { method: "POST" });
-      const data = await res.json();
-      if (res.ok) {
-        setSyncResult(`Добавлено: ${data.added}, пропущено: ${data.skipped}`);
-        loadNews();
-      } else {
-        setSyncResult(`Ошибка: ${data.error || "неизвестная"}`);
-      }
-    } catch {
-      setSyncResult("Ошибка соединения");
-    } finally {
-      setSyncing(false);
-      setTimeout(() => setSyncResult(null), 5000);
-    }
+    loadPhotos();
   };
 
   const handleLogout = () => {
@@ -245,9 +199,7 @@ export default function AdminNews() {
     setAuthed(false);
   };
 
-  if (!authed) {
-    return <LoginScreen onAuth={() => setAuthed(true)} />;
-  }
+  if (!authed) return <LoginScreen onAuth={() => setAuthed(true)} />;
 
   return (
     <div className="min-h-screen bg-beige-mid font-golos">
@@ -258,26 +210,15 @@ export default function AdminNews() {
             <img src={LOGO_IMG} alt="Спасение надежды" className="w-14 h-14 object-contain" />
             <div>
               <div className="font-cormorant text-ink text-lg font-semibold leading-none">Спасение надежды</div>
-              <div className="text-muted-foreground text-[10px] uppercase tracking-wider">Управление новостями</div>
+              <div className="text-muted-foreground text-[10px] uppercase tracking-wider">Управление галереей</div>
             </div>
           </a>
           <div className="flex items-center gap-4">
-            <button
-              onClick={handleVkSync}
-              disabled={syncing}
-              className="flex items-center gap-2 text-sm bg-[#4a76a8] text-white px-4 py-2 rounded-sm hover:bg-[#3d6491] transition-colors disabled:opacity-60"
-            >
-              <Icon name="RefreshCw" size={14} className={syncing ? "animate-spin" : ""} />
-              {syncing ? "Синхронизация..." : "Загрузить из ВК"}
-            </button>
-            {syncResult && (
-              <span className="text-xs text-ink/60">{syncResult}</span>
-            )}
-            <a href="/admin/gallery" className="text-sm text-ink/60 hover:text-ink transition-colors">
-              Галерея
+            <a href="/admin/news" className="text-sm text-ink/60 hover:text-ink transition-colors">
+              Новости
             </a>
-            <a href="/news" className="text-sm text-ink/60 hover:text-ink transition-colors">
-              Просмотр новостей
+            <a href="/gallery" className="text-sm text-ink/60 hover:text-ink transition-colors">
+              Просмотр галереи
             </a>
             <button
               onClick={handleLogout}
@@ -296,56 +237,22 @@ export default function AdminNews() {
             <div className="h-px w-8 bg-sage" />
             <span className="text-sage text-xs tracking-[0.2em] uppercase font-golos">Панель управления</span>
           </div>
-          <h1 className="font-cormorant text-ink text-4xl font-semibold">Добавить новость</h1>
+          <h1 className="font-cormorant text-ink text-4xl font-semibold">Фотогалерея</h1>
         </div>
 
-        {/* FORM */}
+        {/* UPLOAD FORM */}
         <form onSubmit={handleSubmit} className="bg-white rounded-sm p-8 shadow-sm mb-12">
-          <div className="space-y-6">
+          <h2 className="font-cormorant text-ink text-2xl font-semibold mb-6">Добавить фотографии</h2>
+          <div className="space-y-5">
             <div>
-              <label className="block text-xs uppercase tracking-widest text-ink/50 mb-2">Заголовок *</label>
+              <label className="block text-xs uppercase tracking-widest text-ink/50 mb-2">Подпись ко всем фото (необязательно)</label>
               <input
                 type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Заголовок новости"
+                value={photoTitle}
+                onChange={(e) => setPhotoTitle(e.target.value)}
+                placeholder="Например: Летний лагерь 2024"
                 className="w-full border border-beige-dark rounded-sm px-4 py-3 text-ink placeholder-ink/30 focus:outline-none focus:border-sage transition-colors bg-beige/50"
-                required
               />
-            </div>
-
-            <div>
-              <label className="block text-xs uppercase tracking-widest text-ink/50 mb-2">Текст новости *</label>
-              <textarea
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                placeholder="Напишите текст новости..."
-                rows={6}
-                className="w-full border border-beige-dark rounded-sm px-4 py-3 text-ink placeholder-ink/30 focus:outline-none focus:border-sage transition-colors bg-beige/50 resize-y"
-                required
-              />
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-xs uppercase tracking-widest text-ink/50 mb-2">Видео (ВКонтакте / Rutube / YouTube)</label>
-                <input
-                  type="url"
-                  value={videoUrl}
-                  onChange={(e) => setVideoUrl(e.target.value)}
-                  placeholder="https://vk.com/video... или https://rutube.ru/video/..."
-                  className="w-full border border-beige-dark rounded-sm px-4 py-3 text-ink placeholder-ink/30 focus:outline-none focus:border-sage transition-colors bg-beige/50 text-sm"
-                />
-              </div>
-              <div>
-                <label className="block text-xs uppercase tracking-widest text-ink/50 mb-2">Дата публикации</label>
-                <input
-                  type="date"
-                  value={publishedAt}
-                  onChange={(e) => setPublishedAt(e.target.value)}
-                  className="w-full border border-beige-dark rounded-sm px-4 py-3 text-ink focus:outline-none focus:border-sage transition-colors bg-beige/50"
-                />
-              </div>
             </div>
 
             <div>
@@ -358,77 +265,90 @@ export default function AdminNews() {
                 className="hidden"
                 onChange={(e) => handleFiles(e.target.files)}
               />
-              {photos.length > 0 && (
-                <div className="grid grid-cols-3 md:grid-cols-4 gap-3 mb-4">
-                  {photos.map((p, idx) => (
-                    <div key={idx} className="relative aspect-video rounded-sm overflow-hidden group">
+              {pendingFiles.length > 0 && (
+                <div className="grid grid-cols-3 md:grid-cols-5 gap-3 mb-4">
+                  {pendingFiles.map((p, idx) => (
+                    <div key={idx} className="relative aspect-square rounded-sm overflow-hidden group">
                       <img src={p.preview} alt="" className="w-full h-full object-cover" />
                       <button
                         type="button"
-                        onClick={() => removePhoto(idx)}
+                        onClick={() => removeFile(idx)}
                         className="absolute top-1 right-1 w-6 h-6 bg-black/60 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                       >
                         <Icon name="X" size={12} className="text-white" />
                       </button>
                     </div>
                   ))}
+                  <button
+                    type="button"
+                    onClick={() => fileRef.current?.click()}
+                    className="aspect-square border-2 border-dashed border-beige-dark hover:border-sage rounded-sm flex flex-col items-center justify-center text-ink/40 hover:text-sage transition-colors gap-1"
+                  >
+                    <Icon name="Plus" size={20} />
+                    <span className="text-xs">Ещё</span>
+                  </button>
                 </div>
               )}
-              <button
-                type="button"
-                onClick={() => fileRef.current?.click()}
-                className="flex items-center gap-2 border-2 border-dashed border-beige-dark hover:border-sage rounded-sm px-6 py-4 text-ink/50 hover:text-sage transition-colors w-full justify-center"
-              >
-                <Icon name="ImagePlus" size={18} />
-                <span className="text-sm">Добавить фото</span>
-              </button>
+              {pendingFiles.length === 0 && (
+                <button
+                  type="button"
+                  onClick={() => fileRef.current?.click()}
+                  className="flex items-center gap-2 border-2 border-dashed border-beige-dark hover:border-sage rounded-sm px-6 py-6 text-ink/50 hover:text-sage transition-colors w-full justify-center"
+                >
+                  <Icon name="ImagePlus" size={22} />
+                  <span className="text-sm">Выбрать фотографии (можно несколько)</span>
+                </button>
+              )}
             </div>
 
             <button
               type="submit"
-              disabled={saving}
+              disabled={saving || !pendingFiles.length}
               className="w-full bg-sage text-white py-4 rounded-sm font-golos font-semibold uppercase tracking-wider text-sm hover:bg-sage-dark transition-colors disabled:opacity-60"
             >
-              {saving ? "Публикуем..." : success ? "Опубликовано!" : "Опубликовать новость"}
+              {saving
+                ? `Загружаем... ${savedCount}/${pendingFiles.length}`
+                : `Загрузить ${pendingFiles.length > 0 ? `${pendingFiles.length} фото` : "фото"}`}
             </button>
           </div>
         </form>
 
-        {/* NEWS LIST */}
+        {/* GALLERY LIST */}
         <div>
-          <h2 className="font-cormorant text-ink text-3xl font-semibold mb-6">Опубликованные новости</h2>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="font-cormorant text-ink text-3xl font-semibold">
+              В галерее
+              {photos.length > 0 && <span className="text-muted-foreground text-xl font-light ml-2">({photos.length})</span>}
+            </h2>
+          </div>
+
           {loading ? (
-            <div className="space-y-4">
-              {[1, 2].map((i) => (
-                <div key={i} className="bg-white rounded-sm p-6 animate-pulse">
-                  <div className="h-4 bg-beige-dark rounded w-32 mb-3" />
-                  <div className="h-6 bg-beige-dark rounded w-2/3" />
-                </div>
+            <div className="grid grid-cols-3 md:grid-cols-4 gap-4">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} className="aspect-square bg-beige-dark rounded-sm animate-pulse" />
               ))}
             </div>
-          ) : news.length === 0 ? (
-            <p className="text-foreground/40 text-center py-12">Новостей пока нет</p>
+          ) : photos.length === 0 ? (
+            <div className="text-center py-20 bg-white rounded-sm">
+              <Icon name="Images" size={40} className="text-ink/20 mx-auto mb-3" />
+              <p className="text-foreground/40">Фотографий пока нет</p>
+            </div>
           ) : (
-            <div className="space-y-4">
-              {news.map((item) => (
-                <div key={item.id} className="bg-white rounded-sm p-6 shadow-sm flex gap-4 items-start">
-                  {item.photos[0] && (
-                    <img src={item.photos[0]} alt="" className="w-20 h-20 object-cover rounded-sm flex-shrink-0" />
+            <div className="grid grid-cols-3 md:grid-cols-4 gap-4">
+              {photos.map((p) => (
+                <div key={p.id} className="relative aspect-square rounded-sm overflow-hidden group">
+                  <img src={p.photo_url} alt={p.title || ""} className="w-full h-full object-cover" />
+                  {p.title && (
+                    <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-xs p-2 truncate opacity-0 group-hover:opacity-100 transition-opacity">
+                      {p.title}
+                    </div>
                   )}
-                  <div className="flex-1 min-w-0">
-                    <time className="text-muted-foreground text-xs">{formatDate(item.published_at)}</time>
-                    <h3 className="font-cormorant text-ink text-xl font-semibold mt-1 mb-1 truncate">{item.title}</h3>
-                    <p className="text-foreground/60 text-sm line-clamp-2">{item.text}</p>
-                    {item.photos.length > 1 && (
-                      <span className="text-xs text-muted-foreground mt-1 inline-block">{item.photos.length} фото</span>
-                    )}
-                  </div>
                   <button
-                    onClick={() => handleDelete(item.id)}
-                    disabled={deleting === item.id}
-                    className="flex-shrink-0 w-9 h-9 flex items-center justify-center text-destructive/50 hover:text-destructive hover:bg-red-50 rounded-sm transition-colors disabled:opacity-40"
+                    onClick={() => handleDelete(p.id)}
+                    disabled={deleting === p.id}
+                    className="absolute top-2 right-2 w-8 h-8 bg-black/60 hover:bg-red-600 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all disabled:opacity-40"
                   >
-                    <Icon name="Trash2" size={16} />
+                    <Icon name="Trash2" size={14} className="text-white" />
                   </button>
                 </div>
               ))}
