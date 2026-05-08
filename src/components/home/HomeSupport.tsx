@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import Icon from "@/components/ui/icon";
+import { PaymentButton } from "@/components/extensions/robokassa/PaymentButton";
+
+const ROBOKASSA_URL = "https://functions.poehali.dev/3317a497-ca88-4c4a-a762-5067d6219617";
 
 const VK_URL = "https://vk.com/spasenienadezhdi";
 const LOGO_IMG = "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/4ca974da-fec3-4fd3-834d-c7dccc97fca9.jpg";
@@ -55,8 +58,6 @@ export default function HomeSupport({ onScrollTo }: Props) {
 
   const handleDonate = (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
-    setTimeout(() => setSubmitted(false), 4000);
   };
 
   return (
@@ -166,12 +167,20 @@ export default function HomeSupport({ onScrollTo }: Props) {
                       />
                     </div>
 
-                    <button
-                      type="submit"
+                    <PaymentButton
+                      apiUrl={ROBOKASSA_URL}
+                      amount={finalAmount}
+                      userName={donorName}
+                      userEmail={donorEmail}
+                      userPhone=""
+                      orderComment={isRecurring ? "Ежемесячное пожертвование" : "Разовое пожертвование"}
+                      cartItems={[{ id: "donation", name: "Пожертвование", price: finalAmount, quantity: 1 }]}
+                      successUrl={`${window.location.origin}/`}
+                      failUrl={`${window.location.origin}/`}
+                      buttonText={`Пожертвовать ${finalAmount ? `${finalAmount.toLocaleString()} ₽` : ""}${isRecurring ? " / мес" : ""}`}
                       className="w-full bg-beige text-sage py-3.5 font-golos font-semibold text-sm tracking-wide uppercase rounded-sm hover:bg-beige-mid transition-all duration-300"
-                    >
-                      Пожертвовать {finalAmount ? `${finalAmount.toLocaleString()} ₽` : ""}{isRecurring ? " / мес" : ""}
-                    </button>
+                      disabled={!finalAmount || !donorName || !donorEmail}
+                    />
                     <p className="text-beige/35 text-xs text-center">
                       Ваши данные в безопасности ·{" "}
                       <a href="/donation-terms" target="_blank" rel="noopener noreferrer" className="underline hover:text-beige/60 transition-colors">
