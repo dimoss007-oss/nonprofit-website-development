@@ -4,8 +4,16 @@ import Icon from "@/components/ui/icon";
 const NEWS_URL = "https://functions.poehali.dev/b33c4df8-295a-4694-a485-e771aec3d9ce";
 const AUTH_URL = "https://functions.poehali.dev/a964c253-7e52-4d10-9000-b278238e84e4";
 const VK_SYNC_URL = "https://functions.poehali.dev/ce64965a-09e0-411a-bbed-d25e01b5c170";
+const GALLERY_URL = "https://functions.poehali.dev/abf6fa73-1b43-4ff7-af96-8b6e8ca2b46a";
 const LOGO_IMG = "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/4ca974da-fec3-4fd3-834d-c7dccc97fca9.jpg";
 const SESSION_KEY = "admin_auth";
+
+interface GalleryPhoto {
+  id: number;
+  title: string;
+  photo_url: string;
+  created_at: string;
+}
 
 interface NewsItem {
   id: number;
@@ -146,6 +154,9 @@ function LoginScreen({ onAuth }: { onAuth: () => void }) {
 
 export default function AdminNews() {
   const [authed, setAuthed] = useState(() => sessionStorage.getItem(SESSION_KEY) === "1");
+  const [activeTab, setActiveTab] = useState<"news" | "gallery">("news");
+
+  // News state
   const [news, setNews] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [title, setTitle] = useState("");
@@ -160,6 +171,61 @@ export default function AdminNews() {
   const [syncResult, setSyncResult] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
+  // Gallery state
+  const [galleryPhotos, setGalleryPhotos] = useState<GalleryPhoto[]>([]);
+  const [galleryLoading, setGalleryLoading] = useState(false);
+  const [galleryTitle, setGalleryTitle] = useState("");
+  const [galleryFile, setGalleryFile] = useState<{ file: File; preview: string } | null>(null);
+  const [gallerySaving, setGallerySaving] = useState(false);
+  const [gallerySuccess, setGallerySuccess] = useState(false);
+  const [galleryDeleting, setGalleryDeleting] = useState<number | null>(null);
+  const galleryFileRef = useRef<HTMLInputElement>(null);
+
+  const loadGallery = () => {
+    setGalleryLoading(true);
+    fetch(GALLERY_URL)
+      .then((r) => r.json())
+      .then((d) => setGalleryPhotos(d.photos || []))
+      .finally(() => setGalleryLoading(false));
+  };
+
+  const handleGalleryFile = (files: FileList | null) => {
+    if (!files || !files[0]) return;
+    const file = files[0];
+    setGalleryFile({ file, preview: URL.createObjectURL(file) });
+  };
+
+  const handleGallerySubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!galleryFile) return;
+    setGallerySaving(true);
+    try {
+      const b64 = await compressAndConvert(galleryFile.file);
+      const res = await fetch(GALLERY_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ photo: b64, title: galleryTitle }),
+      });
+      if (res.ok) {
+        setGalleryTitle("");
+        setGalleryFile(null);
+        setGallerySuccess(true);
+        setTimeout(() => setGallerySuccess(false), 3000);
+        loadGallery();
+      }
+    } finally {
+      setGallerySaving(false);
+    }
+  };
+
+  const handleGalleryDelete = async (id: number) => {
+    if (!confirm("Удалить фото из галереи?")) return;
+    setGalleryDeleting(id);
+    await fetch(`${GALLERY_URL}?id=${id}`, { method: "DELETE" });
+    setGalleryDeleting(null);
+    loadGallery();
+  };
+
   const loadNews = () => {
     setLoading(true);
     fetch(NEWS_URL)
@@ -168,7 +234,12 @@ export default function AdminNews() {
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => { if (authed) loadNews(); }, [authed]);
+  useEffect(() => {
+    if (authed) {
+      loadNews();
+      loadGallery();
+    }
+  }, [authed]);
 
   const handleFiles = async (files: FileList | null) => {
     if (!files) return;
@@ -287,13 +358,119 @@ export default function AdminNews() {
       </nav>
 
       <div className="pt-24 pb-20 max-w-5xl mx-auto px-6">
-        <div className="mb-10">
+        <div className="mb-8">
           <div className="flex items-center gap-3 mb-3">
             <div className="h-px w-8 bg-sage" />
             <span className="text-sage text-xs tracking-[0.2em] uppercase font-golos">Панель управления</span>
           </div>
-          <h1 className="font-cormorant text-ink text-4xl font-semibold">Добавить новость</h1>
+          <h1 className="font-cormorant text-ink text-4xl font-semibold">Управление контентом</h1>
         </div>
+
+        {/* TABS */}
+        <div className="flex gap-1 mb-8 bg-beige rounded-sm p-1 w-fit">
+          <button
+            onClick={() => setActiveTab("news")}
+            className={`px-6 py-2.5 text-sm font-semibold rounded-sm transition-all ${activeTab === "news" ? "bg-white text-ink shadow-sm" : "text-ink/50 hover:text-ink"}`}
+          >
+            Новости
+          </button>
+          <button
+            onClick={() => setActiveTab("gallery")}
+            className={`px-6 py-2.5 text-sm font-semibold rounded-sm transition-all ${activeTab === "gallery" ? "bg-white text-ink shadow-sm" : "text-ink/50 hover:text-ink"}`}
+          >
+            Фотогалерея
+          </button>
+        </div>
+
+        {activeTab === "gallery" && (
+          <div>
+            <form onSubmit={handleGallerySubmit} className="bg-white rounded-sm p-8 shadow-sm mb-8">
+              <h2 className="font-cormorant text-ink text-2xl font-semibold mb-6">Добавить фото в галерею</h2>
+              <div className="space-y-5">
+                <div>
+                  <label className="block text-xs uppercase tracking-widest text-ink/50 mb-2">Подпись (необязательно)</label>
+                  <input
+                    type="text"
+                    value={galleryTitle}
+                    onChange={(e) => setGalleryTitle(e.target.value)}
+                    placeholder="Описание фотографии"
+                    className="w-full border border-beige-dark rounded-sm px-4 py-3 text-ink placeholder-ink/30 focus:outline-none focus:border-sage transition-colors bg-beige/50"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs uppercase tracking-widest text-ink/50 mb-3">Фотография *</label>
+                  <input
+                    ref={galleryFileRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => handleGalleryFile(e.target.files)}
+                  />
+                  {galleryFile ? (
+                    <div className="relative w-48 aspect-square rounded-sm overflow-hidden group">
+                      <img src={galleryFile.preview} alt="" className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => setGalleryFile(null)}
+                        className="absolute top-2 right-2 w-7 h-7 bg-black/60 rounded-full flex items-center justify-center"
+                      >
+                        <Icon name="X" size={13} className="text-white" />
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => galleryFileRef.current?.click()}
+                      className="flex items-center gap-2 border-2 border-dashed border-beige-dark hover:border-sage rounded-sm px-6 py-4 text-ink/50 hover:text-sage transition-colors w-full justify-center"
+                    >
+                      <Icon name="ImagePlus" size={18} />
+                      <span className="text-sm">Выбрать фото</span>
+                    </button>
+                  )}
+                </div>
+                <button
+                  type="submit"
+                  disabled={gallerySaving || !galleryFile}
+                  className="w-full bg-sage text-white py-4 rounded-sm font-golos font-semibold uppercase tracking-wider text-sm hover:bg-sage-dark transition-colors disabled:opacity-60"
+                >
+                  {gallerySaving ? "Загружаем..." : gallerySuccess ? "Добавлено!" : "Добавить в галерею"}
+                </button>
+              </div>
+            </form>
+
+            <h2 className="font-cormorant text-ink text-3xl font-semibold mb-6">Фотографии в галерее</h2>
+            {galleryLoading ? (
+              <div className="grid grid-cols-3 md:grid-cols-4 gap-4">
+                {[1,2,3,4].map((i) => <div key={i} className="aspect-square bg-beige-dark rounded-sm animate-pulse" />)}
+              </div>
+            ) : galleryPhotos.length === 0 ? (
+              <p className="text-foreground/40 text-center py-12">Фотографий пока нет</p>
+            ) : (
+              <div className="grid grid-cols-3 md:grid-cols-4 gap-4">
+                {galleryPhotos.map((p) => (
+                  <div key={p.id} className="relative aspect-square rounded-sm overflow-hidden group">
+                    <img src={p.photo_url} alt={p.title || ""} className="w-full h-full object-cover" />
+                    {p.title && (
+                      <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-xs p-2 truncate opacity-0 group-hover:opacity-100 transition-opacity">
+                        {p.title}
+                      </div>
+                    )}
+                    <button
+                      onClick={() => handleGalleryDelete(p.id)}
+                      disabled={galleryDeleting === p.id}
+                      className="absolute top-2 right-2 w-8 h-8 bg-black/60 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-40"
+                    >
+                      <Icon name="Trash2" size={14} className="text-white" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === "news" && (
+        <>
 
         {/* FORM */}
         <form onSubmit={handleSubmit} className="bg-white rounded-sm p-8 shadow-sm mb-12">
@@ -431,6 +608,8 @@ export default function AdminNews() {
             </div>
           )}
         </div>
+        </>
+        )}
       </div>
     </div>
   );

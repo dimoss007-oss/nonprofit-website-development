@@ -11,6 +11,7 @@ import AdminNews from "./pages/AdminNews";
 import Program from "./pages/Program";
 import DonationTerms from "./pages/DonationTerms";
 import NotFound from "./pages/NotFound";
+import Gallery from "./pages/Gallery";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +28,7 @@ const App = () => (
           <Route path="/admin/news" element={<AdminNews />} />
           <Route path="/program" element={<Program />} />
           <Route path="/donation-terms" element={<DonationTerms />} />
+          <Route path="/gallery" element={<Gallery />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

@@ -17,6 +17,7 @@ const aboutItems = [
   { label: "О нас", anchor: "o-nas" },
   { label: "Миссия", anchor: "missiya" },
   { label: "Команда", anchor: "komanda" },
+  { label: "Фотогалерея", href: "/gallery" },
 ];
 
 export default function SiteNav() {
@@ -68,6 +69,41 @@ export default function SiteNav() {
             <a key={href} href={href} className="nav-link">{label}</a>
           ))}
 
+          {/* О нас — дропдаун */}
+          <div ref={aboutRef} className="relative">
+            <button
+              onClick={() => setAboutOpen(!aboutOpen)}
+              className="nav-link flex items-center gap-1"
+            >
+              о нас
+              <Icon name="ChevronDown" size={13} className={`transition-transform duration-200 ${aboutOpen ? "rotate-180" : ""}`} />
+            </button>
+            {aboutOpen && (
+              <div className="absolute top-full left-0 mt-2 bg-white shadow-lg rounded-sm border border-beige-dark min-w-[180px] py-1 z-50">
+                {aboutItems.map((item) => (
+                  "href" in item ? (
+                    <a
+                      key={item.label}
+                      href={item.href}
+                      onClick={() => setAboutOpen(false)}
+                      className="block px-4 py-2.5 text-sm text-ink hover:text-sage hover:bg-beige/50 transition-colors"
+                    >
+                      {item.label}
+                    </a>
+                  ) : (
+                    <button
+                      key={item.label}
+                      onClick={() => navigateToAnchor(item.anchor)}
+                      className="w-full text-left px-4 py-2.5 text-sm text-ink hover:text-sage hover:bg-beige/50 transition-colors"
+                    >
+                      {item.label}
+                    </button>
+                  )
+                ))}
+              </div>
+            )}
+          </div>
+
           {navItemsAfter.map(({ label, href }) => (
             <a key={href} href={href} className="nav-link">{label}</a>
           ))}
@@ -91,6 +127,13 @@ export default function SiteNav() {
           <div className="px-6 py-4 grid grid-cols-2 gap-3">
             {navItemsBefore.map(({ label, href }) => (
               <button key={href} onClick={() => navigateTo(href)} className="nav-link text-left py-2">{label}</button>
+            ))}
+            {aboutItems.map((item) => (
+              "href" in item ? (
+                <button key={item.label} onClick={() => navigateTo(item.href)} className="nav-link text-left py-2">{item.label}</button>
+              ) : (
+                <button key={item.label} onClick={() => navigateToAnchor(item.anchor)} className="nav-link text-left py-2">{item.label}</button>
+              )
             ))}
             {navItemsAfter.map(({ label, href }) => (
               <button key={href} onClick={() => navigateTo(href)} className="nav-link text-left py-2">{label}</button>
