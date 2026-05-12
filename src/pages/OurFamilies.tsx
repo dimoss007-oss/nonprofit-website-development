@@ -1,3 +1,4 @@
+import { useState } from "react";
 import SiteNav from "@/components/shared/SiteNav";
 
 const CASES = [
@@ -78,10 +79,32 @@ const CASES = [
 
 export default function OurFamilies() {
   const c = CASES[0];
+  const [lightbox, setLightbox] = useState<string | null>(null);
 
   return (
     <div className="min-h-screen bg-beige-mid font-golos">
       <SiteNav />
+
+      {/* LIGHTBOX */}
+      {lightbox && (
+        <div
+          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 cursor-zoom-out"
+          onClick={() => setLightbox(null)}
+        >
+          <img
+            src={lightbox}
+            alt=""
+            className="max-w-full max-h-full rounded-sm shadow-2xl object-contain"
+            onClick={e => e.stopPropagation()}
+          />
+          <button
+            onClick={() => setLightbox(null)}
+            className="absolute top-4 right-5 text-white/80 hover:text-white text-3xl leading-none"
+          >
+            ×
+          </button>
+        </div>
+      )}
 
       <div className="pt-28 pb-24 max-w-4xl mx-auto px-6">
         {/* PAGE HEADER */}
@@ -98,11 +121,14 @@ export default function OurFamilies() {
         {/* CASE CARD */}
         <article className="bg-white rounded-sm shadow-sm overflow-hidden">
           {/* FAMILY PHOTO */}
-          <div className="w-full h-64 md:h-80 overflow-hidden border-b border-beige-dark">
+          <div
+            className="w-full h-64 md:h-80 overflow-hidden border-b border-beige-dark cursor-zoom-in"
+            onClick={() => setLightbox("https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/31f9813f-2685-4968-be68-856b3e8f9c09.jpg")}
+          >
             <img
               src="https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/31f9813f-2685-4968-be68-856b3e8f9c09.jpg"
               alt="Семья"
-              className="w-full h-full object-cover object-top"
+              className="w-full h-full object-cover object-top hover:scale-105 transition-transform duration-500"
             />
           </div>
 
@@ -144,11 +170,14 @@ export default function OurFamilies() {
               <div className="space-y-6">
                 {c.children.map((ch, i) => (
                   <div key={i} className="flex gap-5 items-start">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-beige-dark overflow-hidden">
+                    <div
+                      className="flex-shrink-0 w-20 h-20 rounded-xl bg-beige-dark overflow-hidden shadow-sm cursor-pointer hover:opacity-90 transition-opacity"
+                      onClick={() => ch.photo && setLightbox(ch.photo)}
+                    >
                       {ch.photo ? (
-                        <img src={ch.photo} alt={ch.name} className="w-full h-full object-cover" />
+                        <img src={ch.photo} alt={ch.name} className="w-full h-full object-cover object-top" />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center font-cormorant text-ink font-semibold text-sm">
+                        <div className="w-full h-full flex items-center justify-center font-cormorant text-ink font-semibold text-xl">
                           {ch.name[0]}
                         </div>
                       )}
