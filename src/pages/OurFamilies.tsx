@@ -29,21 +29,25 @@ const CASES = [
       {
         name: "Вадим",
         age: "10 лет",
+        photo: "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/15035a50-8ce0-46ad-bc02-f8cc7fda2ab1.jpg",
         text: "После трёхмесячного пребывания в детском доме успешно адаптировался. Общителен, легко идёт на контакт. В учёбе показывает хорошие результаты, проявляет познавательную активность. Отличается добрым нравом, отзывчив, умеет сопереживать.",
       },
       {
         name: "Ксения",
         age: "14 лет",
+        photo: "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/b0e13794-4941-404e-9e92-fe3a5d0a86f7.jpg",
         text: "Демонстрирует высокий уровень социализации: легко идёт на контакт, общительна, выстроила дружеские отношения со сверстниками в центре. Успешно учится, проявляет инициативу в учёбе и по хозяйству. Добрая, отзывчивая, ответственная.",
       },
       {
         name: "Милана",
         age: "5 лет",
+        photo: "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/e4315620-a82d-4f38-8b6c-893e59dfeb3d.jpg",
         text: "В детском саду — активный участник всех мероприятий. Проявляет лидерские качества: умеет организовать сверстников, предложить интересную идею. Добрая, отзывчивая, помогает взрослым. Поведение стабильно положительное.",
       },
       {
         name: "Серёжа",
         age: "4 года",
+        photo: "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/898be228-036f-442e-940f-a069a775501d.jpg",
         text: "Успешно адаптировался после дома малютки, где находился отдельно от братьев и сестёр. Сразу наладил тёплые отношения с родными. Любознательный, активный, отзывчивый. Очень тактильный, любит объятия. Посещает логопедическую группу.",
       },
 
@@ -93,12 +97,13 @@ export default function OurFamilies() {
 
         {/* CASE CARD */}
         <article className="bg-white rounded-sm shadow-sm overflow-hidden">
-          {/* PHOTO PLACEHOLDER — здесь появятся фото */}
-          <div className="w-full h-64 md:h-80 bg-beige-dark/40 flex items-center justify-center border-b border-beige-dark">
-            <div className="text-center text-ink/30">
-              <div className="text-4xl mb-2">🖼</div>
-              <div className="text-sm">Здесь появятся фотографии</div>
-            </div>
+          {/* FAMILY PHOTO */}
+          <div className="w-full h-64 md:h-80 overflow-hidden border-b border-beige-dark">
+            <img
+              src="https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/31f9813f-2685-4968-be68-856b3e8f9c09.jpg"
+              alt="Семья"
+              className="w-full h-full object-cover object-top"
+            />
           </div>
 
           <div className="p-8 md:p-12">
@@ -139,8 +144,14 @@ export default function OurFamilies() {
               <div className="space-y-6">
                 {c.children.map((ch, i) => (
                   <div key={i} className="flex gap-5 items-start">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-beige-dark flex items-center justify-center font-cormorant text-ink font-semibold text-sm">
-                      {ch.name[0]}
+                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-beige-dark overflow-hidden">
+                      {ch.photo ? (
+                        <img src={ch.photo} alt={ch.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center font-cormorant text-ink font-semibold text-sm">
+                          {ch.name[0]}
+                        </div>
+                      )}
                     </div>
                     <div>
                       <div className="font-semibold text-ink mb-1">
