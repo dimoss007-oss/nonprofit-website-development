@@ -128,7 +128,7 @@ export default function OurFamilies() {
             <img
               src="https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/31f9813f-2685-4968-be68-856b3e8f9c09.jpg"
               alt="Семья"
-              className="w-full h-full object-cover object-top hover:scale-105 transition-transform duration-500"
+              className="w-full h-full object-cover object-center hover:scale-105 transition-transform duration-500"
             />
           </div>
 
