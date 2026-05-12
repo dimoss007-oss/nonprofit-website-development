@@ -13,6 +13,7 @@ import DonationTerms from "./pages/DonationTerms";
 import NotFound from "./pages/NotFound";
 import Gallery from "./pages/Gallery";
 import AdminGallery from "./pages/AdminGallery";
+import OurFamilies from "./pages/OurFamilies";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +32,8 @@ const App = () => (
           <Route path="/program" element={<Program />} />
           <Route path="/donation-terms" element={<DonationTerms />} />
           <Route path="/gallery" element={<Gallery />} />
+          {/* Скрытая страница — не в навигации */}
+          <Route path="/our-families" element={<OurFamilies />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
