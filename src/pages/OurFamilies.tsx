@@ -1,14 +1,33 @@
 import { useState } from "react";
 import SiteNav from "@/components/shared/SiteNav";
 
-const CASES = [
+type CaseItem = {
+  id: number;
+  tag: string;
+  title: string;
+  subtitle: string;
+  lead: string;
+  sections: { heading: string; text: string }[];
+  children: { name: string; age: string; photo: string; text: string }[];
+  conclusion: string;
+  results: string[];
+  // кейс 1
+  resultLine?: string;
+  momProgress?: string[];
+  activity?: string[];
+  plpText?: string;
+  // кейс 2
+  highlights?: string[];
+  nowText?: string;
+};
+
+const CASES: CaseItem[] = [
   {
     id: 1,
     tag: "Кейс",
     title: "Светлана Л.",
     subtitle: "«Вопреки приговору системы»",
     lead: "Как вернуть пятерых детей, когда надежды не осталось",
-    photos: [] as string[],
     sections: [
       {
         heading: "Было: точка невозврата",
@@ -75,10 +94,57 @@ const CASES = [
       "Светлана сама теперь помогает другим.",
     ],
   },
+  {
+    id: 2,
+    tag: "Кейс",
+    title: "Наталья Б.",
+    subtitle: "«От жилищного кризиса к внутренней устойчивости»",
+    lead: "Как перестройка ценностей помогла принять зависимость и выйти на самостоятельную жизнь",
+    sections: [
+      {
+        heading: "Было",
+        text: `Наталья обратилась в кризисный центр «Спасение Надежды» в связи с отсутствием жилищных условий и проблемами, связанными с употреблением. Жизненная ситуация была близка к критической: ни жилья, ни устойчивого внутреннего стержня.
+
+На момент поступления проблема зависимости не стояла в центре как основная — на первый план выходила социальная неустроенность. Но без работы над глубинными причинами решить бытовые вопросы было бы невозможно.`,
+      },
+      {
+        heading: "Что изменилось",
+        text: `В ходе прохождения программы реабилитации Наталья продемонстрировала высокую вовлечённость в процесс, проявила ответственность как мать и приложила значительные усилия для изменения жизненной ситуации.
+
+Ключевой результат — не просто нормализация жилищных условий. Важнее то, что произошло внутри:`,
+      },
+    ],
+    highlights: [
+      "Перестройка ценностно-смысловых ориентиров. Наталья пришла к глубокому принятию своей зависимости — неформальному, не через «так надо», а через внутреннее осознание.",
+      "Начала работать с зависимостью не потому, что «так положено», а потому что это стало её собственным выбором.",
+      "Жилищные условия семьи нормализованы. Восстановлено то, с чего начинался запрос, — но теперь есть на чём держаться дальше.",
+    ],
+    nowText: `Наталья чувствует себя достаточно уверенно. Планируется в ближайшее время переход на этап ресоциализации (постадаптационный период). Есть внутренняя целостность и уверенность.
+
+Оснований для продления пребывания в центре не выявлено — она готова к самостоятельной жизни.`,
+    children: [
+      {
+        name: "Даниил",
+        age: "1,5 месяца",
+        photo: "",
+        text: "Развитие соответствует возрастным нормам. Эмоциональное состояние стабильное, отмечается положительная динамика в общем развитии. Ребёнок проявляет активность, любознательность, демонстрирует навыки социального взаимодействия. Планируется зачисление в дошкольное учреждение в установленные сроки.",
+      },
+    ],
+    conclusion: `Кейс Натальи — пример того, как реабилитация может начинаться с одного запроса (жильё, соцусловия), а приходить к совершенно другому, более глубинному результату: принятию зависимости, перестройке ценностей и внутренней устойчивости.
+
+В добрый путь, Наталья!`,
+    results: [
+      "Жильё восстановлено.",
+      "Зависимость принята.",
+      "Ценности перестроены.",
+      "Готова к самостоятельной жизни.",
+    ],
+  },
 ];
 
 export default function OurFamilies() {
-  const c = CASES[0];
+  const [activeId, setActiveId] = useState(1);
+  const c = CASES.find(x => x.id === activeId)!;
   const [lightbox, setLightbox] = useState<string | null>(null);
 
   return (
@@ -118,19 +184,38 @@ export default function OurFamilies() {
           </h1>
         </div>
 
+        {/* CASE TABS */}
+        <div className="flex gap-3 mb-8 flex-wrap">
+          {CASES.map(item => (
+            <button
+              key={item.id}
+              onClick={() => setActiveId(item.id)}
+              className={`px-5 py-2.5 rounded-sm text-sm font-golos transition-colors ${
+                activeId === item.id
+                  ? "bg-sage text-white"
+                  : "bg-white text-ink/70 hover:bg-beige-dark border border-beige-dark"
+              }`}
+            >
+              {item.title}
+            </button>
+          ))}
+        </div>
+
         {/* CASE CARD */}
         <article className="bg-white rounded-sm shadow-sm overflow-hidden">
           {/* FAMILY PHOTO */}
-          <div
-            className="w-full h-64 md:h-80 overflow-hidden border-b border-beige-dark cursor-zoom-in"
-            onClick={() => setLightbox("https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/31f9813f-2685-4968-be68-856b3e8f9c09.jpg")}
-          >
-            <img
-              src="https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/31f9813f-2685-4968-be68-856b3e8f9c09.jpg"
-              alt="Семья"
-              className="w-full h-full object-cover object-center hover:scale-105 transition-transform duration-500"
-            />
-          </div>
+          {activeId === 1 && (
+            <div
+              className="w-full h-64 md:h-80 overflow-hidden border-b border-beige-dark cursor-zoom-in"
+              onClick={() => setLightbox("https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/31f9813f-2685-4968-be68-856b3e8f9c09.jpg")}
+            >
+              <img
+                src="https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/31f9813f-2685-4968-be68-856b3e8f9c09.jpg"
+                alt="Семья"
+                className="w-full h-full object-cover object-center hover:scale-105 transition-transform duration-500"
+              />
+            </div>
+          )}
 
           <div className="p-8 md:p-12">
             {/* CASE TAG + TITLE */}
@@ -159,19 +244,47 @@ export default function OurFamilies() {
               </div>
             ))}
 
-            {/* RESULT LINE */}
-            <div className="bg-sage/10 border border-sage/30 rounded-sm px-6 py-4 mb-12">
-              <p className="font-cormorant text-ink text-xl font-semibold">{c.resultLine}</p>
-            </div>
+            {/* RESULT LINE (кейс 1) */}
+            {c.resultLine && (
+              <div className="bg-sage/10 border border-sage/30 rounded-sm px-6 py-4 mb-12">
+                <p className="font-cormorant text-ink text-xl font-semibold">{c.resultLine}</p>
+              </div>
+            )}
+
+            {/* HIGHLIGHTS (кейс 2) */}
+            {c.highlights && (
+              <div className="mb-10">
+                <ul className="space-y-4">
+                  {c.highlights.map((item, i) => (
+                    <li key={i} className="flex gap-3 items-start bg-sage/5 border border-sage/20 rounded-sm px-5 py-4">
+                      <span className="mt-1 text-sage text-lg leading-none">🔹</span>
+                      <span className="text-ink/80 leading-relaxed text-sm">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* NOW (кейс 2) */}
+            {c.nowText && (
+              <div className="mb-12">
+                <h3 className="font-cormorant text-ink text-2xl font-semibold mb-4">Сейчас</h3>
+                {c.nowText.split("\n\n").map((p, i) => (
+                  <p key={i} className="text-ink/80 leading-relaxed mb-4 last:mb-0">{p}</p>
+                ))}
+              </div>
+            )}
 
             {/* CHILDREN */}
             <div className="mb-12">
-              <h3 className="font-cormorant text-ink text-2xl font-semibold mb-6">Как изменились дети</h3>
+              <h3 className="font-cormorant text-ink text-2xl font-semibold mb-6">
+                {c.id === 1 ? "Как изменились дети" : "Ребёнок"}
+              </h3>
               <div className="space-y-6">
                 {c.children.map((ch, i) => (
                   <div key={i} className="flex gap-5 items-start">
                     <div
-                      className="flex-shrink-0 w-20 h-20 rounded-xl bg-beige-dark overflow-hidden shadow-sm cursor-pointer hover:opacity-90 transition-opacity"
+                      className={`flex-shrink-0 w-20 h-20 rounded-xl bg-beige-dark overflow-hidden shadow-sm transition-opacity ${ch.photo ? "cursor-pointer hover:opacity-90" : ""}`}
                       onClick={() => ch.photo && setLightbox(ch.photo)}
                     >
                       {ch.photo ? (
@@ -194,41 +307,47 @@ export default function OurFamilies() {
               </div>
             </div>
 
-            {/* MOM PROGRESS */}
-            <div className="mb-10">
-              <h3 className="font-cormorant text-ink text-2xl font-semibold mb-5">Как изменилась сама Светлана</h3>
-              <ul className="space-y-3">
-                {c.momProgress.map((item, i) => (
-                  <li key={i} className="flex gap-3 items-start">
-                    <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-sage flex-shrink-0" />
-                    <span className="text-ink/80 leading-relaxed text-sm">{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            {/* MOM PROGRESS (кейс 1) */}
+            {c.momProgress && (
+              <div className="mb-10">
+                <h3 className="font-cormorant text-ink text-2xl font-semibold mb-5">Как изменилась сама Светлана</h3>
+                <ul className="space-y-3">
+                  {c.momProgress.map((item, i) => (
+                    <li key={i} className="flex gap-3 items-start">
+                      <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-sage flex-shrink-0" />
+                      <span className="text-ink/80 leading-relaxed text-sm">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
-            {/* ACTIVITY */}
-            <div className="mb-10">
-              <h4 className="text-ink text-base font-semibold uppercase tracking-wide mb-4">
-                Общественная деятельность сегодня
-              </h4>
-              <ul className="space-y-3">
-                {c.activity.map((item, i) => (
-                  <li key={i} className="flex gap-3 items-start">
-                    <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-sage flex-shrink-0" />
-                    <span className="text-ink/80 leading-relaxed text-sm">{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            {/* ACTIVITY (кейс 1) */}
+            {c.activity && (
+              <div className="mb-10">
+                <h4 className="text-ink text-base font-semibold uppercase tracking-wide mb-4">
+                  Общественная деятельность сегодня
+                </h4>
+                <ul className="space-y-3">
+                  {c.activity.map((item, i) => (
+                    <li key={i} className="flex gap-3 items-start">
+                      <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-sage flex-shrink-0" />
+                      <span className="text-ink/80 leading-relaxed text-sm">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
-            {/* PLP */}
-            <div className="mb-12">
-              <h4 className="text-ink text-base font-semibold uppercase tracking-wide mb-3">
-                Планы на постлечебную программу (ПЛП)
-              </h4>
-              <p className="text-ink/70 leading-relaxed text-sm">{c.plpText}</p>
-            </div>
+            {/* PLP (кейс 1) */}
+            {c.plpText && (
+              <div className="mb-12">
+                <h4 className="text-ink text-base font-semibold uppercase tracking-wide mb-3">
+                  Планы на постлечебную программу (ПЛП)
+                </h4>
+                <p className="text-ink/70 leading-relaxed text-sm">{c.plpText}</p>
+              </div>
+            )}
 
             {/* CONCLUSION */}
             <div className="border-t border-beige-dark pt-10 mb-8">
