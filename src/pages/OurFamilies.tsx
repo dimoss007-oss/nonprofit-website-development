@@ -142,7 +142,7 @@ const CASES: CaseItem[] = [
   },
 ];
 
-function SliderBanner({ photos, onZoom }: { photos: string[]; onZoom: (url: string) => void }) {
+function SliderBanner({ photos, positions, onZoom }: { photos: string[]; positions?: string[]; onZoom: (url: string) => void }) {
   const [idx, setIdx] = useState(0);
   const prev = () => setIdx(i => (i - 1 + photos.length) % photos.length);
   const next = () => setIdx(i => (i + 1) % photos.length);
@@ -155,7 +155,8 @@ function SliderBanner({ photos, onZoom }: { photos: string[]; onZoom: (url: stri
           src={src}
           alt=""
           onClick={() => onZoom(src)}
-          className={`absolute inset-0 w-full h-full object-cover object-top cursor-zoom-in transition-opacity duration-500 ${i === idx ? "opacity-100" : "opacity-0"}`}
+          style={{ objectPosition: positions?.[i] ?? "center 20%" }}
+          className={`absolute inset-0 w-full h-full object-cover cursor-zoom-in transition-opacity duration-500 ${i === idx ? "opacity-100" : "opacity-0"}`}
         />
       ))}
       <button
@@ -263,6 +264,7 @@ export default function OurFamilies() {
                 "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/5fe51a25-3158-4ff9-bb8c-5de9c3d33fe8.jpg",
                 "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/cb814417-435c-49c1-95be-d91adb527ee1.jpg",
               ]}
+              positions={["center 30%", "center 25%"]}
               onZoom={setLightbox}
             />
           )}
