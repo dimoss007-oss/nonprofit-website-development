@@ -8,8 +8,10 @@ interface NewsItem {
   title: string;
   text: string;
   photos: string[];
+  video_url: string;
   published_at: string;
 }
+
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" });
@@ -63,7 +65,8 @@ export default function HomeNews() {
       .then((d) => {
         const items = (d.news || []).slice(0, 3).map((n: NewsItem) => ({
           ...n,
-          text: cleanText(n.text, n.title),
+          text: cleanText(n.text ?? "", n.title ?? ""),
+          video_url: n.video_url ?? "",
         }));
         setNews(items);
       })
@@ -107,14 +110,23 @@ export default function HomeNews() {
             <div className="grid md:grid-cols-3 gap-6">
               {news.map((item) => (
                 <a key={item.id} href="/news" className="group bg-beige rounded-sm overflow-hidden hover:shadow-md transition-shadow duration-300 flex flex-col">
-                  {item.photos?.[0] && (
-                    <div className="aspect-video overflow-hidden bg-beige-dark">
-                      <img
-                        src={item.photos[0]}
-                        alt=""
-                        referrerPolicy="no-referrer"
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
+                  {(item.photos?.[0] || item.video_url) && (
+                    <div className="aspect-video overflow-hidden bg-beige-dark relative">
+                      {item.photos?.[0] ? (
+                        <img
+                          src={item.photos[0]}
+                          alt=""
+                          referrerPolicy="no-referrer"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                      ) : item.video_url ? (
+                        <div className="w-full h-full bg-ink/90 flex flex-col items-center justify-center gap-3">
+                          <div className="w-14 h-14 rounded-full bg-white/10 border-2 border-white/30 flex items-center justify-center group-hover:bg-white/20 transition-colors">
+                            <Icon name="Play" size={24} className="text-white ml-1" />
+                          </div>
+                          <span className="text-white/60 text-xs uppercase tracking-wider">Видео ВКонтакте</span>
+                        </div>
+                      ) : null}
                     </div>
                   )}
                   <div className="p-6 flex flex-col flex-1">
