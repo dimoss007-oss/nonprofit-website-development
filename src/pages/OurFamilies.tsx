@@ -126,7 +126,7 @@ const CASES: CaseItem[] = [
       {
         name: "Даниил",
         age: "1,5 месяца",
-        photo: "",
+        photo: "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/7e835d6b-23dc-4f74-adc5-96b86dc69e1d.jpg",
         text: "Развитие соответствует возрастным нормам. Эмоциональное состояние стабильное, отмечается положительная динамика в общем развитии. Ребёнок проявляет активность, любознательность, демонстрирует навыки социального взаимодействия. Планируется зачисление в дошкольное учреждение в установленные сроки.",
       },
     ],
@@ -214,6 +214,32 @@ export default function OurFamilies() {
                 alt="Семья"
                 className="w-full h-full object-cover object-center hover:scale-105 transition-transform duration-500"
               />
+            </div>
+          )}
+          {activeId === 2 && (
+            <div className="w-full overflow-hidden border-b border-beige-dark">
+              <div className="flex h-64 md:h-80">
+                <div
+                  className="flex-1 overflow-hidden cursor-zoom-in"
+                  onClick={() => setLightbox("https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/5fe51a25-3158-4ff9-bb8c-5de9c3d33fe8.jpg")}
+                >
+                  <img
+                    src="https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/5fe51a25-3158-4ff9-bb8c-5de9c3d33fe8.jpg"
+                    alt="Наталья с Даниилом"
+                    className="w-full h-full object-cover object-top hover:scale-105 transition-transform duration-500"
+                  />
+                </div>
+                <div
+                  className="w-1/3 overflow-hidden cursor-zoom-in border-l border-beige-dark"
+                  onClick={() => setLightbox("https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/cb814417-435c-49c1-95be-d91adb527ee1.jpg")}
+                >
+                  <img
+                    src="https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/cb814417-435c-49c1-95be-d91adb527ee1.jpg"
+                    alt="Наталья на занятии"
+                    className="w-full h-full object-cover object-top hover:scale-105 transition-transform duration-500"
+                  />
+                </div>
+              </div>
             </div>
           )}
 
