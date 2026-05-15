@@ -142,6 +142,47 @@ const CASES: CaseItem[] = [
   },
 ];
 
+function SliderBanner({ photos, onZoom }: { photos: string[]; onZoom: (url: string) => void }) {
+  const [idx, setIdx] = useState(0);
+  const prev = () => setIdx(i => (i - 1 + photos.length) % photos.length);
+  const next = () => setIdx(i => (i + 1) % photos.length);
+
+  return (
+    <div className="relative w-full h-64 md:h-80 overflow-hidden border-b border-beige-dark group">
+      {photos.map((src, i) => (
+        <img
+          key={src}
+          src={src}
+          alt=""
+          onClick={() => onZoom(src)}
+          className={`absolute inset-0 w-full h-full object-cover object-top cursor-zoom-in transition-opacity duration-500 ${i === idx ? "opacity-100" : "opacity-0"}`}
+        />
+      ))}
+      <button
+        onClick={prev}
+        className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white rounded-full w-9 h-9 flex items-center justify-center transition-colors opacity-0 group-hover:opacity-100"
+      >
+        ‹
+      </button>
+      <button
+        onClick={next}
+        className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white rounded-full w-9 h-9 flex items-center justify-center transition-colors opacity-0 group-hover:opacity-100"
+      >
+        ›
+      </button>
+      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+        {photos.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => setIdx(i)}
+            className={`w-1.5 h-1.5 rounded-full transition-colors ${i === idx ? "bg-white" : "bg-white/40"}`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function OurFamilies() {
   const [activeId, setActiveId] = useState(1);
   const c = CASES.find(x => x.id === activeId)!;
@@ -217,30 +258,13 @@ export default function OurFamilies() {
             </div>
           )}
           {activeId === 2 && (
-            <div className="w-full overflow-hidden border-b border-beige-dark">
-              <div className="flex h-64 md:h-80">
-                <div
-                  className="flex-1 overflow-hidden cursor-zoom-in"
-                  onClick={() => setLightbox("https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/5fe51a25-3158-4ff9-bb8c-5de9c3d33fe8.jpg")}
-                >
-                  <img
-                    src="https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/5fe51a25-3158-4ff9-bb8c-5de9c3d33fe8.jpg"
-                    alt="Наталья с Даниилом"
-                    className="w-full h-full object-cover object-top hover:scale-105 transition-transform duration-500"
-                  />
-                </div>
-                <div
-                  className="w-1/3 overflow-hidden cursor-zoom-in border-l border-beige-dark"
-                  onClick={() => setLightbox("https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/cb814417-435c-49c1-95be-d91adb527ee1.jpg")}
-                >
-                  <img
-                    src="https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/cb814417-435c-49c1-95be-d91adb527ee1.jpg"
-                    alt="Наталья на занятии"
-                    className="w-full h-full object-cover object-top hover:scale-105 transition-transform duration-500"
-                  />
-                </div>
-              </div>
-            </div>
+            <SliderBanner
+              photos={[
+                "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/5fe51a25-3158-4ff9-bb8c-5de9c3d33fe8.jpg",
+                "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/cb814417-435c-49c1-95be-d91adb527ee1.jpg",
+              ]}
+              onZoom={setLightbox}
+            />
           )}
 
           <div className="p-8 md:p-12">
