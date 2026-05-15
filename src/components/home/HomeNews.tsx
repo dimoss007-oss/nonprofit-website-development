@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import Icon from "@/components/ui/icon";
+import Icon from "@/components/ui/icon"; // используется в "Все новости"
 
 const NEWS_URL = "https://functions.poehali.dev/b33c4df8-295a-4694-a485-e771aec3d9ce";
 
@@ -12,6 +12,17 @@ interface NewsItem {
   published_at: string;
 }
 
+
+function getEmbedUrl(url: string): string | null {
+  if (!url) return null;
+  const vkMatch = url.match(/vk\.com\/video(-?\d+_\d+)/) || url.match(/vkvideo\.ru\/video(-?\d+_\d+)/);
+  if (vkMatch) return `https://vk.com/video_ext.php?oid=${vkMatch[1].split('_')[0]}&id=${vkMatch[1].split('_')[1]}&hd=2`;
+  const rutubeMatch = url.match(/rutube\.ru\/video\/([a-zA-Z0-9]+)/);
+  if (rutubeMatch) return `https://rutube.ru/play/embed/${rutubeMatch[1]}`;
+  const ytMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([a-zA-Z0-9_-]+)/);
+  if (ytMatch) return `https://www.youtube.com/embed/${ytMatch[1]}`;
+  return null;
+}
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" });
@@ -120,12 +131,12 @@ export default function HomeNews() {
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         />
                       ) : item.video_url ? (
-                        <div className="w-full h-full bg-ink/90 flex flex-col items-center justify-center gap-3">
-                          <div className="w-14 h-14 rounded-full bg-white/10 border-2 border-white/30 flex items-center justify-center group-hover:bg-white/20 transition-colors">
-                            <Icon name="Play" size={24} className="text-white ml-1" />
-                          </div>
-                          <span className="text-white/60 text-xs uppercase tracking-wider">Видео ВКонтакте</span>
-                        </div>
+                        <iframe
+                          src={getEmbedUrl(item.video_url) ?? ""}
+                          className="w-full h-full"
+                          allow="encrypted-media; fullscreen"
+                          allowFullScreen
+                        />
                       ) : null}
                     </div>
                   )}
