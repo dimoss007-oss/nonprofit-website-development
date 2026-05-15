@@ -70,7 +70,7 @@ function PhotoBtn({ url, idx, onOpen, className, style }: { url: string; idx: nu
       className={`overflow-hidden rounded-sm hover:opacity-90 transition-opacity ${className ?? ""}`}
       style={style}
     >
-      <img src={url} alt="" className="w-full h-full object-cover" />
+      <img src={url} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
     </button>
   );
 }
@@ -342,6 +342,7 @@ export default function News() {
           )}
           <img src={lightbox.photos[lightbox.idx]} alt=""
             className="max-h-[90vh] max-w-[90vw] object-contain rounded-sm"
+            referrerPolicy="no-referrer"
             onClick={(e) => e.stopPropagation()} />
         </div>
       )}
