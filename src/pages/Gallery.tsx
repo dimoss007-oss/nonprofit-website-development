@@ -9,6 +9,13 @@ interface GalleryPhoto {
   title: string;
   photo_url: string;
   created_at: string;
+  ratio?: number; // width / height
+}
+
+function getSpan(ratio: number): { colSpan: number; rowSpan: number } {
+  if (ratio >= 1.6) return { colSpan: 2, rowSpan: 1 }; // широкое
+  if (ratio <= 0.7) return { colSpan: 1, rowSpan: 2 }; // высокое
+  return { colSpan: 1, rowSpan: 1 };                   // квадратное
 }
 
 export default function Gallery() {
@@ -19,12 +26,29 @@ export default function Gallery() {
   useEffect(() => {
     fetch(GALLERY_URL)
       .then((r) => r.json())
-      .then((d) => setPhotos(d.photos || []))
-      .finally(() => setLoading(false));
+      .then((d) => {
+        const raw: GalleryPhoto[] = d.photos || [];
+        // Загружаем все изображения параллельно, чтобы узнать их размеры
+        Promise.all(
+          raw.map(
+            (p) =>
+              new Promise<GalleryPhoto>((resolve) => {
+                const img = new Image();
+                img.onload = () =>
+                  resolve({ ...p, ratio: img.naturalWidth / img.naturalHeight });
+                img.onerror = () => resolve({ ...p, ratio: 1 });
+                img.src = p.photo_url;
+              })
+          )
+        ).then((withRatios) => {
+          setPhotos(withRatios);
+          setLoading(false);
+        });
+      })
+      .catch(() => setLoading(false));
   }, []);
 
   const current = lightbox !== null ? photos[lightbox] : null;
-
   const prev = () => setLightbox((i) => (i !== null && i > 0 ? i - 1 : photos.length - 1));
   const next = () => setLightbox((i) => (i !== null && i < photos.length - 1 ? i + 1 : 0));
 
@@ -58,9 +82,19 @@ export default function Gallery() {
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="aspect-square bg-beige-dark rounded-sm animate-pulse" />
+          <div
+            className="grid gap-3"
+            style={{ gridTemplateColumns: "repeat(4, 1fr)", gridAutoRows: "200px" }}
+          >
+            {Array.from({ length: 10 }).map((_, i) => (
+              <div
+                key={i}
+                className="bg-beige-dark rounded-sm animate-pulse"
+                style={{
+                  gridColumn: i % 5 === 0 ? "span 2" : "span 1",
+                  gridRow: i % 7 === 0 ? "span 2" : "span 1",
+                }}
+              />
             ))}
           </div>
         ) : photos.length === 0 ? (
@@ -69,28 +103,35 @@ export default function Gallery() {
             <p className="text-foreground/40">Фотографии скоро появятся</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-            {photos.map((photo, idx) => (
-              <button
-                key={photo.id}
-                onClick={() => setLightbox(idx)}
-                className="relative aspect-square rounded-sm overflow-hidden group focus:outline-none"
-              >
-                <img
-                  src={photo.photo_url}
-                  alt={photo.title || ""}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/25 transition-colors duration-300 flex items-center justify-center">
-                  <Icon name="ZoomIn" size={28} className="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                </div>
-                {photo.title && (
-                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-                    <p className="text-white text-xs truncate">{photo.title}</p>
+          <div
+            className="grid gap-3"
+            style={{ gridTemplateColumns: "repeat(4, 1fr)", gridAutoRows: "200px" }}
+          >
+            {photos.map((photo, idx) => {
+              const { colSpan, rowSpan } = getSpan(photo.ratio ?? 1);
+              return (
+                <button
+                  key={photo.id}
+                  onClick={() => setLightbox(idx)}
+                  className="relative rounded-sm overflow-hidden group focus:outline-none"
+                  style={{ gridColumn: `span ${colSpan}`, gridRow: `span ${rowSpan}` }}
+                >
+                  <img
+                    src={photo.photo_url}
+                    alt={photo.title || ""}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/25 transition-colors duration-300 flex items-center justify-center">
+                    <Icon name="ZoomIn" size={28} className="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   </div>
-                )}
-              </button>
-            ))}
+                  {photo.title && (
+                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+                      <p className="text-white text-xs truncate">{photo.title}</p>
+                    </div>
+                  )}
+                </button>
+              );
+            })}
           </div>
         )}
       </div>
