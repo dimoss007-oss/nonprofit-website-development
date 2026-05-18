@@ -331,7 +331,7 @@ export default function OurFamilies() {
                 "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/2aef83b1-0b1e-4006-a1bb-3094325ccf4e.jpg",
                 "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/b80fb6d7-7d71-4d49-b07b-f3596ba23153.jpg",
               ]}
-              positions={["center 30%", "center 20%", "center 30%", "center 25%", "center 20%", "center 20%"]}
+              positions={["center 40%", "center 20%", "center 30%", "center 25%", "center 20%", "center 20%"]}
               onZoom={setLightbox}
             />
           )}
