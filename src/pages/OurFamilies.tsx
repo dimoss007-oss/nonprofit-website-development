@@ -324,13 +324,14 @@ export default function OurFamilies() {
           {activeId === 3 && (
             <SliderBanner
               photos={[
+                "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/46a8524d-b5b9-47ab-9459-005ae41387cb.jpg",
                 "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/29316979-5afd-4ce2-b41e-5148f372b4f0.jpg",
                 "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/bac92197-b13e-4546-84fb-288c6653d0e5.jpg",
                 "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/2e6cc4a7-f631-4870-bcc2-3e2cfafe01b5.jpg",
                 "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/2aef83b1-0b1e-4006-a1bb-3094325ccf4e.jpg",
                 "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/b80fb6d7-7d71-4d49-b07b-f3596ba23153.jpg",
               ]}
-              positions={["center 20%", "center 30%", "center 25%", "center 20%", "center 20%"]}
+              positions={["center 30%", "center 20%", "center 30%", "center 25%", "center 20%", "center 20%"]}
               onZoom={setLightbox}
             />
           )}
