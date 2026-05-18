@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import SiteNav from "@/components/shared/SiteNav";
 import Icon from "@/components/ui/icon";
 
@@ -12,7 +12,12 @@ interface GalleryPhoto {
   ratio?: number; // width / height
 }
 
-function getSpan(ratio: number): { colSpan: number; rowSpan: number } {
+function getSpan(ratio: number, cols: number): { colSpan: number; rowSpan: number } {
+  if (cols === 2) {
+    // На мобильных только широкие растягиваем, высокие — без двойной строки (ячейка и так высокая)
+    if (ratio >= 1.6) return { colSpan: 2, rowSpan: 1 };
+    return { colSpan: 1, rowSpan: 1 };
+  }
   if (ratio >= 1.6) return { colSpan: 2, rowSpan: 1 }; // широкое
   if (ratio <= 0.7) return { colSpan: 1, rowSpan: 2 }; // высокое
   return { colSpan: 1, rowSpan: 1 };                   // квадратное
@@ -22,6 +27,21 @@ export default function Gallery() {
   const [photos, setPhotos] = useState<GalleryPhoto[]>([]);
   const [loading, setLoading] = useState(true);
   const [lightbox, setLightbox] = useState<number | null>(null);
+  const [cols, setCols] = useState(() => window.innerWidth < 640 ? 2 : 4);
+  const [rowH, setRowH] = useState(() => window.innerWidth < 640 ? 140 : 200);
+
+  const updateGrid = useCallback(() => {
+    const w = window.innerWidth;
+    if (w < 640) { setCols(2); setRowH(140); }
+    else if (w < 1024) { setCols(3); setRowH(180); }
+    else { setCols(4); setRowH(200); }
+  }, []);
+
+  useEffect(() => {
+    updateGrid();
+    window.addEventListener("resize", updateGrid);
+    return () => window.removeEventListener("resize", updateGrid);
+  }, [updateGrid]);
 
   useEffect(() => {
     fetch(GALLERY_URL)
@@ -84,15 +104,15 @@ export default function Gallery() {
         {loading ? (
           <div
             className="grid gap-3"
-            style={{ gridTemplateColumns: "repeat(4, 1fr)", gridAutoRows: "200px" }}
+            style={{ gridTemplateColumns: `repeat(${cols}, 1fr)`, gridAutoRows: `${rowH}px` }}
           >
-            {Array.from({ length: 10 }).map((_, i) => (
+            {Array.from({ length: 8 }).map((_, i) => (
               <div
                 key={i}
                 className="bg-beige-dark rounded-sm animate-pulse"
                 style={{
                   gridColumn: i % 5 === 0 ? "span 2" : "span 1",
-                  gridRow: i % 7 === 0 ? "span 2" : "span 1",
+                  gridRow: cols > 2 && i % 7 === 0 ? "span 2" : "span 1",
                 }}
               />
             ))}
@@ -105,10 +125,10 @@ export default function Gallery() {
         ) : (
           <div
             className="grid gap-3"
-            style={{ gridTemplateColumns: "repeat(4, 1fr)", gridAutoRows: "200px" }}
+            style={{ gridTemplateColumns: `repeat(${cols}, 1fr)`, gridAutoRows: `${rowH}px` }}
           >
             {photos.map((photo, idx) => {
-              const { colSpan, rowSpan } = getSpan(photo.ratio ?? 1);
+              const { colSpan, rowSpan } = getSpan(photo.ratio ?? 1, cols);
               return (
                 <button
                   key={photo.id}
