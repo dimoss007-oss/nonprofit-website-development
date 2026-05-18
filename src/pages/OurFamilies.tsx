@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import SiteNav from "@/components/shared/SiteNav";
 
 type CaseItem = {
@@ -195,7 +195,7 @@ const CASES: CaseItem[] = [
   },
 ];
 
-function SliderBanner({ photos, positions, onZoom }: { photos: string[]; positions?: string[]; onZoom: (url: string) => void }) {
+function SliderBanner({ photos, positions, onZoom }: { photos: string[]; positions?: string[]; onZoom: (photos: string[], url: string) => void }) {
   const [idx, setIdx] = useState(0);
   const prev = () => setIdx(i => (i - 1 + photos.length) % photos.length);
   const next = () => setIdx(i => (i + 1) % photos.length);
@@ -207,7 +207,7 @@ function SliderBanner({ photos, positions, onZoom }: { photos: string[]; positio
           key={src}
           src={src}
           alt=""
-          onClick={() => i === idx && onZoom(src)}
+          onClick={() => i === idx && onZoom(photos, src)}
           style={{ objectPosition: positions?.[i] ?? "center 20%" }}
           className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${i === idx ? "opacity-100 cursor-zoom-in" : "opacity-0 pointer-events-none"}`}
         />
@@ -237,10 +237,43 @@ function SliderBanner({ photos, positions, onZoom }: { photos: string[]; positio
   );
 }
 
+type LightboxState = { photos: string[]; idx: number } | null;
+
 export default function OurFamilies() {
   const [activeId, setActiveId] = useState(1);
   const c = CASES.find(x => x.id === activeId)!;
-  const [lightbox, setLightbox] = useState<string | null>(null);
+  const [lightbox, setLightbox] = useState<LightboxState>(null);
+
+  const sliderPhotos3 = [
+    "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/46a8524d-b5b9-47ab-9459-005ae41387cb.jpg",
+    "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/29316979-5afd-4ce2-b41e-5148f372b4f0.jpg",
+    "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/bac92197-b13e-4546-84fb-288c6653d0e5.jpg",
+    "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/2e6cc4a7-f631-4870-bcc2-3e2cfafe01b5.jpg",
+    "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/2aef83b1-0b1e-4006-a1bb-3094325ccf4e.jpg",
+    "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/b80fb6d7-7d71-4d49-b07b-f3596ba23153.jpg",
+  ];
+  const sliderPhotos2 = [
+    "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/5fe51a25-3158-4ff9-bb8c-5de9c3d33fe8.jpg",
+    "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/cb814417-435c-49c1-95be-d91adb527ee1.jpg",
+  ];
+
+  function openLightbox(photos: string[], url: string) {
+    const idx = photos.indexOf(url);
+    setLightbox({ photos, idx: idx >= 0 ? idx : 0 });
+  }
+  const lbPrev = () => setLightbox(lb => lb && { ...lb, idx: (lb.idx - 1 + lb.photos.length) % lb.photos.length });
+  const lbNext = () => setLightbox(lb => lb && { ...lb, idx: (lb.idx + 1) % lb.photos.length });
+
+  useEffect(() => {
+    if (!lightbox) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "ArrowLeft") lbPrev();
+      if (e.key === "ArrowRight") lbNext();
+      if (e.key === "Escape") setLightbox(null);
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [lightbox]);
 
   return (
     <div className="min-h-screen bg-beige-mid font-golos">
@@ -249,15 +282,34 @@ export default function OurFamilies() {
       {/* LIGHTBOX */}
       {lightbox && (
         <div
-          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 cursor-zoom-out"
+          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
           onClick={() => setLightbox(null)}
         >
           <img
-            src={lightbox}
+            src={lightbox.photos[lightbox.idx]}
             alt=""
             className="max-w-full max-h-full rounded-sm shadow-2xl object-contain"
             onClick={e => e.stopPropagation()}
           />
+          {lightbox.photos.length > 1 && (
+            <>
+              <button
+                onClick={e => { e.stopPropagation(); lbPrev(); }}
+                className="absolute left-4 top-1/2 -translate-y-1/2 w-11 h-11 bg-white/10 hover:bg-white/25 rounded-full flex items-center justify-center text-white text-2xl transition-colors"
+              >
+                ‹
+              </button>
+              <button
+                onClick={e => { e.stopPropagation(); lbNext(); }}
+                className="absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11 bg-white/10 hover:bg-white/25 rounded-full flex items-center justify-center text-white text-2xl transition-colors"
+              >
+                ›
+              </button>
+              <p className="absolute bottom-5 left-1/2 -translate-x-1/2 text-white/50 text-sm">
+                {lightbox.idx + 1} / {lightbox.photos.length}
+              </p>
+            </>
+          )}
           <button
             onClick={() => setLightbox(null)}
             className="absolute top-4 right-5 text-white/80 hover:text-white text-3xl leading-none"
@@ -302,7 +354,7 @@ export default function OurFamilies() {
           {activeId === 1 && (
             <div
               className="w-full h-64 md:h-80 overflow-hidden border-b border-beige-dark cursor-zoom-in"
-              onClick={() => setLightbox("https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/31f9813f-2685-4968-be68-856b3e8f9c09.jpg")}
+              onClick={() => openLightbox(["https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/31f9813f-2685-4968-be68-856b3e8f9c09.jpg"], "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/31f9813f-2685-4968-be68-856b3e8f9c09.jpg")}
             >
               <img
                 src="https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/31f9813f-2685-4968-be68-856b3e8f9c09.jpg"
@@ -313,26 +365,16 @@ export default function OurFamilies() {
           )}
           {activeId === 2 && (
             <SliderBanner
-              photos={[
-                "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/5fe51a25-3158-4ff9-bb8c-5de9c3d33fe8.jpg",
-                "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/cb814417-435c-49c1-95be-d91adb527ee1.jpg",
-              ]}
+              photos={sliderPhotos2}
               positions={["center 30%", "center 25%"]}
-              onZoom={setLightbox}
+              onZoom={openLightbox}
             />
           )}
           {activeId === 3 && (
             <SliderBanner
-              photos={[
-                "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/46a8524d-b5b9-47ab-9459-005ae41387cb.jpg",
-                "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/29316979-5afd-4ce2-b41e-5148f372b4f0.jpg",
-                "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/bac92197-b13e-4546-84fb-288c6653d0e5.jpg",
-                "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/2e6cc4a7-f631-4870-bcc2-3e2cfafe01b5.jpg",
-                "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/2aef83b1-0b1e-4006-a1bb-3094325ccf4e.jpg",
-                "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/b80fb6d7-7d71-4d49-b07b-f3596ba23153.jpg",
-              ]}
+              photos={sliderPhotos3}
               positions={["center 40%", "center 20%", "center 30%", "center 25%", "center 20%", "center 20%"]}
-              onZoom={setLightbox}
+              onZoom={openLightbox}
             />
           )}
 
@@ -407,7 +449,7 @@ export default function OurFamilies() {
                   <div key={i} className="flex gap-5 items-start">
                     <div
                       className={`flex-shrink-0 w-20 h-20 rounded-xl bg-beige-dark overflow-hidden shadow-sm transition-opacity ${ch.photo ? "cursor-pointer hover:opacity-90" : ""}`}
-                      onClick={() => ch.photo && setLightbox(ch.photo)}
+                      onClick={() => ch.photo && openLightbox(c.children.map(x => x.photo).filter(Boolean) as string[], ch.photo)}
                     >
                       {ch.photo ? (
                         <img src={ch.photo} alt={ch.name} className="w-full h-full object-cover object-top" />
