@@ -207,9 +207,9 @@ function SliderBanner({ photos, positions, onZoom }: { photos: string[]; positio
           key={src}
           src={src}
           alt=""
-          onClick={() => onZoom(src)}
+          onClick={() => i === idx && onZoom(src)}
           style={{ objectPosition: positions?.[i] ?? "center 20%" }}
-          className={`absolute inset-0 w-full h-full object-cover cursor-zoom-in transition-opacity duration-500 ${i === idx ? "opacity-100" : "opacity-0"}`}
+          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${i === idx ? "opacity-100 cursor-zoom-in" : "opacity-0 pointer-events-none"}`}
         />
       ))}
       <button
