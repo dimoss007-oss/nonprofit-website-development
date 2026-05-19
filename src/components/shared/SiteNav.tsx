@@ -65,7 +65,7 @@ export default function SiteNav() {
           </a>
         </div>
 
-        <div className="hidden lg:flex items-center gap-6">
+        <div className="hidden lg:flex items-center gap-4 text-sm">
           {navItemsBefore.map(({ label, href }) => (
             <a key={href} href={href} className="nav-link">{label}</a>
           ))}
