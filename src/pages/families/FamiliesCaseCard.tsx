@@ -6,6 +6,14 @@ const SLIDER_PHOTOS_2 = [
   "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/cb814417-435c-49c1-95be-d91adb527ee1.jpg",
 ];
 
+const SLIDER_PHOTOS_4 = [
+  "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/3bde4433-7178-4a0d-aa09-4674298e25b0.jpg",
+  "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/881542eb-e283-4d4d-a3d8-20f8281fde74.jpg",
+  "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/86eaa749-de18-4019-ae8f-48adca87beb7.jpg",
+  "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/bfe7fb2d-5e3e-49e2-bbc5-597582cacb7d.jpg",
+  "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/c2a46bf6-ccfa-4b89-9f2f-8be591001ea7.jpg",
+];
+
 const SLIDER_PHOTOS_3 = [
   "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/46a8524d-b5b9-47ab-9459-005ae41387cb.jpg",
   "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/29316979-5afd-4ce2-b41e-5148f372b4f0.jpg",
@@ -51,6 +59,13 @@ export default function FamiliesCaseCard({ c, openLightbox }: Props) {
         <FamiliesSliderBanner
           photos={SLIDER_PHOTOS_3}
           positions={["center 40%", "center 20%", "center 30%", "center 25%", "center 20%", "center 20%"]}
+          onZoom={openLightbox}
+        />
+      )}
+      {c.id === 4 && (
+        <FamiliesSliderBanner
+          photos={SLIDER_PHOTOS_4}
+          positions={["center 20%", "center 25%", "center 20%", "center 30%", "center 25%"]}
           onZoom={openLightbox}
         />
       )}
