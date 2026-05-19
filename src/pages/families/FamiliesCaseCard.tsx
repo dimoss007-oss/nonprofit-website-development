@@ -9,10 +9,11 @@ const SLIDER_PHOTOS_2 = [
 const SLIDER_PHOTOS_4 = [
   "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/3bde4433-7178-4a0d-aa09-4674298e25b0.jpg",
   "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/881542eb-e283-4d4d-a3d8-20f8281fde74.jpg",
-  "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/86eaa749-de18-4019-ae8f-48adca87beb7.jpg",
   "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/bfe7fb2d-5e3e-49e2-bbc5-597582cacb7d.jpg",
   "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/c2a46bf6-ccfa-4b89-9f2f-8be591001ea7.jpg",
 ];
+
+const PHOTO_4_INLINE = "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/86eaa749-de18-4019-ae8f-48adca87beb7.jpg";
 
 const SLIDER_PHOTOS_3 = [
   "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/46a8524d-b5b9-47ab-9459-005ae41387cb.jpg",
@@ -65,7 +66,7 @@ export default function FamiliesCaseCard({ c, openLightbox }: Props) {
       {c.id === 4 && (
         <FamiliesSliderBanner
           photos={SLIDER_PHOTOS_4}
-          positions={["center 15%", "center 10%", "center 5%", "center 15%", "center 30%"]}
+          positions={["center 15%", "center 10%", "center 15%", "center 30%"]}
           onZoom={openLightbox}
         />
       )}
@@ -91,9 +92,28 @@ export default function FamiliesCaseCard({ c, openLightbox }: Props) {
         {c.sections.map((s, i) => (
           <div key={i} className="mb-10">
             <h3 className="font-cormorant text-ink text-2xl font-semibold mb-4">{s.heading}</h3>
-            {s.text.split("\n\n").map((p, j) => (
-              <p key={j} className="text-ink/80 leading-relaxed mb-4 last:mb-0">{p}</p>
-            ))}
+            {c.id === 4 && s.heading === "Разрыв сценария" ? (
+              <div className="clearfix">
+                <div
+                  className="float-right ml-6 mb-4 w-40 md:w-52 flex-shrink-0 cursor-zoom-in"
+                  onClick={() => openLightbox([PHOTO_4_INLINE], PHOTO_4_INLINE)}
+                >
+                  <img
+                    src={PHOTO_4_INLINE}
+                    alt="Наталья с Ульяной"
+                    className="w-full rounded-xl shadow-md object-cover object-top hover:opacity-90 transition-opacity"
+                    style={{ aspectRatio: "3/4" }}
+                  />
+                </div>
+                {s.text.split("\n\n").map((p, j) => (
+                  <p key={j} className="text-ink/80 leading-relaxed mb-4 last:mb-0">{p}</p>
+                ))}
+              </div>
+            ) : (
+              s.text.split("\n\n").map((p, j) => (
+                <p key={j} className="text-ink/80 leading-relaxed mb-4 last:mb-0">{p}</p>
+              ))
+            )}
           </div>
         ))}
 
