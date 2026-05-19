@@ -109,7 +109,6 @@ export default function SiteNav() {
             <a key={href} href={href} className="nav-link">{label}</a>
           ))}
 
-          <a href="/#podderzhka" className="nav-link">поддержать нас</a>
           <a href="/#kontakty" className="nav-link">контакты</a>
         </div>
 
@@ -139,7 +138,6 @@ export default function SiteNav() {
             {navItemsAfter.map(({ label, href }) => (
               <button key={href} onClick={() => navigateTo(href)} className="nav-link text-left py-2">{label}</button>
             ))}
-            <button onClick={() => navigateTo("/#podderzhka")} className="nav-link text-left py-2">поддержать нас</button>
             <button onClick={() => navigateTo("/#kontakty")} className="nav-link text-left py-2">контакты</button>
 
             <div className="col-span-2 border-t border-beige-dark pt-3 mt-1">
