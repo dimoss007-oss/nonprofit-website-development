@@ -15,7 +15,6 @@ const navItemsAfter = [
 ];
 
 const aboutItems = [
-  { label: "О нас", anchor: "o-nas" },
   { label: "Миссия", anchor: "missiya" },
   { label: "Команда", anchor: "komanda" },
   { label: "Фотогалерея", href: "/gallery" },
