@@ -10,6 +10,7 @@ const navItemsBefore = [
 
 const navItemsAfter = [
   { label: "программа", href: "/program" },
+  { label: "наши семьи", href: "/our-families" },
   { label: "новости", href: "/news" },
 ];
 
