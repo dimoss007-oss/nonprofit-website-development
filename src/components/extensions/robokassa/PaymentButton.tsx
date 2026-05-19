@@ -32,8 +32,8 @@ interface PaymentButtonProps {
   successUrl?: string;
   /** URL редиректа при отмене оплаты */
   failUrl?: string;
-  /** Callback при успешной оплате */
-  onSuccess?: (orderNumber: string) => void;
+  /** Callback при успешной оплате — если передан, автоматический редирект не происходит */
+  onSuccess?: (orderNumber: string, paymentUrl?: string) => void;
   /** Callback при ошибке */
   onError?: (error: Error) => void;
   /** Текст кнопки */
@@ -93,8 +93,11 @@ export function PaymentButton({
 
       const result = await createPayment(payload);
 
-      // Открываем страницу оплаты
-      openPaymentPage(result.payment_url);
+      if (onSuccess) {
+        onSuccess(result.order_number, result.payment_url);
+      } else {
+        openPaymentPage(result.payment_url);
+      }
     } catch (err) {
       console.error("Payment error:", err);
     } finally {

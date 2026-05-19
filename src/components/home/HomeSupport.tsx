@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import QRCode from "react-qr-code";
 import Icon from "@/components/ui/icon";
 import { PaymentButton } from "@/components/extensions/robokassa/PaymentButton";
 
@@ -53,6 +54,7 @@ export default function HomeSupport({ onScrollTo }: Props) {
   const [donorEmail, setDonorEmail] = useState("");
   const [isRecurring, setIsRecurring] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [qrUrl, setQrUrl] = useState("");
 
   const finalAmount = customAmount ? Number(customAmount) : donationAmount;
 
@@ -100,7 +102,28 @@ export default function HomeSupport({ onScrollTo }: Props) {
               </div>
 
               <div className="bg-sage rounded-sm p-8 shadow-xl">
-                {submitted ? (
+                {qrUrl ? (
+                  <div className="text-center py-6">
+                    <h3 className="font-cormorant text-beige text-2xl font-semibold mb-1">Спасибо, {donorName.split(" ")[0]}!</h3>
+                    <p className="text-beige/60 text-sm mb-5">Сумма: <span className="font-semibold text-beige">{finalAmount.toLocaleString("ru")} ₽</span></p>
+                    <div className="flex justify-center mb-4 p-4 bg-white rounded-xl">
+                      <QRCode value={qrUrl} size={160} />
+                    </div>
+                    <p className="text-beige/50 text-xs mb-5">Отсканируйте QR-код или оплатите по кнопке</p>
+                    <button
+                      onClick={() => window.open(qrUrl, "_blank")}
+                      className="w-full bg-beige text-sage py-3 font-golos font-semibold text-sm rounded-sm hover:bg-beige-mid transition-colors mb-2"
+                    >
+                      Оплатить онлайн
+                    </button>
+                    <button
+                      onClick={() => setQrUrl("")}
+                      className="text-beige/40 text-xs hover:text-beige/70 transition-colors"
+                    >
+                      Назад
+                    </button>
+                  </div>
+                ) : submitted ? (
                   <div className="text-center py-12">
                     <div className="text-5xl mb-4">💚</div>
                     <h3 className="font-cormorant text-beige text-3xl font-semibold mb-2">Спасибо!</h3>
@@ -180,6 +203,7 @@ export default function HomeSupport({ onScrollTo }: Props) {
                       buttonText={`Пожертвовать ${finalAmount ? `${finalAmount.toLocaleString()} ₽` : ""}${isRecurring ? " / мес" : ""}`}
                       className="w-full bg-beige text-sage py-3.5 font-golos font-semibold text-sm tracking-wide uppercase rounded-sm hover:bg-beige-mid transition-all duration-300"
                       disabled={!finalAmount || !donorName || !donorEmail}
+                      onSuccess={(_orderNumber, paymentUrl) => { if (paymentUrl) setQrUrl(paymentUrl); }}
                     />
                     <p className="text-beige/35 text-xs text-center">
                       Ваши данные в безопасности ·{" "}
