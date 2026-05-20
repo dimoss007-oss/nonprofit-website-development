@@ -1,37 +1,12 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import Icon from "@/components/ui/icon";
+import SiteNav from "@/components/shared/SiteNav";
 
 const HERO_IMGS = [
   "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/82a9f428-4386-466d-88e0-0ad976b369c3.jpg",
   "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/8c3c42ea-1fc4-4248-985b-aa5c922bfada.jpg",
   "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/76cb0a36-5f5c-4522-99f6-0ae2f3ca64ff.jpg",
   "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/ceda8cb1-b883-4b0c-a598-1e9d86a1e4c3.jpg",
-];
-const LOGO_IMG = "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/4ca974da-fec3-4fd3-834d-c7dccc97fca9.jpg";
-const VK_URL = "https://vk.com/spasenienadezhdi";
-
-const navItemsBefore = [
-  { label: "главная", id: "glavnaya" },
-];
-
-const navItemsAfter = [
-  { label: "программа", id: "/program" },
-  { label: "новости", id: "/news" },
-  { label: "поддержать нас", id: "podderzhka" },
-  { label: "контакты", id: "kontakty" },
-];
-
-const aboutItems = [
-  { label: "Миссия", id: "missiya" },
-  { label: "Команда", id: "komanda" },
-  { label: "Фотогалерея", href: "/gallery" },
-];
-
-const helpItems = [
-  { label: "Зависимости", id: "zavisimosti" },
-  { label: "Психолог", id: "psiholog" },
-  { label: "Сопровождение", id: "soprovozhdenie" },
-  { label: "Кризис", id: "krizis" },
 ];
 
 interface Props {
@@ -41,21 +16,7 @@ interface Props {
 }
 
 export default function HomeHero({ onScrollTo, activeSection, setActiveSection }: Props) {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [helpOpen, setHelpOpen] = useState(false);
-  const [aboutOpen, setAboutOpen] = useState(false);
   const [slideIndex, setSlideIndex] = useState(0);
-  const helpRef = useRef<HTMLDivElement>(null);
-  const aboutRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (helpRef.current && !helpRef.current.contains(e.target as Node)) setHelpOpen(false);
-      if (aboutRef.current && !aboutRef.current.contains(e.target as Node)) setAboutOpen(false);
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -64,125 +25,9 @@ export default function HomeHero({ onScrollTo, activeSection, setActiveSection }
     return () => clearInterval(timer);
   }, []);
 
-  const handleNav = (label: string, id: string) => {
-    setActiveSection(label);
-    onScrollTo(id);
-    setMenuOpen(false);
-    setHelpOpen(false);
-    setAboutOpen(false);
-  };
-
   return (
     <>
-      {/* NAV */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-beige/95 backdrop-blur-sm border-b border-beige-dark">
-        <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <a href="/" className="flex items-center gap-3">
-              <img src={LOGO_IMG} alt="Спасение надежды" className="w-14 h-14 object-contain" />
-              <div>
-                <div className="font-cormorant text-ink text-lg font-semibold leading-none">Спасение надежды</div>
-                <div className="text-muted-foreground text-[10px] uppercase tracking-wider">Кризисный центр</div>
-              </div>
-            </a>
-            <a href="https://президентскиегранты.рф" target="_blank" rel="noopener noreferrer" className="hidden sm:block border-l border-beige-dark pl-4">
-              <img
-                src="https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/fe35576e-c533-469d-97ee-1a6ffde86c77.png"
-                alt="Фонд президентских грантов"
-                className="h-14 w-auto object-contain"
-              />
-            </a>
-          </div>
-
-          <div className="hidden lg:flex items-center gap-6">
-            {navItemsBefore.map(({ label, id }) => (
-              <button
-                key={id}
-                onClick={() => handleNav(label, id)}
-                className={`nav-link ${activeSection === label ? "active" : ""}`}
-              >
-                {label}
-              </button>
-            ))}
-            <div ref={aboutRef} className="relative">
-              <button
-                onClick={() => setAboutOpen(!aboutOpen)}
-                className="nav-link flex items-center gap-1"
-              >
-                о нас
-                <Icon name="ChevronDown" size={12} className={`transition-transform duration-200 ${aboutOpen ? "rotate-180" : ""}`} />
-              </button>
-              {aboutOpen && (
-                <div className="absolute top-full left-0 mt-2 bg-white border border-beige-dark rounded-sm shadow-lg py-1 min-w-[160px] z-50">
-                  {aboutItems.map((item) => (
-                    "href" in item ? (
-                      <a
-                        key={item.label}
-                        href={item.href}
-                        className="block w-full text-left px-4 py-2.5 text-xs uppercase tracking-widest text-ink/70 hover:text-primary hover:bg-sage-pale transition-colors duration-150 font-golos"
-                      >
-                        {item.label}
-                      </a>
-                    ) : (
-                      <button
-                        key={item.label}
-                        onClick={() => handleNav(item.label, item.id)}
-                        className="w-full text-left px-4 py-2.5 text-xs uppercase tracking-widest text-ink/70 hover:text-primary hover:bg-sage-pale transition-colors duration-150 font-golos"
-                      >
-                        {item.label}
-                      </button>
-                    )
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {navItemsAfter.map(({ label, id }) => (
-              <button
-                key={id}
-                onClick={() => handleNav(label, id)}
-                className={`nav-link ${activeSection === label ? "active" : ""}`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-
-          <a href="tel:88003008685" className="hidden md:flex items-center gap-2 text-sage font-golos font-semibold text-sm hover:text-sage-dark transition-colors">
-            <Icon name="Phone" size={14} />
-            8 800 300-86-85
-          </a>
-
-          <button onClick={() => setMenuOpen(!menuOpen)} className="lg:hidden text-ink">
-            <Icon name={menuOpen ? "X" : "Menu"} size={22} />
-          </button>
-        </div>
-
-        {menuOpen && (
-          <div className="lg:hidden bg-beige border-t border-beige-dark">
-            <div className="px-6 py-4 grid grid-cols-2 gap-3">
-              {[...navItemsBefore, ...navItemsAfter].map(({ label, id }) => (
-                <button key={id} onClick={() => handleNav(label, id)} className="nav-link text-left py-2">
-                  {label}
-                </button>
-              ))}
-              <div className="col-span-2 border-t border-beige-dark pt-3 mt-1">
-                <div className="text-xs uppercase tracking-widest text-ink/40 font-golos font-semibold mb-2">О нас</div>
-                <div className="grid grid-cols-2 gap-3">
-                  {aboutItems.map((item) => (
-                    "href" in item ? (
-                      <a key={item.label} href={item.href} className="nav-link text-left py-2 block">{item.label}</a>
-                    ) : (
-                      <button key={item.label} onClick={() => handleNav(item.label, item.id)} className="nav-link text-left py-2">{item.label}</button>
-                    )
-                  ))}
-                </div>
-              </div>
-
-            </div>
-          </div>
-        )}
-      </nav>
+      <SiteNav />
 
       {/* HERO */}
       <section id="glavnaya" className="relative min-h-screen overflow-hidden pt-16">

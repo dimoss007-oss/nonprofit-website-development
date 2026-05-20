@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import Icon from "@/components/ui/icon";
 import SiteNav from "@/components/shared/SiteNav";
+import SiteFooter from "@/components/shared/SiteFooter";
 
 const NEWS_URL = "https://functions.poehali.dev/b33c4df8-295a-4694-a485-e771aec3d9ce";
 const VK_SYNC_URL = "https://functions.poehali.dev/ce64965a-09e0-411a-bbed-d25e01b5c170";
@@ -346,6 +347,7 @@ export default function News() {
             onClick={(e) => e.stopPropagation()} />
         </div>
       )}
+      <SiteFooter />
     </div>
   );
 }

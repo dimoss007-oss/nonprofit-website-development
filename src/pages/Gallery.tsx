@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import SiteNav from "@/components/shared/SiteNav";
+import SiteFooter from "@/components/shared/SiteFooter";
 import Icon from "@/components/ui/icon";
 
 const GALLERY_URL = "https://functions.poehali.dev/abf6fa73-1b43-4ff7-af96-8b6e8ca2b46a";
@@ -196,6 +197,7 @@ export default function Gallery() {
           </button>
         </div>
       )}
+      <SiteFooter />
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { Helmet } from "react-helmet-async";
 import Icon from "@/components/ui/icon";
 import SiteNav from "@/components/shared/SiteNav";
+import SiteFooter from "@/components/shared/SiteFooter";
 import ProgramFamily from "@/components/program/ProgramFamily";
 import ProgramDirections from "@/components/program/ProgramDirections";
 
@@ -33,6 +34,7 @@ export default function Program() {
           </a>
         </div>
       </div>
+      <SiteFooter />
     </div>
   );
 }

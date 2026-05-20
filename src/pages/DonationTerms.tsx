@@ -1,6 +1,7 @@
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import SiteNav from "@/components/shared/SiteNav";
+import SiteFooter from "@/components/shared/SiteFooter";
 import Icon from "@/components/ui/icon";
 
 export default function DonationTerms() {
@@ -172,6 +173,7 @@ export default function DonationTerms() {
           Последнее обновление: май 2026 г.
         </div>
       </div>
+      <SiteFooter />
     </div>
   );
 }

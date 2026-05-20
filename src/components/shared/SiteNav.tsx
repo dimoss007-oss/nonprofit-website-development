@@ -12,6 +12,8 @@ const navItemsAfter = [
   { label: "программа", href: "/program" },
   { label: "наши семьи", href: "/our-families" },
   { label: "новости", href: "/news" },
+  { label: "поддержать нас", anchor: "podderzhka" },
+  { label: "контакты", anchor: "kontakty" },
 ];
 
 const aboutItems = [
@@ -104,11 +106,13 @@ export default function SiteNav() {
             )}
           </div>
 
-          {navItemsAfter.map(({ label, href }) => (
-            <a key={href} href={href} className="nav-link">{label}</a>
+          {navItemsAfter.map((item) => (
+            "href" in item ? (
+              <a key={item.label} href={item.href} className="nav-link">{item.label}</a>
+            ) : (
+              <button key={item.label} onClick={() => navigateToAnchor(item.anchor)} className="nav-link">{item.label}</button>
+            )
           ))}
-
-          <a href="/#kontakty" className="nav-link">контакты</a>
         </div>
 
         <a href="tel:88003008685" className="hidden md:flex items-center gap-2 text-sage font-golos font-semibold text-sm hover:text-sage-dark transition-colors">
@@ -134,10 +138,13 @@ export default function SiteNav() {
                 <button key={item.label} onClick={() => navigateToAnchor(item.anchor)} className="nav-link text-left py-2">{item.label}</button>
               )
             ))}
-            {navItemsAfter.map(({ label, href }) => (
-              <button key={href} onClick={() => navigateTo(href)} className="nav-link text-left py-2">{label}</button>
+            {navItemsAfter.map((item) => (
+              "href" in item ? (
+                <button key={item.label} onClick={() => navigateTo(item.href)} className="nav-link text-left py-2">{item.label}</button>
+              ) : (
+                <button key={item.label} onClick={() => navigateToAnchor(item.anchor)} className="nav-link text-left py-2">{item.label}</button>
+              )
             ))}
-            <button onClick={() => navigateTo("/#kontakty")} className="nav-link text-left py-2">контакты</button>
 
             <div className="col-span-2 border-t border-beige-dark pt-3 mt-1">
               <a href={VK_URL} target="_blank" rel="noopener noreferrer" className="nav-link text-left py-2 block">
