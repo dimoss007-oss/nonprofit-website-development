@@ -99,7 +99,7 @@ export default function FamiliesCaseCard({ c, openLightbox }: Props) {
                 ))}
                 <div className="mt-6 rounded-xl overflow-hidden shadow-md" style={{ position: "relative", paddingBottom: "177.77%", height: 0 }}>
                   <iframe
-                    src="https://vk.com/video_ext.php?oid=-229898882&id=456239022&hd=2"
+                    src="https://vk.com/video_ext.php?oid=-229898882&id=456239047&hash=038355e5f6409aa8&hd=2"
                     style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%" }}
                     allow="autoplay; encrypted-media; fullscreen; picture-in-picture; screen-wake-lock;"
                     frameBorder="0"
