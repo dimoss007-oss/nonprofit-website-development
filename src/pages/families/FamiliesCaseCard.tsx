@@ -97,7 +97,8 @@ export default function FamiliesCaseCard({ c, openLightbox }: Props) {
                 {s.text.split("\n\n").map((p, j) => (
                   <p key={j} className="text-ink/80 leading-relaxed mb-4 last:mb-0">{p}</p>
                 ))}
-                <div className="mt-6 rounded-xl overflow-hidden shadow-md" style={{ position: "relative", paddingBottom: "177.77%", height: 0 }}>
+                <div className="mt-6 flex justify-center">
+                  <div className="rounded-xl overflow-hidden shadow-md w-64" style={{ position: "relative", paddingBottom: "calc(177.77% * 0.5)", height: 0, width: "50%" }}>
                   <iframe
                     src="https://vk.com/video_ext.php?oid=-229898882&id=456239047&hash=038355e5f6409aa8&hd=2"
                     style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%" }}
@@ -105,6 +106,7 @@ export default function FamiliesCaseCard({ c, openLightbox }: Props) {
                     frameBorder="0"
                     allowFullScreen
                   />
+                  </div>
                 </div>
               </>
             ) : c.id === 4 && s.heading === "Разрыв сценария" ? (
