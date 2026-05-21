@@ -109,15 +109,13 @@ export default function FamiliesCaseCard({ c, openLightbox }: Props) {
               </div>
             ) : c.id === 4 && s.heading === "Разрыв сценария" ? (
               <div className="clearfix">
-                <div
-                  className="float-right ml-6 mb-4 w-40 md:w-52 flex-shrink-0 cursor-zoom-in"
-                  onClick={() => openLightbox([PHOTO_4_INLINE], PHOTO_4_INLINE)}
-                >
-                  <img
-                    src={PHOTO_4_INLINE}
-                    alt="Наталья с Ульяной"
-                    className="w-full rounded-xl shadow-md object-cover object-top hover:opacity-90 transition-opacity"
-                    style={{ aspectRatio: "3/4" }}
+                <div className="float-right ml-6 mb-4 rounded-xl overflow-hidden shadow-md" style={{ width: "42%", position: "relative", paddingBottom: "calc(177.77% * 0.42)", height: 0 }}>
+                  <iframe
+                    src="https://vk.com/video_ext.php?oid=-229898882&id=456239294&hd=2"
+                    style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%" }}
+                    allow="autoplay; encrypted-media; fullscreen; picture-in-picture; screen-wake-lock;"
+                    frameBorder="0"
+                    allowFullScreen
                   />
                 </div>
                 {s.text.split("\n\n").map((p, j) => (
