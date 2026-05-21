@@ -45,7 +45,7 @@ export default function OurFamilies() {
             <button
               key={item.id}
               onClick={() => setActiveId(item.id)}
-              className={`px-5 py-2.5 rounded-sm text-sm font-golos transition-colors ${
+              className={`px-5 py-2.5 rounded-full text-sm font-golos transition-colors ${
                 activeId === item.id
                   ? "bg-sage text-white"
                   : "bg-white text-ink/70 hover:bg-beige-dark border border-beige-dark"
