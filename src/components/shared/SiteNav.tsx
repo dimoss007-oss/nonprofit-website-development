@@ -12,7 +12,6 @@ const navItemsAfter = [
   { label: "программа", href: "/program" },
   { label: "наши семьи", href: "/our-families" },
   { label: "новости", href: "/news" },
-  { label: "поддержать нас", anchor: "podderzhka" },
   { label: "контакты", anchor: "kontakty" },
 ];
 
