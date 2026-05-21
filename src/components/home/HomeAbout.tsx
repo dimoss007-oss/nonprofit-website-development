@@ -1,6 +1,28 @@
 import { useEffect, useRef, useState } from "react";
 import Icon from "@/components/ui/icon";
 
+function PhotoPopup({ photo, name, onClose }: { photo: string; name: string; onClose: () => void }) {
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [onClose]);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
+      <div className="relative bg-white rounded-2xl shadow-2xl overflow-hidden max-w-xs w-full mx-4" onClick={e => e.stopPropagation()}>
+        <button onClick={onClose} className="absolute top-3 right-3 z-10 bg-black/20 hover:bg-black/40 text-white rounded-full w-8 h-8 flex items-center justify-center transition-colors">
+          <Icon name="X" size={16} />
+        </button>
+        <img src={photo} alt={name} className="w-full object-cover object-top max-h-96" />
+        <div className="px-5 py-4">
+          <p className="font-cormorant text-ink text-lg font-semibold">{name}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const VK_URL = "https://vk.com/spasenienadezhdi";
 
 const teamMembers = [
@@ -42,8 +64,11 @@ function Reveal({ children, className = "" }: { children: React.ReactNode; class
 }
 
 export default function HomeAbout() {
+  const [popup, setPopup] = useState<{ photo: string; name: string } | null>(null);
+
   return (
     <>
+      {popup && <PhotoPopup photo={popup.photo} name={popup.name} onClose={() => setPopup(null)} />}
       {/* О НАС — скрыто временно */}
 
       {/* МИССИЯ */}
@@ -104,7 +129,10 @@ export default function HomeAbout() {
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
               {teamMembers.map((m) => (
                 <div key={m.name} className="group bg-beige rounded-sm p-7 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-                  <div className="w-28 h-28 rounded-full bg-sage-pale flex items-center justify-center text-3xl mb-5 overflow-hidden">
+                  <div
+                    className={`w-28 h-28 rounded-full bg-sage-pale flex items-center justify-center text-3xl mb-5 overflow-hidden ${m.photo ? "cursor-pointer" : ""}`}
+                    onClick={() => m.photo && setPopup({ photo: m.photo, name: m.name })}
+                  >
                     {m.photo
                       ? <img src={m.photo} alt={m.name} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-125" />
                       : m.emoji}
