@@ -81,7 +81,7 @@ export default function FamiliesCaseCard({ c, openLightbox }: Props) {
       {c.id === 5 && (
         <FamiliesSliderBanner
           photos={SLIDER_PHOTOS_5}
-          positions={["center 25%", "center 20%", "center 30%", "center 20%", "center 15%"]}
+          positions={["center 15%", "center 10%", "center 5%", "center 30%", "center 20%"]}
           onZoom={openLightbox}
         />
       )}
