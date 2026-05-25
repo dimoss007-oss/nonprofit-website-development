@@ -26,6 +26,14 @@ const SLIDER_PHOTOS_3 = [
 
 const PHOTO_1 = "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/31f9813f-2685-4968-be68-856b3e8f9c09.jpg";
 
+const SLIDER_PHOTOS_5 = [
+  "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/5e279b87-bc25-4298-abf4-f65a37312807.jpg",
+  "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/1fb4ee3a-ab90-4d5c-91f7-d10f450ee06c.jpg",
+  "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/cc9c2ea4-7d80-425b-83eb-ee5cac01d02f.jpg",
+  "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/9a31fff8-6b55-4df6-b495-0c24e1f053ef.jpg",
+  "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/b239fe25-7b2c-468e-a42f-e71350bcb44f.jpg",
+];
+
 interface Props {
   c: CaseItem;
   openLightbox: (photos: string[], url: string) => void;
@@ -67,6 +75,13 @@ export default function FamiliesCaseCard({ c, openLightbox }: Props) {
         <FamiliesSliderBanner
           photos={SLIDER_PHOTOS_4}
           positions={["center 15%", "center 10%", "center 15%", "center 30%"]}
+          onZoom={openLightbox}
+        />
+      )}
+      {c.id === 5 && (
+        <FamiliesSliderBanner
+          photos={SLIDER_PHOTOS_5}
+          positions={["center 25%", "center 20%", "center 30%", "center 20%", "center 15%"]}
           onZoom={openLightbox}
         />
       )}
@@ -167,7 +182,7 @@ export default function FamiliesCaseCard({ c, openLightbox }: Props) {
         {/* CHILDREN */}
         <div className="mb-12">
           <h3 className="font-cormorant text-ink text-2xl font-semibold mb-6">
-            {c.id === 1 || c.id === 3 ? "Как изменились дети" : "Ребёнок"}
+            {c.id === 1 || c.id === 3 || c.id === 5 ? "Как изменились дети" : "Ребёнок"}
           </h3>
           <div className="space-y-6">
             {c.children.map((ch, i) => (
