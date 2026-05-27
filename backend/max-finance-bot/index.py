@@ -54,7 +54,7 @@ def get_history(user_id: int, db_url: str) -> str:
 
 def parse_transaction(text: str):
     text = text.strip()
-    match = re.match(r'^([+-])\s*(\d+(?:[.,]\d{1,2})?)\s*(.*)?$', text)
+    match = re.match(r'^([+-])\s*(\d+(?:[.,]\d{1,2})?)(.*)$', text)
     if not match:
         return None
     sign, amount_str, description = match.groups()
@@ -78,6 +78,25 @@ def handler(event: dict, context) -> dict:
 
     body = json.loads(event.get('body') or '{}')
     print(f"Max webhook body: {json.dumps(body)}")
+
+    update_type = body.get('update_type', '')
+
+    if update_type == 'bot_started':
+        user_id = body.get('user_id') or (body.get('user') or {}).get('user_id')
+        chat_id = body.get('chat_id') or user_id
+        if user_id and chat_id:
+            welcome = (
+                "Привет! Я помогу вести учёт доходов и расходов.\n\n"
+                "Как добавить запись:\n"
+                "+5000 зарплата — доход\n"
+                "-1200 продукты — расход\n\n"
+                "Команды:\n"
+                "/balance — текущий баланс\n"
+                "/history — последние 10 операций\n"
+                "/clear — удалить все записи"
+            )
+            send_message(chat_id, welcome, token)
+        return {'statusCode': 200, 'headers': cors, 'body': json.dumps({'ok': True})}
 
     message = body.get('message') or {}
     if not message:
