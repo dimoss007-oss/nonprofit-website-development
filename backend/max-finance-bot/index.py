@@ -77,6 +77,7 @@ def handler(event: dict, context) -> dict:
 
     token = os.environ.get('MAX_BOT_TOKEN', '')
     db_url = os.environ.get('DATABASE_URL', '')
+    print(f"token present={bool(token)} len={len(token)} starts={token[:10] if token else 'EMPTY'}")
 
     body = json.loads(event.get('body') or '{}')
     print(f"Max webhook body: {json.dumps(body)}")
