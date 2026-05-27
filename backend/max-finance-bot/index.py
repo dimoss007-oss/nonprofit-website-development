@@ -7,11 +7,12 @@ import psycopg2
 MAX_API_URL = "https://platform-api.max.ru"
 
 def send_message(chat_id: int, text: str, token: str):
-    requests.post(
+    r = requests.post(
         f"{MAX_API_URL}/messages",
-        headers={"Authorization": f"Bearer {token}"},
+        headers={"Authorization": token},
         json={"recipient": {"chat_id": chat_id}, "text": text}
     )
+    print(f"send_message chat_id={chat_id} status={r.status_code} body={r.text[:200]}")
 
 def db_query(db_url: str, sql: str):
     conn = psycopg2.connect(db_url)
