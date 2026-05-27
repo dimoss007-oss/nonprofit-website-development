@@ -107,8 +107,7 @@ def handler(event: dict, context) -> dict:
 
     sender = message.get('sender') or {}
     user_id = sender.get('user_id')
-    recipient = message.get('recipient') or {}
-    chat_id = recipient.get('chat_id') or user_id
+    chat_id = user_id
 
     body_msg = message.get('body') or {}
     text = body_msg.get('text', '').strip()
