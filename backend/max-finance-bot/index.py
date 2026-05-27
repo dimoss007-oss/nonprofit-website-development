@@ -9,8 +9,8 @@ MAX_API_URL = "https://platform-api.max.ru"
 def send_message(chat_id: int, text: str, token: str):
     r = requests.post(
         f"{MAX_API_URL}/messages",
-        headers={"Authorization": token},
-        json={"recipient": {"user_id": chat_id}, "text": text}
+        params={"access_token": token, "chat_id": chat_id},
+        json={"text": text}
     )
     print(f"send_message chat_id={chat_id} status={r.status_code} body={r.text[:200]}")
 
@@ -105,7 +105,8 @@ def handler(event: dict, context) -> dict:
 
     sender = message.get('sender') or {}
     user_id = sender.get('user_id')
-    chat_id = user_id
+    recipient = message.get('recipient') or {}
+    chat_id = recipient.get('chat_id') or user_id
 
     body_msg = message.get('body') or {}
     text = body_msg.get('text', '').strip()
