@@ -4,7 +4,7 @@ import re
 import requests
 import psycopg2
 
-MAX_API_URL = "https://botapi.max.ru"
+MAX_API_URL = "https://platform-api.max.ru"
 
 def send_message(chat_id: int, text: str, token: str):
     requests.post(

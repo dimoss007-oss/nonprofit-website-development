@@ -2,7 +2,7 @@ import json
 import os
 import requests
 
-MAX_API_URL = "https://botapi.max.ru"
+MAX_API_URL = "https://platform-api.max.ru"
 
 def handler(event: dict, context) -> dict:
     """Регистрация webhook для Max бота учёта финансов."""
@@ -20,11 +20,11 @@ def handler(event: dict, context) -> dict:
 
     resp = requests.post(
         f"{MAX_API_URL}/subscriptions",
-        headers={"Authorization": f"Bearer {token}"},
+        headers={"Authorization": token},
         json={"url": webhook_url}
     )
 
-    print(f"Set webhook status: {resp.status_code}, body: {resp.text}, token_len: {len(token)}")
+    print(f"Set webhook v2 status: {resp.status_code}, body: {resp.text}, token_len: {len(token)}")
 
     return {
         'statusCode': 200,
