@@ -9,7 +9,8 @@ MAX_API_URL = "https://platform-api.max.ru"
 def send_message(chat_id: int, text: str, token: str):
     r = requests.post(
         f"{MAX_API_URL}/messages",
-        params={"access_token": token, "chat_id": chat_id},
+        params={"chat_id": chat_id},
+        headers={"Authorization": f"Bearer {token}"},
         json={"text": text}
     )
     print(f"send_message chat_id={chat_id} status={r.status_code} body={r.text[:200]}")
