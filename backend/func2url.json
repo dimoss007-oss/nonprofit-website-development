@@ -1,4 +1,5 @@
 {
+  "finance-stats": "https://functions.poehali.dev/db543e97-ee86-4802-9be1-5dfc071da53b",
   "max-set-webhook": "https://functions.poehali.dev/65c4e683-8443-46ea-b0c8-afd179344e42",
   "max-finance-bot": "https://functions.poehali.dev/147b61f7-fbe1-4676-862a-8bf01c1e68cb",
   "robokassa-webhook": "https://functions.poehali.dev/a695bc46-4a15-40c2-a168-05fbcbe1dfc1",

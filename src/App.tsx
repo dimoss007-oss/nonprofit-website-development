@@ -14,6 +14,7 @@ import NotFound from "./pages/NotFound";
 import Gallery from "./pages/Gallery";
 import AdminGallery from "./pages/AdminGallery";
 import OurFamilies from "./pages/OurFamilies";
+import AdminFinance from "./pages/AdminFinance";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +35,7 @@ const App = () => (
           <Route path="/gallery" element={<Gallery />} />
           {/* Скрытая страница — не в навигации */}
           <Route path="/our-families" element={<OurFamilies />} />
+          <Route path="/admin/finance" element={<AdminFinance />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
