@@ -4,6 +4,7 @@ import Icon from "@/components/ui/icon";
 const FINANCE_STATS_URL = "https://functions.poehali.dev/db543e97-ee86-4802-9be1-5dfc071da53b";
 const FINANCE_TX_URL = "https://functions.poehali.dev/c443f063-9d2e-4815-875f-3ddfb3d28e4f";
 const FINANCE_DELETE_URL = "https://functions.poehali.dev/5a30b7f7-b1b4-4966-8b0f-47e8184e56e7";
+const FINANCE_ADD_URL = "https://functions.poehali.dev/d9876769-0e63-4650-93e4-562a00f11c15";
 const AUTH_URL = "https://functions.poehali.dev/42446f5d-c602-4dda-95e8-a4ca03153de0";
 const LOGO_IMG = "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/4ca974da-fec3-4fd3-834d-c7dccc97fca9.jpg";
 const SESSION_KEY = "finance_admin_auth";
@@ -43,6 +44,13 @@ export default function AdminFinance() {
   const [transactions, setTransactions] = useState<Record<string, Transaction[]>>({});
   const [txLoading, setTxLoading] = useState<string | null>(null);
 
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [addType, setAddType] = useState<"income" | "expense">("income");
+  const [addAmount, setAddAmount] = useState("");
+  const [addDesc, setAddDesc] = useState("");
+  const [addLoading, setAddLoading] = useState(false);
+  const [addError, setAddError] = useState("");
+
   useEffect(() => {
     if (sessionStorage.getItem(SESSION_KEY) === "1") setAuthed(true);
   }, []);
@@ -76,6 +84,43 @@ export default function AdminFinance() {
       setAuthError("Ошибка соединения");
     } finally {
       setAuthLoading(false);
+    }
+  }
+
+  async function handleAdd(e: React.FormEvent) {
+    e.preventDefault();
+    if (!addAmount || isNaN(Number(addAmount))) { setAddError("Введите корректную сумму"); return; }
+    setAddLoading(true);
+    setAddError("");
+    try {
+      const r = await fetch(FINANCE_ADD_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: addType, amount: Number(addAmount), description: addDesc }),
+      });
+      const d = await r.json();
+      if (!d.ok) { setAddError("Ошибка сохранения"); return; }
+
+      const now = new Date();
+      const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+      const newTx: Transaction = { id: d.id, type: addType, amount: Number(addAmount), description: addDesc || null, created_at: d.created_at };
+
+      if (transactions[month]) {
+        setTransactions((prev) => ({ ...prev, [month]: [newTx, ...prev[month]] }));
+      }
+      setMonths((prev) => {
+        const exists = prev.find((m) => m.month === month);
+        if (!exists) return prev;
+        const income = exists.income + (addType === "income" ? newTx.amount : 0);
+        const expense = exists.expense + (addType === "expense" ? newTx.amount : 0);
+        return prev.map((m) => m.month === month ? { ...m, income, expense, balance: income - expense, transactions_count: m.transactions_count + 1 } : m);
+      });
+
+      setAddAmount("");
+      setAddDesc("");
+      setShowAddForm(false);
+    } finally {
+      setAddLoading(false);
     }
   }
 
@@ -169,14 +214,82 @@ export default function AdminFinance() {
             <img src={LOGO_IMG} alt="Логотип" className="h-10 w-auto" />
             <h1 className="text-2xl font-cormorant font-semibold text-ink">Итоги по месяцам</h1>
           </div>
-          <button
-            onClick={() => { sessionStorage.removeItem(SESSION_KEY); setAuthed(false); }}
-            className="text-sm text-muted-foreground hover:text-ink flex items-center gap-1 transition-colors"
-          >
-            <Icon name="LogOut" size={15} />
-            Выйти
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => { setShowAddForm(true); setAddError(""); }}
+              className="text-sm bg-sage text-white rounded px-3 py-1.5 flex items-center gap-1.5 hover:bg-sage-dark transition-colors"
+            >
+              <Icon name="Plus" size={14} />
+              Добавить
+            </button>
+            <button
+              onClick={() => { sessionStorage.removeItem(SESSION_KEY); setAuthed(false); }}
+              className="text-sm text-muted-foreground hover:text-ink flex items-center gap-1 transition-colors"
+            >
+              <Icon name="LogOut" size={15} />
+              Выйти
+            </button>
+          </div>
         </div>
+
+        {/* Модальная форма добавления */}
+        {showAddForm && (
+          <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center px-4">
+            <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-sm">
+              <div className="flex items-center justify-between mb-5">
+                <h2 className="text-lg font-cormorant font-semibold text-ink">Новая операция</h2>
+                <button onClick={() => setShowAddForm(false)} className="text-muted-foreground hover:text-ink">
+                  <Icon name="X" size={18} />
+                </button>
+              </div>
+              <form onSubmit={handleAdd} className="flex flex-col gap-4">
+                {/* Тип */}
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setAddType("income")}
+                    className={`rounded py-2 text-sm font-medium transition-colors ${addType === "income" ? "bg-green-100 text-green-700 border-2 border-green-400" : "bg-beige border-2 border-transparent text-muted-foreground"}`}
+                  >
+                    + Доход
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAddType("expense")}
+                    className={`rounded py-2 text-sm font-medium transition-colors ${addType === "expense" ? "bg-red-50 text-red-600 border-2 border-red-400" : "bg-beige border-2 border-transparent text-muted-foreground"}`}
+                  >
+                    − Расход
+                  </button>
+                </div>
+                {/* Сумма */}
+                <input
+                  type="number"
+                  placeholder="Сумма, ₽"
+                  value={addAmount}
+                  onChange={(e) => setAddAmount(e.target.value)}
+                  min="0"
+                  step="any"
+                  className="border border-beige-dark rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sage"
+                />
+                {/* Описание */}
+                <input
+                  type="text"
+                  placeholder="Описание (необязательно)"
+                  value={addDesc}
+                  onChange={(e) => setAddDesc(e.target.value)}
+                  className="border border-beige-dark rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sage"
+                />
+                {addError && <p className="text-red-500 text-sm">{addError}</p>}
+                <button
+                  type="submit"
+                  disabled={addLoading}
+                  className="bg-sage text-white rounded px-4 py-2 text-sm font-medium hover:bg-sage-dark transition-colors disabled:opacity-50"
+                >
+                  {addLoading ? "Сохранение..." : "Сохранить"}
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
 
         {/* Карточки итого */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
