@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import Icon from "@/components/ui/icon";
 
 const FINANCE_STATS_URL = "https://functions.poehali.dev/db543e97-ee86-4802-9be1-5dfc071da53b";
-const AUTH_URL = "https://functions.poehali.dev/a964c253-7e52-4d10-9000-b278238e84e4";
+const AUTH_URL = "https://functions.poehali.dev/42446f5d-c602-4dda-95e8-a4ca03153de0";
 const LOGO_IMG = "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/4ca974da-fec3-4fd3-834d-c7dccc97fca9.jpg";
-const SESSION_KEY = "admin_auth";
+const SESSION_KEY = "finance_admin_auth";
 
 interface MonthStats {
   month: string;
