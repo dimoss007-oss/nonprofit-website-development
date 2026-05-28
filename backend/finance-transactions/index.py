@@ -25,14 +25,14 @@ def handler(event: dict, context) -> dict:
 
     if month:
         cur.execute(f"""
-            SELECT id, type, amount, description, created_at
+            SELECT id, type, amount, description, category, created_at
             FROM {SCHEMA}.finance_transactions
             WHERE TO_CHAR(created_at, 'YYYY-MM') = '{month}'
             ORDER BY created_at DESC
         """)
     else:
         cur.execute(f"""
-            SELECT id, type, amount, description, created_at
+            SELECT id, type, amount, description, category, created_at
             FROM {SCHEMA}.finance_transactions
             ORDER BY created_at DESC
             LIMIT 100
@@ -49,7 +49,8 @@ def handler(event: dict, context) -> dict:
             'type': row[1],
             'amount': float(row[2]),
             'description': row[3],
-            'created_at': row[4].strftime('%d.%m.%Y %H:%M'),
+            'category': row[4],
+            'created_at': row[5].strftime('%d.%m.%Y %H:%M'),
         })
 
     return {

@@ -1,4 +1,5 @@
 {
+  "finance-categories": "https://functions.poehali.dev/997daeb8-44e8-44b1-b7f2-cea1a4aa51bf",
   "finance-add": "https://functions.poehali.dev/d9876769-0e63-4650-93e4-562a00f11c15",
   "finance-delete": "https://functions.poehali.dev/5a30b7f7-b1b4-4966-8b0f-47e8184e56e7",
   "finance-transactions": "https://functions.poehali.dev/c443f063-9d2e-4815-875f-3ddfb3d28e4f",

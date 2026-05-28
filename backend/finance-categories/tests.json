@@ -7,11 +7,11 @@
       "expectedStatus": 200
     },
     {
-      "name": "Get transactions",
+      "name": "GET categories",
       "method": "GET",
       "path": "/",
       "expectedStatus": 200,
-      "expectedBody": {"ok": true, "transactions": []},
+      "expectedBody": {"ok": true},
       "bodyMatcher": "partial"
     }
   ]
