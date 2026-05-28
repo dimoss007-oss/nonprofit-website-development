@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import Icon from "@/components/ui/icon";
 
 const FINANCE_STATS_URL = "https://functions.poehali.dev/db543e97-ee86-4802-9be1-5dfc071da53b";
+const FINANCE_TX_URL = "https://functions.poehali.dev/c443f063-9d2e-4815-875f-3ddfb3d28e4f";
 const AUTH_URL = "https://functions.poehali.dev/42446f5d-c602-4dda-95e8-a4ca03153de0";
 const LOGO_IMG = "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/4ca974da-fec3-4fd3-834d-c7dccc97fca9.jpg";
 const SESSION_KEY = "finance_admin_auth";
@@ -13,6 +14,14 @@ interface MonthStats {
   expense: number;
   balance: number;
   transactions_count: number;
+}
+
+interface Transaction {
+  id: number;
+  type: "income" | "expense";
+  amount: number;
+  description: string | null;
+  created_at: string;
 }
 
 function fmt(n: number) {
@@ -29,11 +38,12 @@ export default function AdminFinance() {
   const [months, setMonths] = useState<MonthStats[]>([]);
   const [loading, setLoading] = useState(false);
 
+  const [expandedMonth, setExpandedMonth] = useState<string | null>(null);
+  const [transactions, setTransactions] = useState<Record<string, Transaction[]>>({});
+  const [txLoading, setTxLoading] = useState<string | null>(null);
+
   useEffect(() => {
-    const saved = sessionStorage.getItem(SESSION_KEY);
-    if (saved === "1") {
-      setAuthed(true);
-    }
+    if (sessionStorage.getItem(SESSION_KEY) === "1") setAuthed(true);
   }, []);
 
   useEffect(() => {
@@ -41,9 +51,7 @@ export default function AdminFinance() {
     setLoading(true);
     fetch(FINANCE_STATS_URL)
       .then((r) => r.json())
-      .then((d) => {
-        if (d.ok) setMonths(d.months);
-      })
+      .then((d) => { if (d.ok) setMonths(d.months); })
       .finally(() => setLoading(false));
   }, [authed]);
 
@@ -70,6 +78,23 @@ export default function AdminFinance() {
     }
   }
 
+  async function toggleMonth(month: string) {
+    if (expandedMonth === month) {
+      setExpandedMonth(null);
+      return;
+    }
+    setExpandedMonth(month);
+    if (transactions[month]) return;
+    setTxLoading(month);
+    try {
+      const r = await fetch(`${FINANCE_TX_URL}?month=${month}`);
+      const d = await r.json();
+      if (d.ok) setTransactions((prev) => ({ ...prev, [month]: d.transactions }));
+    } finally {
+      setTxLoading(null);
+    }
+  }
+
   if (!authed) {
     return (
       <div className="min-h-screen bg-beige flex items-center justify-center px-4">
@@ -77,9 +102,7 @@ export default function AdminFinance() {
           <div className="flex justify-center mb-6">
             <img src={LOGO_IMG} alt="Логотип" className="h-14 w-auto" />
           </div>
-          <h1 className="text-xl font-cormorant font-semibold text-ink text-center mb-6">
-            Финансы — вход
-          </h1>
+          <h1 className="text-xl font-cormorant font-semibold text-ink text-center mb-6">Финансы — вход</h1>
           <form onSubmit={handleLogin} className="flex flex-col gap-4">
             <input
               type="text"
@@ -149,37 +172,73 @@ export default function AdminFinance() {
           </div>
         </div>
 
-        {/* Таблица по месяцам */}
+        {/* Месяца с раскрываемыми операциями */}
         {loading ? (
           <div className="text-center py-16 text-muted-foreground">Загрузка...</div>
         ) : months.length === 0 ? (
           <div className="text-center py-16 text-muted-foreground">Нет данных</div>
         ) : (
-          <div className="bg-white rounded-lg shadow-sm border border-beige-dark overflow-hidden">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-beige-dark bg-beige/50">
-                  <th className="text-left px-5 py-3 font-medium text-muted-foreground">Месяц</th>
-                  <th className="text-right px-5 py-3 font-medium text-muted-foreground">Доходы</th>
-                  <th className="text-right px-5 py-3 font-medium text-muted-foreground">Расходы</th>
-                  <th className="text-right px-5 py-3 font-medium text-muted-foreground">Баланс</th>
-                  <th className="text-right px-5 py-3 font-medium text-muted-foreground">Операций</th>
-                </tr>
-              </thead>
-              <tbody>
-                {months.map((m, i) => (
-                  <tr key={m.month} className={`border-b border-beige-dark/50 ${i % 2 === 0 ? "" : "bg-beige/20"}`}>
-                    <td className="px-5 py-3 font-medium text-ink capitalize">{m.month_label}</td>
-                    <td className="px-5 py-3 text-right text-green-600">+{fmt(m.income)}</td>
-                    <td className="px-5 py-3 text-right text-red-500">−{fmt(m.expense)}</td>
-                    <td className={`px-5 py-3 text-right font-semibold ${m.balance >= 0 ? "text-sage" : "text-red-500"}`}>
-                      {m.balance >= 0 ? "+" : ""}{fmt(m.balance)}
-                    </td>
-                    <td className="px-5 py-3 text-right text-muted-foreground">{m.transactions_count}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="flex flex-col gap-3">
+            {months.map((m) => {
+              const isOpen = expandedMonth === m.month;
+              const txList = transactions[m.month] || [];
+              const isLoadingTx = txLoading === m.month;
+
+              return (
+                <div key={m.month} className="bg-white rounded-lg shadow-sm border border-beige-dark overflow-hidden">
+                  {/* Шапка месяца */}
+                  <button
+                    onClick={() => toggleMonth(m.month)}
+                    className="w-full flex items-center justify-between px-5 py-4 hover:bg-beige/30 transition-colors"
+                  >
+                    <div className="flex items-center gap-4">
+                      <span className="font-medium text-ink capitalize w-28 text-left">{m.month_label}</span>
+                      <span className="text-green-600 text-sm">+{fmt(m.income)}</span>
+                      <span className="text-red-500 text-sm">−{fmt(m.expense)}</span>
+                      <span className={`font-semibold text-sm ${m.balance >= 0 ? "text-sage" : "text-red-500"}`}>
+                        {m.balance >= 0 ? "=" : "="} {m.balance >= 0 ? "+" : ""}{fmt(m.balance)}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3 text-muted-foreground text-sm">
+                      <span>{m.transactions_count} оп.</span>
+                      <Icon name={isOpen ? "ChevronUp" : "ChevronDown"} size={16} />
+                    </div>
+                  </button>
+
+                  {/* Список операций */}
+                  {isOpen && (
+                    <div className="border-t border-beige-dark">
+                      {isLoadingTx ? (
+                        <div className="text-center py-6 text-muted-foreground text-sm">Загрузка...</div>
+                      ) : txList.length === 0 ? (
+                        <div className="text-center py-6 text-muted-foreground text-sm">Нет операций</div>
+                      ) : (
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="bg-beige/40 border-b border-beige-dark">
+                              <th className="text-left px-5 py-2 font-medium text-muted-foreground">Дата</th>
+                              <th className="text-left px-5 py-2 font-medium text-muted-foreground">Описание</th>
+                              <th className="text-right px-5 py-2 font-medium text-muted-foreground">Сумма</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {txList.map((tx, i) => (
+                              <tr key={tx.id} className={`border-b border-beige-dark/30 ${i % 2 === 0 ? "" : "bg-beige/10"}`}>
+                                <td className="px-5 py-2 text-muted-foreground whitespace-nowrap">{tx.created_at}</td>
+                                <td className="px-5 py-2 text-ink">{tx.description || <span className="text-muted-foreground italic">без описания</span>}</td>
+                                <td className={`px-5 py-2 text-right font-medium ${tx.type === "income" ? "text-green-600" : "text-red-500"}`}>
+                                  {tx.type === "income" ? "+" : "−"}{fmt(tx.amount)} ₽
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
