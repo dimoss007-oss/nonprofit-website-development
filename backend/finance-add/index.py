@@ -33,8 +33,8 @@ def handler(event: dict, context) -> dict:
     conn.autocommit = True
     cur = conn.cursor()
     cur.execute(f"""
-        INSERT INTO {SCHEMA}.finance_transactions (type, amount, description, category)
-        VALUES ('{tx_type}', {amount}, {desc_val}, {cat_val})
+        INSERT INTO {SCHEMA}.finance_transactions (user_id, type, amount, description, category)
+        VALUES (0, '{tx_type}', {amount}, {desc_val}, {cat_val})
         RETURNING id, created_at
     """)
     row = cur.fetchone()
