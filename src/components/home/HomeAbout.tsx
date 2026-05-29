@@ -25,16 +25,16 @@ function PhotoPopup({ photo, name, onClose }: { photo: string; name: string; onC
 
 const VK_URL = "https://vk.com/spasenienadezhdi";
 
-const teamMembers = [
+const teamMembers: { name: string; role: string; initial: string; emoji: string; photo?: string; photoPosition?: string }[] = [
   { name: "Сайфуллин Василий Валерьевич", role: "Учредитель", initial: "С", emoji: "🌿", photo: "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/d5b098f1-b52e-4625-82c1-06bd3c4b4aec.jpg" },
   { name: "Чуйкин Дмитрий Юрьевич", role: "Генеральный директор", initial: "Д", emoji: "🤝", photo: "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/39b68d23-4d9f-4c15-ab4e-5467b30f8c13.jpg" },
-  { name: "Хайдарова Назира", role: "Заместитель директора по социальной работе", initial: "Н", emoji: "💚" },
+  { name: "Хайдарова Назира", role: "Заместитель директора по социальной работе", initial: "Н", emoji: "💚", photo: "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/66588711-1ffc-4150-b3a7-6d0828539d2e.jpg", photoPosition: "right center" },
   { name: "Тузкова Евгения Юрьевна", role: "Психолог", initial: "Е", emoji: "🌱" },
-  { name: "Мартынова Анастасия Георгиевна", role: "Социальный педагог", initial: "А", emoji: "📚" },
-  { name: "Зимина Надежда Васильевна", role: "Руководитель отдела фандрайзинга", initial: "Н", emoji: "🌿" },
-  { name: "Мамаев Рамазан Агитович", role: "Специалист по работе с химической зависимостью", initial: "Р", emoji: "🤝" },
+  { name: "Мартынова Анастасия Георгиевна", role: "Социальный педагог", initial: "А", emoji: "📚", photo: "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/a331dbf5-10a1-4ef0-8713-16689d0bbd3f.jpg", photoPosition: "80% 80%" },
+  { name: "Зимина Надежда Васильевна", role: "Руководитель отдела фандрайзинга", initial: "Н", emoji: "🌿", photo: "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/143019f5-0f8e-4216-a28a-0d0e9d61ce3d.jpg", photoPosition: "right top" },
+  { name: "Мамаев Рамазан Агитович", role: "Специалист по работе с химической зависимостью", initial: "Р", emoji: "🤝", photo: "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/ef769298-a7b4-4c09-a9a3-e073a3c8391b.jpg", photoPosition: "right center" },
   { name: "Домнин Дмитрий Михайлович", role: "Специалист по работе с химической зависимостью", initial: "Д", emoji: "🤝" },
-  { name: "Скородумова Софья Константиновна", role: "Специалист по работе с химической зависимостью", initial: "С", emoji: "🤝" },
+  { name: "Скородумова Софья Константиновна", role: "Специалист по работе с химической зависимостью", initial: "С", emoji: "🤝", photo: "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/167c928a-d9cb-4a55-922c-30575c48fa09.jpg", photoPosition: "center 30%" },
 
 ];
 
@@ -134,7 +134,7 @@ export default function HomeAbout() {
                     onClick={() => m.photo && setPopup({ photo: m.photo, name: m.name })}
                   >
                     {m.photo
-                      ? <img src={m.photo} alt={m.name} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-125" />
+                      ? <img src={m.photo} alt={m.name} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-125" style={{ objectPosition: m.photoPosition || 'center' }} />
                       : m.emoji}
                   </div>
                   <h3 className="font-cormorant text-ink text-xl font-semibold mb-1">{m.name}</h3>
