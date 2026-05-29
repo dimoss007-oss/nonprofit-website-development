@@ -34,7 +34,8 @@ def db_execute(db_url: str, sql: str):
     conn.close()
 
 def get_balance(user_id: int, db_url: str) -> str:
-    rows = db_query(db_url, f"SELECT COALESCE(SUM(CASE WHEN type='income' THEN amount ELSE -amount END), 0), COALESCE(SUM(CASE WHEN type='income' THEN amount ELSE 0 END), 0), COALESCE(SUM(CASE WHEN type='expense' THEN amount ELSE 0 END), 0) FROM finance_transactions WHERE user_id = {user_id}")
+    schema = os.environ.get('MAIN_DB_SCHEMA', 'public')
+    rows = db_query(db_url, f"SELECT COALESCE(SUM(CASE WHEN type='income' THEN amount ELSE -amount END), 0), COALESCE(SUM(CASE WHEN type='income' THEN amount ELSE 0 END), 0), COALESCE(SUM(CASE WHEN type='expense' THEN amount ELSE 0 END), 0) FROM {schema}.finance_transactions")
     balance, income, expense = rows[0]
     return (
         f"Баланс: {balance:,.2f} руб.\n"
@@ -43,7 +44,8 @@ def get_balance(user_id: int, db_url: str) -> str:
     )
 
 def get_history(user_id: int, db_url: str) -> str:
-    rows = db_query(db_url, f"SELECT type, amount, description, created_at FROM finance_transactions WHERE user_id = {user_id} ORDER BY created_at DESC LIMIT 10")
+    schema = os.environ.get('MAIN_DB_SCHEMA', 'public')
+    rows = db_query(db_url, f"SELECT type, amount, description, created_at FROM {schema}.finance_transactions ORDER BY created_at DESC LIMIT 10")
     if not rows:
         return "История пуста. Добавь первую запись!"
     lines = ["Последние 10 операций:\n"]
@@ -133,14 +135,16 @@ def handler(event: dict, context) -> dict:
     elif text in ('/history', 'история', 'history'):
         reply = get_history(uid, db_url)
     elif text in ('/clear', 'очистить', 'clear'):
-        db_execute(db_url, f"DELETE FROM finance_transactions WHERE user_id = {uid}")
+        schema = os.environ.get('MAIN_DB_SCHEMA', 'public')
+        db_execute(db_url, f"DELETE FROM {schema}.finance_transactions WHERE user_id = {uid}")
         reply = "Все записи удалены."
     else:
         parsed = parse_transaction(text)
         if parsed:
+            schema = os.environ.get('MAIN_DB_SCHEMA', 'public')
             t, amount, description = parsed
             desc_sql = f"'{description}'" if description else "NULL"
-            db_execute(db_url, f"INSERT INTO finance_transactions (user_id, amount, type, description) VALUES ({uid}, {amount}, '{t}', {desc_sql})")
+            db_execute(db_url, f"INSERT INTO {schema}.finance_transactions (user_id, amount, type, description) VALUES ({uid}, {amount}, '{t}', {desc_sql})")
             label = "Доход" if t == "income" else "Расход"
             desc_str = f" — {description}" if description else ""
             reply = f"{label} {amount:,.2f} руб.{desc_str} записан!\n\n" + get_balance(uid, db_url)
