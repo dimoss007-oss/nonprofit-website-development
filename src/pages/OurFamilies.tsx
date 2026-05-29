@@ -1,5 +1,6 @@
 import { useState } from "react";
 import SiteNav from "@/components/shared/SiteNav";
+import SiteFooter from "@/components/shared/SiteFooter";
 import { CASES, LightboxState } from "./families/families.types";
 import FamiliesLightbox from "./families/FamiliesLightbox";
 import FamiliesCaseCard from "./families/FamiliesCaseCard";
@@ -59,6 +60,7 @@ export default function OurFamilies() {
         {/* CASE CARD */}
         <FamiliesCaseCard c={c} openLightbox={openLightbox} />
       </div>
+      <SiteFooter />
     </div>
   );
 }
