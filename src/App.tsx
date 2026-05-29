@@ -15,7 +15,6 @@ import Gallery from "./pages/Gallery";
 import AdminGallery from "./pages/AdminGallery";
 import OurFamilies from "./pages/OurFamilies";
 import AdminFinance from "./pages/AdminFinance";
-import Gratitude from "./pages/Gratitude";
 
 const queryClient = new QueryClient();
 
@@ -37,7 +36,6 @@ const App = () => (
           {/* Скрытая страница — не в навигации */}
           <Route path="/our-families" element={<OurFamilies />} />
           <Route path="/admin/finance" element={<AdminFinance />} />
-          <Route path="/gratitude" element={<Gratitude />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
