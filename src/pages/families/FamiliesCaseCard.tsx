@@ -269,16 +269,14 @@ export default function FamiliesCaseCard({ c, openLightbox }: Props) {
               </div>
               <p className="text-ink/80 leading-relaxed">{c.sportText}</p>
             </div>
-          </div>
-        )}
-
-        {/* SUMMARY (кейс 6) */}
-        {c.summaryText && (
-          <div className="mb-10 bg-sage/5 border-l-4 border-sage rounded-sm px-6 py-6">
-            <h3 className="font-cormorant text-ink text-2xl font-semibold mb-4">Главные итоги</h3>
-            {c.summaryText.split("\n\n").map((p, i) => (
-              <p key={i} className="text-ink/80 leading-relaxed mb-4 last:mb-0">{p}</p>
-            ))}
+            {c.summaryText && (
+              <div className="mt-6 bg-sage/5 border-l-4 border-sage rounded-sm px-6 py-6">
+                <h3 className="font-cormorant text-ink text-2xl font-semibold mb-4">Главные итоги</h3>
+                {c.summaryText.split("\n\n").map((p, i) => (
+                  <p key={i} className="text-ink/80 leading-relaxed mb-4 last:mb-0">{p}</p>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
