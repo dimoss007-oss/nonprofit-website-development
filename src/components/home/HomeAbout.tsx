@@ -33,7 +33,7 @@ const teamMembers: { name: string; role: string; initial: string; emoji: string;
   { name: "Мартынова Анастасия Георгиевна", role: "Социальный педагог", initial: "А", emoji: "📚", photo: "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/a331dbf5-10a1-4ef0-8713-16689d0bbd3f.jpg", photoPosition: "80% 80%" },
   { name: "Зимина Надежда Васильевна", role: "Руководитель отдела фандрайзинга", initial: "Н", emoji: "🌿", photo: "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/143019f5-0f8e-4216-a28a-0d0e9d61ce3d.jpg", photoPosition: "right top" },
   { name: "Мамаев Рамазан Агитович", role: "Специалист по работе с химической зависимостью", initial: "Р", emoji: "🤝", photo: "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/ef769298-a7b4-4c09-a9a3-e073a3c8391b.jpg", photoPosition: "right center" },
-  { name: "Домнин Дмитрий Михайлович", role: "Специалист по работе с химической зависимостью", initial: "Д", emoji: "🤝" },
+  { name: "Домнин Дмитрий Михайлович", role: "Специалист по работе с химической зависимостью", initial: "Д", emoji: "🤝", photo: "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/efe31d79-556e-4670-9de0-bd70c23353d5.jpg", photoPosition: "center top" },
   { name: "Скородумова Софья Константиновна", role: "Специалист по работе с химической зависимостью", initial: "С", emoji: "🤝", photo: "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/167c928a-d9cb-4a55-922c-30575c48fa09.jpg", photoPosition: "center 30%" },
 
 ];
