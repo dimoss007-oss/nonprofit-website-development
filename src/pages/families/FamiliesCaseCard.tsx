@@ -257,7 +257,18 @@ export default function FamiliesCaseCard({ c, openLightbox }: Props) {
         {c.sportText && (
           <div className="mb-10">
             <h3 className="font-cormorant text-ink text-2xl font-semibold mb-4">Марат и Али — спорт как опора</h3>
-            <p className="text-ink/80 leading-relaxed">{c.sportText}</p>
+            <div className="clearfix">
+              <div className="float-right ml-6 mb-4 rounded-xl overflow-hidden shadow-md" style={{ width: "42%", position: "relative", paddingBottom: "calc(177.77% * 0.42)", height: 0 }}>
+                <iframe
+                  src="https://vk.com/video_ext.php?oid=-229898882&id=456239363&hd=2"
+                  style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%" }}
+                  allow="autoplay; encrypted-media; fullscreen; picture-in-picture; screen-wake-lock;"
+                  frameBorder="0"
+                  allowFullScreen
+                />
+              </div>
+              <p className="text-ink/80 leading-relaxed">{c.sportText}</p>
+            </div>
           </div>
         )}
 
