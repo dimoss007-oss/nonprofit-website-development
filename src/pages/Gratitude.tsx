@@ -1,5 +1,10 @@
+// Логотип организации (круглый золотой)
 const LOGO_URL =
-  "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/4ca974da-fec3-4fd3-834d-c7dccc97fca9.jpg";
+  "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/e1a21cad-59e2-4468-8f77-22423d76f129.jpg";
+
+// Фоновая текстура — пергамент
+const BG_URL =
+  "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/files/3828e527-08fc-4d51-967f-a11ab292fdf9.jpg";
 
 const SIGN_FOUNDER = "Сайфуллин Василий Валерьевич";
 const SIGN_DIRECTOR = "Чуйкин Дмитрий Юрьевич";
@@ -14,126 +19,176 @@ const teamMembers = [
   { name: "Скородумова Софья Константиновна", role: "Специалист по работе с химической зависимостью" },
 ];
 
+// SVG-орнамент угла (барочный завиток)
+function CornerOrnament({ rotate }: { rotate: number }) {
+  return (
+    <svg
+      width="64" height="64" viewBox="0 0 64 64" fill="none"
+      style={{ transform: `rotate(${rotate}deg)`, display: "block" }}
+    >
+      <g opacity="0.85">
+        {/* Внешний L-образный угол */}
+        <path d="M4 4 L4 28 Q4 4 28 4 Z" stroke="#C8952A" strokeWidth="1.5" fill="none"/>
+        <path d="M4 4 L4 28" stroke="#C8952A" strokeWidth="2" strokeLinecap="round"/>
+        <path d="M4 4 L28 4" stroke="#C8952A" strokeWidth="2" strokeLinecap="round"/>
+        {/* Завитки */}
+        <path d="M10 4 Q10 10 16 10 Q10 10 10 16" stroke="#C8952A" strokeWidth="1.2" fill="none" strokeLinecap="round"/>
+        <path d="M4 10 Q10 10 10 16 Q10 10 16 10" stroke="#C8952A" strokeWidth="1.2" fill="none" strokeLinecap="round"/>
+        {/* Листик */}
+        <ellipse cx="22" cy="8" rx="4" ry="2.5" fill="#C8952A" opacity="0.7" transform="rotate(-30 22 8)"/>
+        <ellipse cx="8" cy="22" rx="2.5" ry="4" fill="#C8952A" opacity="0.7" transform="rotate(-30 8 22)"/>
+        {/* Маленький ромб в углу */}
+        <rect x="2" y="2" width="5" height="5" rx="0.5" fill="#C8952A" opacity="0.6" transform="rotate(45 4.5 4.5)"/>
+        {/* Цветочек */}
+        <circle cx="20" cy="20" r="2.5" fill="#C8952A" opacity="0.5"/>
+        <circle cx="20" cy="20" r="1" fill="#C8952A" opacity="0.9"/>
+        <circle cx="20" cy="16" r="1.2" fill="#C8952A" opacity="0.4"/>
+        <circle cx="20" cy="24" r="1.2" fill="#C8952A" opacity="0.4"/>
+        <circle cx="16" cy="20" r="1.2" fill="#C8952A" opacity="0.4"/>
+        <circle cx="24" cy="20" r="1.2" fill="#C8952A" opacity="0.4"/>
+      </g>
+    </svg>
+  );
+}
+
+// Горизонтальный орнаментальный разделитель
+function GoldDivider({ wide = false }: { wide?: boolean }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto", width: wide ? "72%" : "55%" }}>
+      <div style={{ flex: 1, height: "1px", background: "linear-gradient(to right, transparent, #C8952A)" }} />
+      <span style={{ color: "#C8952A", fontSize: "14px", padding: "0 6px", lineHeight: 1 }}>❧</span>
+      <span style={{ color: "#C8952A", fontSize: "10px", padding: "0 3px", lineHeight: 1 }}>✦</span>
+      <span style={{ color: "#C8952A", fontSize: "14px", padding: "0 6px", lineHeight: 1 }}>❧</span>
+      <div style={{ flex: 1, height: "1px", background: "linear-gradient(to left, transparent, #C8952A)" }} />
+    </div>
+  );
+}
+
 function GratitudeSheet({ name, role }: { name: string; role: string }) {
   return (
     <div
       className="gratitude-page"
       style={{
         width: "210mm",
-        minHeight: "297mm",
+        height: "297mm",
         margin: "0 auto",
-        padding: "14mm 16mm 12mm",
-        background: "#fdfaf4",
+        position: "relative",
+        overflow: "hidden",
+        backgroundColor: "#ede8dc",
+        backgroundImage: `url(${BG_URL})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
         boxSizing: "border-box",
+        pageBreakAfter: "always",
+        breakAfter: "page",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        position: "relative",
-        fontFamily: "'Cormorant', 'Palatino Linotype', serif",
-        pageBreakAfter: "always",
-        breakAfter: "page",
       }}
     >
-      {/* Outer border */}
+      {/* Мерцающие блики на фоне */}
+      {[
+        { top: "8%", left: "12%", size: 6, opacity: 0.4 },
+        { top: "15%", right: "10%", size: 4, opacity: 0.3 },
+        { top: "45%", left: "5%", size: 5, opacity: 0.25 },
+        { top: "60%", right: "8%", size: 7, opacity: 0.35 },
+        { top: "75%", left: "20%", size: 4, opacity: 0.2 },
+        { top: "30%", right: "15%", size: 5, opacity: 0.3 },
+      ].map((star, i) => (
+        <div key={i} style={{
+          position: "absolute",
+          top: star.top,
+          left: (star as { left?: string }).left,
+          right: (star as { right?: string }).right,
+          width: star.size, height: star.size,
+          borderRadius: "50%",
+          background: "radial-gradient(circle, rgba(255,255,220,0.9) 0%, transparent 70%)",
+          opacity: star.opacity,
+          pointerEvents: "none",
+        }} />
+      ))}
+
+      {/* Внешняя рамка */}
       <div style={{
-        position: "absolute", inset: "6mm",
-        border: "2.5px solid #D4A843",
-        borderRadius: "2px",
+        position: "absolute", inset: "5mm",
+        border: "2px solid #C8952A",
         pointerEvents: "none",
+        zIndex: 2,
       }} />
-      {/* Inner border */}
+      {/* Внутренняя рамка */}
       <div style={{
-        position: "absolute", inset: "9mm",
-        border: "1px solid #D4A843",
-        borderRadius: "1px",
-        opacity: 0.5,
+        position: "absolute", inset: "8mm",
+        border: "1px solid rgba(200,149,42,0.45)",
         pointerEvents: "none",
+        zIndex: 2,
       }} />
 
-      {/* Corner ornaments */}
-      {["top-left", "top-right", "bottom-left", "bottom-right"].map((pos) => {
-        const isTop = pos.includes("top");
-        const isLeft = pos.includes("left");
-        return (
-          <div key={pos} style={{
-            position: "absolute",
-            top: isTop ? "5mm" : undefined,
-            bottom: !isTop ? "5mm" : undefined,
-            left: isLeft ? "5mm" : undefined,
-            right: !isLeft ? "5mm" : undefined,
-            width: "18mm", height: "18mm",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            color: "#D4A843",
-            fontSize: "22px",
-            transform: `rotate(${isTop && isLeft ? 0 : isTop && !isLeft ? 90 : !isTop && isLeft ? 270 : 180}deg)`,
-            opacity: 0.7,
-          }}>
-            ❧
-          </div>
-        );
-      })}
+      {/* Угловые орнаменты */}
+      <div style={{ position: "absolute", top: "3.5mm", left: "3.5mm", zIndex: 3 }}><CornerOrnament rotate={0} /></div>
+      <div style={{ position: "absolute", top: "3.5mm", right: "3.5mm", zIndex: 3 }}><CornerOrnament rotate={90} /></div>
+      <div style={{ position: "absolute", bottom: "3.5mm", right: "3.5mm", zIndex: 3 }}><CornerOrnament rotate={180} /></div>
+      <div style={{ position: "absolute", bottom: "3.5mm", left: "3.5mm", zIndex: 3 }}><CornerOrnament rotate={270} /></div>
 
-      {/* Content */}
-      <div style={{ position: "relative", zIndex: 1, width: "100%", display: "flex", flexDirection: "column", alignItems: "center", gap: "0" }}>
+      {/* Контент */}
+      <div style={{
+        position: "relative", zIndex: 4,
+        width: "100%", height: "100%",
+        padding: "16mm 18mm 12mm",
+        boxSizing: "border-box",
+        display: "flex", flexDirection: "column", alignItems: "center",
+        gap: 0,
+        fontFamily: "'Times New Roman', Georgia, serif",
+      }}>
 
-        {/* Logo */}
-        <img
-          src={LOGO_URL}
-          alt="Спасение Надежды"
-          style={{ width: "22mm", height: "22mm", objectFit: "contain", marginBottom: "4mm", marginTop: "4mm" }}
-        />
-
-        {/* Title */}
+        {/* Заголовок */}
         <h1 style={{
-          fontFamily: "'Cormorant', 'Palatino Linotype', serif",
-          fontSize: "38pt",
-          color: "#c0860a",
+          fontSize: "52pt",
           fontStyle: "italic",
           fontWeight: 700,
-          margin: "0 0 3mm",
-          lineHeight: 1.1,
+          color: "#8B6010",
+          margin: "0 0 2mm",
+          lineHeight: 1,
           textAlign: "center",
-          letterSpacing: "0.01em",
+          fontFamily: "'Palatino Linotype', Palatino, Georgia, serif",
+          textShadow: "0 1px 0 rgba(255,220,100,0.3)",
+          letterSpacing: "-0.01em",
         }}>
           Благодарность
         </h1>
 
-        {/* Ornament divider */}
-        <div style={{ color: "#D4A843", fontSize: "14pt", letterSpacing: "8px", marginBottom: "4mm" }}>
-          · ✦ · ✦ · ✦ ·
+        {/* Верхний орнамент под заголовком */}
+        <div style={{ marginBottom: "3mm" }}>
+          <GoldDivider wide />
+        </div>
+        <div style={{ color: "#C8952A", fontSize: "11px", letterSpacing: "10px", marginBottom: "3.5mm", opacity: 0.8 }}>
+          ✦ ✦ ✦
         </div>
 
-        {/* Organisation name */}
-        <p style={{ fontSize: "10pt", color: "#7a6030", textTransform: "uppercase", letterSpacing: "2px", margin: "0 0 4mm", textAlign: "center" }}>
-          АНО «Спасение Надежды»
+        {/* Кому */}
+        <p style={{ fontSize: "11pt", color: "#5a4520", margin: "0 0 1.5mm", textAlign: "center", lineHeight: 1.5 }}>
+          Сотрудникам кризисного центра «Спасение Надежды»
         </p>
-
-        {/* Horizontal line */}
-        <div style={{ width: "65%", height: "1px", background: "linear-gradient(to right, transparent, #D4A843 30%, #D4A843 70%, transparent)", marginBottom: "5mm" }} />
-
-        {/* Recipient */}
-        <p style={{ fontSize: "11pt", color: "#4a3a18", margin: "0 0 2mm", textAlign: "center" }}>
-          выражает искреннюю благодарность
-        </p>
-        <p style={{
-          fontSize: "19pt",
-          color: "#2d2210",
-          fontWeight: 700,
-          margin: "0 0 1.5mm",
-          textAlign: "center",
-          fontStyle: "italic",
-        }}>
+        <p style={{ fontSize: "14.5pt", color: "#3d2c0e", fontWeight: 700, margin: "0 0 4mm", textAlign: "center", lineHeight: 1.4 }}>
           {name}
         </p>
-        <p style={{ fontSize: "11pt", color: "#7a6030", margin: "0 0 5mm", textAlign: "center", fontStyle: "italic" }}>
-          {role}
-        </p>
 
-        {/* Horizontal line */}
-        <div style={{ width: "65%", height: "1px", background: "linear-gradient(to right, transparent, #D4A843 30%, #D4A843 70%, transparent)", marginBottom: "5mm" }} />
+        {/* Разделитель */}
+        <div style={{ marginBottom: "4mm", width: "100%", display: "flex", flexDirection: "column", alignItems: "center", gap: "2mm" }}>
+          <GoldDivider wide />
+          <div style={{ color: "#C8952A", fontSize: "12px", letterSpacing: "6px", opacity: 0.7 }}>✦ ✦ ✦</div>
+          <GoldDivider wide />
+        </div>
 
-        {/* Main text */}
-        <div style={{ fontSize: "11.5pt", color: "#3a2e10", lineHeight: 1.85, textAlign: "center", maxWidth: "78%", marginBottom: "5mm" }}>
+        {/* Основной текст */}
+        <div style={{
+          fontSize: "11.5pt",
+          color: "#3d2c0e",
+          lineHeight: 1.9,
+          textAlign: "center",
+          maxWidth: "82%",
+          marginBottom: "4mm",
+          fontFamily: "'Times New Roman', Georgia, serif",
+        }}>
           <p style={{ margin: "0 0 3mm" }}>
             За Вашу самоотдачу и глубокое мужество<br />
             в ежедневной работе с матерями,<br />
@@ -145,43 +200,56 @@ function GratitudeSheet({ name, role }: { name: string; role: string }) {
           </p>
           <p style={{ margin: 0 }}>
             Кризисный центр — это уникальный социальный оплот,<br />
-            где профессиональная помощь сливается<br />
-            с сердечным теплом команды, создавая мощный фундамент<br />
-            для восстановления духа и обретения безопасности.
+            где профессиональная помощь сочетается<br />
+            с сердечным теплом команды, создавая надёжный фундамент<br />
+            для восстановления, поддержки и обретения безопасности.
           </p>
         </div>
 
-        {/* Motto */}
+        {/* Девиз */}
         <p style={{
           fontSize: "11pt",
-          color: "#c0860a",
+          color: "#8B6010",
           fontWeight: 700,
-          letterSpacing: "2.5px",
-          textTransform: "uppercase",
-          margin: "0 0 5mm",
+          letterSpacing: "3px",
+          margin: "0 0 4mm",
           textAlign: "center",
+          fontFamily: "'Times New Roman', Georgia, serif",
         }}>
-          Сила единства и путь к надежде
+          СИЛА ЕДИНСТВА И ПУТЬ К НАДЕЖДЕ
         </p>
 
-        {/* Horizontal line */}
-        <div style={{ width: "65%", height: "1px", background: "linear-gradient(to right, transparent, #D4A843 30%, #D4A843 70%, transparent)", marginBottom: "5mm" }} />
-
-        {/* Signatures */}
-        <div style={{ display: "flex", justifyContent: "space-between", width: "85%", gap: "8mm" }}>
-          <div style={{ textAlign: "center", flex: 1 }}>
-            <p style={{ fontSize: "9.5pt", color: "#7a6030", margin: "0 0 1mm" }}>Учредитель АНО</p>
-            <p style={{ fontSize: "11pt", color: "#2d2210", fontWeight: 700, margin: 0, fontStyle: "italic" }}>{SIGN_FOUNDER}</p>
-            <div style={{ width: "80%", height: "1px", background: "#D4A843", margin: "3mm auto 0", opacity: 0.5 }} />
-            <p style={{ fontSize: "8pt", color: "#a08840", margin: "1mm 0 0", letterSpacing: "1px" }}>подпись / дата</p>
-          </div>
-          <div style={{ textAlign: "center", flex: 1 }}>
-            <p style={{ fontSize: "9.5pt", color: "#7a6030", margin: "0 0 1mm" }}>Генеральный директор</p>
-            <p style={{ fontSize: "11pt", color: "#2d2210", fontWeight: 700, margin: 0, fontStyle: "italic" }}>{SIGN_DIRECTOR}</p>
-            <div style={{ width: "80%", height: "1px", background: "#D4A843", margin: "3mm auto 0", opacity: 0.5 }} />
-            <p style={{ fontSize: "8pt", color: "#a08840", margin: "1mm 0 0", letterSpacing: "1px" }}>подпись / дата</p>
-          </div>
+        {/* Разделитель перед логотипом */}
+        <div style={{ marginBottom: "4mm", width: "100%", display: "flex", justifyContent: "center" }}>
+          <GoldDivider wide />
         </div>
+
+        {/* Логотип */}
+        <img
+          src={LOGO_URL}
+          alt="Спасение Надежды"
+          style={{
+            width: "30mm", height: "30mm",
+            objectFit: "contain",
+            marginBottom: "4mm",
+            filter: "sepia(0.2) saturate(1.1)",
+          }}
+        />
+
+        {/* Подпись */}
+        <p style={{ fontSize: "10pt", color: "#5a4520", margin: "0 0 1.5mm", textAlign: "center" }}>
+          С уважением к Вам,<br />
+          учредитель АНО «Спасение Надежды»
+        </p>
+        <p style={{ fontSize: "13pt", color: "#3d2c0e", fontWeight: 700, margin: "0 0 1mm", textAlign: "center", fontStyle: "italic" }}>
+          {SIGN_FOUNDER}
+        </p>
+        <p style={{ fontSize: "10pt", color: "#5a4520", margin: "0 0 1mm", textAlign: "center" }}>
+          генеральный директор
+        </p>
+        <p style={{ fontSize: "13pt", color: "#3d2c0e", fontWeight: 700, margin: 0, textAlign: "center", fontStyle: "italic" }}>
+          {SIGN_DIRECTOR}
+        </p>
 
       </div>
     </div>
@@ -190,32 +258,33 @@ function GratitudeSheet({ name, role }: { name: string; role: string }) {
 
 export default function Gratitude() {
   return (
-    <div style={{ background: "#d1d5db", padding: "32px 16px" }}>
-      {/* Print button */}
+    <div style={{ background: "#b0a898", minHeight: "100vh", padding: "32px 16px" }}>
+      {/* Кнопка печати */}
       <div className="print:hidden" style={{ textAlign: "center", marginBottom: "32px" }}>
         <button
           onClick={() => window.print()}
           style={{
-            background: "#c0860a",
+            background: "linear-gradient(135deg, #C8952A, #8B6010)",
             color: "#fff",
             border: "none",
             borderRadius: "8px",
-            padding: "12px 36px",
+            padding: "14px 44px",
             fontSize: "16px",
             fontWeight: 600,
             cursor: "pointer",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.18)",
+            boxShadow: "0 4px 16px rgba(0,0,0,0.25)",
             fontFamily: "'Golos Text', sans-serif",
+            letterSpacing: "0.5px",
           }}
         >
           Распечатать / Сохранить PDF
         </button>
-        <p style={{ color: "#555", fontSize: "13px", marginTop: "8px", fontFamily: "'Golos Text', sans-serif" }}>
-          В диалоге печати выберите «Сохранить как PDF» — получите все {teamMembers.length} грамоты
+        <p style={{ color: "#444", fontSize: "13px", marginTop: "10px", fontFamily: "'Golos Text', sans-serif" }}>
+          В диалоге печати выберите «Сохранить как PDF» — получите все {teamMembers.length} грамоты одним файлом
         </p>
       </div>
 
-      {/* Sheets */}
+      {/* Листы */}
       <div style={{ display: "flex", flexDirection: "column", gap: "32px", alignItems: "center" }}>
         {teamMembers.map((m) => (
           <GratitudeSheet key={m.name} name={m.name} role={m.role} />
@@ -223,19 +292,18 @@ export default function Gratitude() {
       </div>
 
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,400;0,700;1,400;1,700&display=swap');
-
         @media print {
           @page { size: A4 portrait; margin: 0; }
-          body > * { display: none !important; }
-          #root > * { display: none !important; }
+          body { margin: 0; background: white !important; }
+          body > * { visibility: hidden; }
+          #root { visibility: hidden; }
           .gratitude-page {
-            display: flex !important;
             visibility: visible !important;
+            position: relative !important;
+            box-shadow: none !important;
           }
-          body {
-            background: white !important;
-          }
+          .gratitude-page * { visibility: visible !important; }
+          .print\\:hidden { display: none !important; }
         }
       `}</style>
     </div>
