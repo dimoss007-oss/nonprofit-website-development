@@ -85,8 +85,8 @@ export default function HomeSupport({ onScrollTo }: Props) {
                   {[
                     { amount: "300 ₽", impact: "горячий обед для одного человека" },
                     { amount: "500 ₽", impact: "необходимые медикаменты" },
-                    { amount: "1 000 ₽", impact: "неделя адресной поддержки семьи" },
-                    { amount: "3 000 ₽", impact: "месяц в программе реабилитации" },
+                    { amount: "10 000 ₽", impact: "неделя адресной поддержки семьи" },
+                    { amount: "50 000 ₽", impact: "месяц в программе реабилитации" },
                   ].map(({ amount, impact }) => (
                     <div key={amount} className="flex gap-3 items-start">
                       <div className="w-5 h-5 rounded-full bg-sage/15 flex items-center justify-center mt-0.5 flex-shrink-0">
