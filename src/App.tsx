@@ -16,6 +16,7 @@ import AdminGallery from "./pages/AdminGallery";
 import OurFamilies from "./pages/OurFamilies";
 import AdminFinance from "./pages/AdminFinance";
 import Gratitude from "./pages/Gratitude";
+import AccessibilityWidget from "./components/shared/AccessibilityWidget";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +26,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <AccessibilityWidget />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />

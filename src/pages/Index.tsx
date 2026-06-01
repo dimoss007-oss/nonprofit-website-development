@@ -25,11 +25,11 @@ export default function Index() {
 
       <HomeHero onScrollTo={scrollTo} activeSection={activeSection} setActiveSection={setActiveSection} />
 
-      <HomeNews />
-
-      <HomeAbout />
-
-      <HomeSupport onScrollTo={scrollTo} />
+      <main id="main-content" tabIndex={-1} aria-label="Основное содержимое">
+        <HomeNews />
+        <HomeAbout />
+        <HomeSupport onScrollTo={scrollTo} />
+      </main>
 
     </div>
   );

@@ -229,7 +229,7 @@ export default function News() {
       </Helmet>
       <SiteNav />
 
-      <div className="pt-24 pb-20 max-w-5xl mx-auto px-6">
+      <main id="main-content" tabIndex={-1} className="pt-24 pb-20 max-w-5xl mx-auto px-6">
         <div className="mb-14">
           <div className="flex items-center gap-3 mb-5">
             <div className="h-px w-8 bg-sage" />
@@ -322,7 +322,7 @@ export default function News() {
             </div>
           </div>
         )}
-      </div>
+      </main>
 
       {lightbox && (
         <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center" onClick={() => setLightbox(null)}>

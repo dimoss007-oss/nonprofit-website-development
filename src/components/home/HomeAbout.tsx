@@ -9,10 +9,20 @@ function PhotoPopup({ photo, name, onClose }: { photo: string; name: string; onC
   }, [onClose]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label={`Фото — ${name}`}
+    >
       <div className="relative bg-white rounded-2xl shadow-2xl overflow-hidden max-w-xs w-full mx-4" onClick={e => e.stopPropagation()}>
-        <button onClick={onClose} className="absolute top-3 right-3 z-10 bg-black/20 hover:bg-black/40 text-white rounded-full w-8 h-8 flex items-center justify-center transition-colors">
-          <Icon name="X" size={16} />
+        <button
+          onClick={onClose}
+          aria-label="Закрыть фото"
+          className="absolute top-3 right-3 z-10 bg-black/20 hover:bg-black/40 text-white rounded-full w-8 h-8 flex items-center justify-center transition-colors"
+        >
+          <Icon name="X" size={16} aria-hidden="true" />
         </button>
         <img src={photo} alt={name} className="w-full object-cover object-top max-h-96" />
         <div className="px-5 py-4">
@@ -73,7 +83,7 @@ export default function HomeAbout() {
 
       {/* МИССИЯ */}
       <section id="missiya" className="py-28 bg-sage relative overflow-hidden">
-        <div className="absolute inset-0 opacity-[0.04]">
+        <div className="absolute inset-0 opacity-[0.04]" aria-hidden="true">
           <div className="absolute top-10 left-10 w-80 h-80 rounded-full border-2 border-beige" />
           <div className="absolute bottom-10 right-20 w-56 h-56 rounded-full border-2 border-beige" />
           <div className="absolute top-1/2 right-1/3 w-40 h-40 rounded-full border border-beige" />
@@ -102,8 +112,8 @@ export default function HomeAbout() {
                 { icon: "Sprout", title: "Долгосрочно", text: "Мы не просто помогаем выжить сегодня — мы помогаем построить лучшее завтра." },
               ].map(({ icon, title, text }) => (
                 <div key={title} className="bg-white/10 border border-beige/20 p-7 rounded-sm hover:bg-white/15 transition-colors duration-300 group">
-                  <div className="w-11 h-11 rounded-full border border-beige/30 flex items-center justify-center mb-5 group-hover:border-beige/60 transition-colors">
-                    <Icon name={icon as "Heart"} size={20} className="text-beige/80" />
+                  <div className="w-11 h-11 rounded-full border border-beige/30 flex items-center justify-center mb-5 group-hover:border-beige/60 transition-colors" aria-hidden="true">
+                    <Icon name={icon as "Heart"} size={20} className="text-beige/80" aria-hidden="true" />
                   </div>
                   <h3 className="font-cormorant text-beige text-2xl font-semibold mb-3">{title}</h3>
                   <p className="text-beige/60 text-sm leading-relaxed">{text}</p>
@@ -128,19 +138,24 @@ export default function HomeAbout() {
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
               {teamMembers.map((m) => (
-                <div key={m.name} className="group bg-beige rounded-sm p-7 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-                  <div
-                    className={`w-28 h-28 rounded-full bg-sage-pale flex items-center justify-center text-3xl mb-5 overflow-hidden ${m.photo ? "cursor-pointer" : ""}`}
-                    onClick={() => m.photo && setPopup({ photo: m.photo, name: m.name })}
-                  >
-                    {m.photo
-                      ? <img src={m.photo} alt={m.name} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-125" style={{ objectPosition: m.photoPosition || 'center' }} />
-                      : m.emoji}
-                  </div>
+                <article key={m.name} className="group bg-beige rounded-sm p-7 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+                  {m.photo ? (
+                    <button
+                      className="w-28 h-28 rounded-full bg-sage-pale flex items-center justify-center text-3xl mb-5 overflow-hidden cursor-pointer"
+                      onClick={() => setPopup({ photo: m.photo!, name: m.name })}
+                      aria-label={`Увеличить фото — ${m.name}`}
+                    >
+                      <img src={m.photo} alt={m.name} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-125" style={{ objectPosition: m.photoPosition || 'center' }} />
+                    </button>
+                  ) : (
+                    <div className="w-28 h-28 rounded-full bg-sage-pale flex items-center justify-center text-3xl mb-5 overflow-hidden" aria-hidden="true">
+                      {m.emoji}
+                    </div>
+                  )}
                   <h3 className="font-cormorant text-ink text-xl font-semibold mb-1">{m.name}</h3>
                   <p className="text-muted-foreground text-sm">{m.role}</p>
-                  <div className="mt-4 h-px bg-sage/20 group-hover:bg-sage/50 transition-colors duration-300" />
-                </div>
+                  <div className="mt-4 h-px bg-sage/20 group-hover:bg-sage/50 transition-colors duration-300" aria-hidden="true" />
+                </article>
               ))}
             </div>
 
@@ -155,7 +170,7 @@ export default function HomeAbout() {
                 rel="noopener noreferrer"
                 className="px-7 py-3 bg-sage text-beige text-sm font-golos font-semibold uppercase tracking-wide rounded-sm hover:bg-sage-dark transition-colors whitespace-nowrap flex items-center gap-2"
               >
-                Написать нам <Icon name="ExternalLink" size={13} />
+                Написать нам <Icon name="ExternalLink" size={13} aria-hidden="true" />
               </a>
             </div>
           </Reveal>

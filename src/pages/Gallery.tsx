@@ -88,7 +88,7 @@ export default function Gallery() {
     <div className="min-h-screen bg-beige-mid font-golos">
       <SiteNav />
 
-      <div className="pt-28 pb-20 max-w-7xl mx-auto px-6">
+      <main id="main-content" tabIndex={-1} className="pt-28 pb-20 max-w-7xl mx-auto px-6">
         <div className="mb-12">
           <div className="flex items-center gap-3 mb-4">
             <div className="h-px w-8 bg-sage" />
@@ -155,7 +155,7 @@ export default function Gallery() {
             })}
           </div>
         )}
-      </div>
+      </main>
 
       {/* LIGHTBOX */}
       {current && (

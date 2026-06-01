@@ -41,7 +41,7 @@ export default function HomeHero({ onScrollTo, activeSection, setActiveSection }
         <div className="relative z-10 max-w-7xl mx-auto px-6 pt-10 pb-16 grid lg:grid-cols-2 gap-12 items-center">
           <div className="animate-fade-up pt-4">
             <div className="inline-flex items-center gap-2 bg-sage-pale text-sage px-4 py-2 rounded-full text-xs font-golos uppercase tracking-widest mb-8">
-              <Icon name="Heart" size={12} />
+              <Icon name="Heart" size={12} aria-hidden="true" />
               АНО «Спасение надежды»
             </div>
             <h1 className="font-golos text-6xl md:text-7xl leading-[1.05] mb-6 font-bold" style={{ color: '#0ABAB5' }}>
@@ -71,26 +71,35 @@ export default function HomeHero({ onScrollTo, activeSection, setActiveSection }
           </div>
 
           <div className="animate-fade-up delay-300 relative">
-            <div className="relative rounded-2xl overflow-hidden shadow-2xl" style={{ aspectRatio: "4/3" }}>
+            <div
+              className="relative rounded-2xl overflow-hidden shadow-2xl"
+              style={{ aspectRatio: "4/3" }}
+              role="img"
+              aria-label="Фотографии кризисного центра Спасение надежды"
+            >
               {HERO_IMGS.map((src, i) => (
                 <img
                   key={src}
                   src={src}
-                  alt="Спасение надежды"
+                  alt={i === slideIndex ? "Кризисный центр Спасение надежды — фото" : ""}
+                  aria-hidden={i !== slideIndex}
                   className="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000"
                   style={{ opacity: i === slideIndex ? 1 : 0, objectPosition: i === 1 ? "center 30%" : "top" }}
                 />
               ))}
               <img
                 src={LOGO_IMG}
-                alt="Логотип"
+                alt=""
+                aria-hidden="true"
                 className="absolute top-4 right-4 w-16 h-16 object-contain z-10 drop-shadow-lg opacity-80"
               />
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10" role="group" aria-label="Переключение слайдов">
                 {HERO_IMGS.map((_, i) => (
                   <button
                     key={i}
                     onClick={() => setSlideIndex(i)}
+                    aria-label={`Фото ${i + 1} из ${HERO_IMGS.length}`}
+                    aria-pressed={i === slideIndex}
                     className={`h-2 rounded-full transition-all duration-300 ${i === slideIndex ? "bg-white w-5" : "bg-white/50 w-2"}`}
                   />
                 ))}
@@ -114,9 +123,9 @@ export default function HomeHero({ onScrollTo, activeSection, setActiveSection }
           ))}
         </div>
 
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 text-ink/30 animate-float">
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 text-ink/30 animate-float" aria-hidden="true">
           <span className="text-xs tracking-widest uppercase">листайте</span>
-          <Icon name="ChevronDown" size={14} />
+          <Icon name="ChevronDown" size={14} aria-hidden="true" />
         </div>
       </section>
     </>

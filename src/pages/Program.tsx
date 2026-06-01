@@ -17,7 +17,7 @@ export default function Program() {
       </Helmet>
       <SiteNav />
 
-      <div className="pt-28 pb-24 max-w-5xl mx-auto px-6">
+      <main id="main-content" tabIndex={-1} className="pt-28 pb-24 max-w-5xl mx-auto px-6">
         <ProgramFamily />
         <ProgramDirections />
 
@@ -33,7 +33,7 @@ export default function Program() {
             <Icon name="ArrowRight" size={16} />
           </a>
         </div>
-      </div>
+      </main>
       <SiteFooter />
     </div>
   );
