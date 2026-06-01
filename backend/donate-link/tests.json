@@ -1,0 +1,16 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Redirect to Robokassa",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 302
+    }
+  ]
+}
