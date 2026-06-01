@@ -26,6 +26,8 @@ const SLIDER_PHOTOS_3 = [
 
 const PHOTO_1 = "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/31f9813f-2685-4968-be68-856b3e8f9c09.jpg";
 
+const PHOTO_6 = "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/568e4f62-f114-42b2-80ee-f2058da34fa8.jpg";
+
 const SLIDER_PHOTOS_5 = [
   "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/5e279b87-bc25-4298-abf4-f65a37312807.jpg",
   "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/1fb4ee3a-ab90-4d5c-91f7-d10f450ee06c.jpg",
@@ -84,6 +86,18 @@ export default function FamiliesCaseCard({ c, openLightbox }: Props) {
           positions={["center 15%", "center 35%", "center 5%", "center 30%", "center 20%"]}
           onZoom={openLightbox}
         />
+      )}
+      {c.id === 6 && (
+        <div
+          className="w-full h-64 md:h-80 overflow-hidden border-b border-beige-dark cursor-zoom-in"
+          onClick={() => openLightbox([PHOTO_6], PHOTO_6)}
+        >
+          <img
+            src={PHOTO_6}
+            alt="Семья Екатерины"
+            className="w-full h-full object-cover object-center hover:scale-105 transition-transform duration-500"
+          />
+        </div>
       )}
 
       <div className="p-8 md:p-12">
