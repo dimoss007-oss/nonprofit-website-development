@@ -41,6 +41,7 @@ def handler(event: dict, context) -> dict:
     body = json.loads(event.get("body") or "{}")
     name = body.get("name", "").strip()
     email = body.get("email", "").strip()
+    phone = body.get("phone", "").strip()
     subject = body.get("subject", "").strip()
     message = body.get("message", "").strip()
 
@@ -58,6 +59,7 @@ def handler(event: dict, context) -> dict:
     text = (
         f"📩 Новая заявка с сайта!\n\n"
         f"👤 Имя: {name}\n"
+        f"📞 Телефон: {phone or '—'}\n"
         f"📧 Email: {email or '—'}\n"
         f"📌 Тема: {subject or '—'}\n\n"
         f"💬 Сообщение:\n{message}"

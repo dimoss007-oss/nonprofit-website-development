@@ -8,6 +8,7 @@ const CONTACT_FORM_URL = "https://functions.poehali.dev/056dc0e5-de05-4ccb-9e4d-
 function ContactForm() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
@@ -22,7 +23,7 @@ function ContactForm() {
       const res = await fetch(CONTACT_FORM_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, subject, message }),
+        body: JSON.stringify({ name, email, phone, subject, message }),
       });
       if (res.ok) {
         setSent(true);
@@ -42,7 +43,7 @@ function ContactForm() {
         <div className="text-4xl mb-2">💚</div>
         <h3 className="font-cormorant text-ink text-2xl font-semibold">Сообщение отправлено!</h3>
         <p className="text-foreground/60 text-sm text-center">Мы свяжемся с вами в ближайшее время.</p>
-        <button onClick={() => { setSent(false); setName(""); setEmail(""); setSubject(""); setMessage(""); }} className="text-sage text-sm underline mt-2">Отправить ещё</button>
+        <button onClick={() => { setSent(false); setName(""); setEmail(""); setPhone(""); setSubject(""); setMessage(""); }} className="text-sage text-sm underline mt-2">Отправить ещё</button>
       </div>
     );
   }
@@ -52,8 +53,9 @@ function ContactForm() {
       <h3 className="font-cormorant text-ink text-2xl font-semibold mb-2">Написать нам</h3>
       <div className="grid grid-cols-2 gap-3">
         <input required type="text" placeholder="Имя" value={name} onChange={(e) => setName(e.target.value)} className="bg-white border border-beige-dark text-ink placeholder-muted-foreground px-3 py-2.5 focus:outline-none focus:border-sage text-sm rounded-sm" />
-        <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} className="bg-white border border-beige-dark text-ink placeholder-muted-foreground px-3 py-2.5 focus:outline-none focus:border-sage text-sm rounded-sm" />
+        <input type="tel" placeholder="Телефон" value={phone} onChange={(e) => setPhone(e.target.value)} className="bg-white border border-beige-dark text-ink placeholder-muted-foreground px-3 py-2.5 focus:outline-none focus:border-sage text-sm rounded-sm" />
       </div>
+      <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-white border border-beige-dark text-ink placeholder-muted-foreground px-3 py-2.5 focus:outline-none focus:border-sage text-sm rounded-sm" />
       <input type="text" placeholder="Тема" value={subject} onChange={(e) => setSubject(e.target.value)} className="w-full bg-white border border-beige-dark text-ink placeholder-muted-foreground px-3 py-2.5 focus:outline-none focus:border-sage text-sm rounded-sm" />
       <textarea required placeholder="Сообщение..." rows={4} value={message} onChange={(e) => setMessage(e.target.value)} className="w-full bg-white border border-beige-dark text-ink placeholder-muted-foreground px-3 py-2.5 focus:outline-none focus:border-sage text-sm rounded-sm resize-none" />
       {error && <p className="text-red-600 text-sm">{error}</p>}
