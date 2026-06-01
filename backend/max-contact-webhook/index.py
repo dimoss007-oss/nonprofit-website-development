@@ -17,22 +17,7 @@ def handler(event: dict, context) -> dict:
         return {"statusCode": 200, "headers": cors, "body": ""}
 
     token = os.environ.get("MAX_CONTACT_BOT_TOKEN", "")
-
-    import json as _json
-    func2url_path = "/var/task/func2url.json"
-    try:
-        with open(func2url_path) as f:
-            urls = _json.load(f)
-        webhook_url = urls.get("max-contact-bot", "")
-    except Exception:
-        webhook_url = ""
-
-    if not webhook_url:
-        return {
-            "statusCode": 500,
-            "headers": cors,
-            "body": json.dumps({"error": "webhook url not found"})
-        }
+    webhook_url = "https://functions.poehali.dev/138700ec-2c07-45ee-bff3-9278d2ad1f25"
 
     resp = requests.post(
         f"{MAX_API_URL}/subscriptions",
