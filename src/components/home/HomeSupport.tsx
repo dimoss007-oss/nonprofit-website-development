@@ -3,6 +3,67 @@ import QRCode from "react-qr-code";
 import Icon from "@/components/ui/icon";
 import { PaymentButton } from "@/components/extensions/robokassa/PaymentButton";
 
+const CONTACT_FORM_URL = "https://functions.poehali.dev/056dc0e5-de05-4ccb-9e4d-a3d8c3ebb938";
+
+function ContactForm() {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [subject, setSubject] = useState("");
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+    try {
+      const res = await fetch(CONTACT_FORM_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, subject, message }),
+      });
+      if (res.ok) {
+        setSent(true);
+      } else {
+        setError("Не удалось отправить. Попробуйте позже.");
+      }
+    } catch {
+      setError("Ошибка соединения. Попробуйте позже.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (sent) {
+    return (
+      <div className="space-y-4 bg-beige rounded-sm p-8 flex flex-col items-center justify-center min-h-[300px]">
+        <div className="text-4xl mb-2">💚</div>
+        <h3 className="font-cormorant text-ink text-2xl font-semibold">Сообщение отправлено!</h3>
+        <p className="text-foreground/60 text-sm text-center">Мы свяжемся с вами в ближайшее время.</p>
+        <button onClick={() => { setSent(false); setName(""); setEmail(""); setSubject(""); setMessage(""); }} className="text-sage text-sm underline mt-2">Отправить ещё</button>
+      </div>
+    );
+  }
+
+  return (
+    <form className="space-y-4 bg-beige rounded-sm p-8" onSubmit={handleSubmit}>
+      <h3 className="font-cormorant text-ink text-2xl font-semibold mb-2">Написать нам</h3>
+      <div className="grid grid-cols-2 gap-3">
+        <input required type="text" placeholder="Имя" value={name} onChange={(e) => setName(e.target.value)} className="bg-white border border-beige-dark text-ink placeholder-muted-foreground px-3 py-2.5 focus:outline-none focus:border-sage text-sm rounded-sm" />
+        <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} className="bg-white border border-beige-dark text-ink placeholder-muted-foreground px-3 py-2.5 focus:outline-none focus:border-sage text-sm rounded-sm" />
+      </div>
+      <input type="text" placeholder="Тема" value={subject} onChange={(e) => setSubject(e.target.value)} className="w-full bg-white border border-beige-dark text-ink placeholder-muted-foreground px-3 py-2.5 focus:outline-none focus:border-sage text-sm rounded-sm" />
+      <textarea required placeholder="Сообщение..." rows={4} value={message} onChange={(e) => setMessage(e.target.value)} className="w-full bg-white border border-beige-dark text-ink placeholder-muted-foreground px-3 py-2.5 focus:outline-none focus:border-sage text-sm rounded-sm resize-none" />
+      {error && <p className="text-red-600 text-sm">{error}</p>}
+      <button type="submit" disabled={loading} className="w-full bg-sage text-beige py-3.5 font-golos font-semibold text-sm tracking-wide uppercase rounded-sm hover:bg-sage-dark transition-colors duration-300 disabled:opacity-60">
+        {loading ? "Отправка..." : "Отправить"}
+      </button>
+    </form>
+  );
+}
+
 const ROBOKASSA_URL = "https://functions.poehali.dev/3317a497-ca88-4c4a-a762-5067d6219617";
 
 const VK_URL = "https://vk.com/spasenienadezhdi";
@@ -260,18 +321,7 @@ export default function HomeSupport({ onScrollTo }: Props) {
                 </div>
               </div>
 
-              <form className="space-y-4 bg-beige rounded-sm p-8" onSubmit={(e) => e.preventDefault()}>
-                <h3 className="font-cormorant text-ink text-2xl font-semibold mb-2">Написать нам</h3>
-                <div className="grid grid-cols-2 gap-3">
-                  <input type="text" placeholder="Имя" className="bg-white border border-beige-dark text-ink placeholder-muted-foreground px-3 py-2.5 focus:outline-none focus:border-sage text-sm rounded-sm" />
-                  <input type="email" placeholder="Email" className="bg-white border border-beige-dark text-ink placeholder-muted-foreground px-3 py-2.5 focus:outline-none focus:border-sage text-sm rounded-sm" />
-                </div>
-                <input type="text" placeholder="Тема" className="w-full bg-white border border-beige-dark text-ink placeholder-muted-foreground px-3 py-2.5 focus:outline-none focus:border-sage text-sm rounded-sm" />
-                <textarea placeholder="Сообщение..." rows={4} className="w-full bg-white border border-beige-dark text-ink placeholder-muted-foreground px-3 py-2.5 focus:outline-none focus:border-sage text-sm rounded-sm resize-none" />
-                <button type="submit" className="w-full bg-sage text-beige py-3.5 font-golos font-semibold text-sm tracking-wide uppercase rounded-sm hover:bg-sage-dark transition-colors duration-300">
-                  Отправить
-                </button>
-              </form>
+              <ContactForm />
             </div>
           </Reveal>
         </div>

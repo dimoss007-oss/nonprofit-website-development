@@ -1,0 +1,17 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Unknown update ignored",
+      "method": "POST",
+      "path": "/",
+      "body": {"update_type": "unknown"},
+      "expectedStatus": 200
+    }
+  ]
+}
