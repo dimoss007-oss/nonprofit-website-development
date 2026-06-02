@@ -48,7 +48,7 @@ const partners = [
   {
     name: "Благотворительный фонд «Страна для детей»",
     fullName: "",
-    logo: "https://stranadetey.ru/favicon.ico",
+    logo: "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/5f2f3d68-696d-414b-b661-61a24e69249e.png",
     href: "https://stranadetey.ru",
     description: "Помощь детям и семьям в трудной жизненной ситуации",
   },
