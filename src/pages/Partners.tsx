@@ -5,31 +5,31 @@ import SiteFooter from "@/components/shared/SiteFooter";
 const partners = [
   {
     name: "Уполномоченный при Президенте Российской Федерации по правам ребёнка",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/Coat_of_Arms_of_the_Russian_Federation.svg/300px-Coat_of_Arms_of_the_Russian_Federation.svg.png",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/Coat_of_Arms_of_the_Russian_Federation.svg/200px-Coat_of_Arms_of_the_Russian_Federation.svg.png",
     href: "http://deti.gov.ru",
     description: "Федеральный институт защиты прав детей в России",
   },
   {
     name: "Губернатор Пензенской области",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Coat_of_arms_of_Penza_Oblast.svg/300px-Coat_of_arms_of_Penza_Oblast.svg.png",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Coat_of_arms_of_Penza_Oblast.svg/200px-Coat_of_arms_of_Penza_Oblast.svg.png",
     href: "https://pnzreg.ru",
     description: "Официальный сайт Пензенской области",
   },
   {
     name: "Фонд президентских грантов",
-    logo: "https://xn--80afcdbalict6afooklqi5o.xn--p1ai/public/static/img/Fpg/fpg-logo.png",
+    logo: "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/fe35576e-c533-469d-97ee-1a6ffde86c77.png",
     href: "https://президентскиегранты.рф",
     description: "Государственная поддержка некоммерческих организаций",
   },
   {
     name: "Уполномоченный по правам ребёнка Пензенской области",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Coat_of_arms_of_Penza_Oblast.svg/300px-Coat_of_arms_of_Penza_Oblast.svg.png",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Coat_of_arms_of_Penza_Oblast.svg/200px-Coat_of_arms_of_Penza_Oblast.svg.png",
     href: "https://ombudsmankid.pnzreg.ru",
     description: "Региональный институт защиты прав детей",
   },
   {
     name: "Министерство труда, социальной защиты и демографии Пензенской области",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Coat_of_arms_of_Penza_Oblast.svg/300px-Coat_of_arms_of_Penza_Oblast.svg.png",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Coat_of_arms_of_Penza_Oblast.svg/200px-Coat_of_arms_of_Penza_Oblast.svg.png",
     href: "https://trud.pnzreg.ru",
     description: "Государственная поддержка семей и социальная защита",
   },
