@@ -5,37 +5,37 @@ import SiteFooter from "@/components/shared/SiteFooter";
 const partners = [
   {
     name: "Уполномоченный при Президенте Российской Федерации по правам ребёнка",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/Coat_of_Arms_of_the_Russian_Federation.svg/240px-Coat_of_Arms_of_the_Russian_Federation.svg.png",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/Coat_of_Arms_of_the_Russian_Federation.svg/300px-Coat_of_Arms_of_the_Russian_Federation.svg.png",
     href: "http://deti.gov.ru",
     description: "Федеральный институт защиты прав детей в России",
   },
   {
     name: "Губернатор Пензенской области",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Coat_of_arms_of_Penza_Oblast.svg/240px-Coat_of_arms_of_Penza_Oblast.svg.png",
-    href: "https://www.penza-online.ru",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Coat_of_arms_of_Penza_Oblast.svg/300px-Coat_of_arms_of_Penza_Oblast.svg.png",
+    href: "https://pnzreg.ru",
     description: "Официальный сайт Пензенской области",
   },
   {
     name: "Фонд президентских грантов",
-    logo: "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/fe35576e-c533-469d-97ee-1a6ffde86c77.png",
+    logo: "https://xn--80afcdbalict6afooklqi5o.xn--p1ai/public/static/img/Fpg/fpg-logo.png",
     href: "https://президентскиегранты.рф",
     description: "Государственная поддержка некоммерческих организаций",
   },
   {
     name: "Уполномоченный по правам ребёнка Пензенской области",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Coat_of_arms_of_Penza_Oblast.svg/240px-Coat_of_arms_of_Penza_Oblast.svg.png",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Coat_of_arms_of_Penza_Oblast.svg/300px-Coat_of_arms_of_Penza_Oblast.svg.png",
     href: "https://ombudsmankid.pnzreg.ru",
     description: "Региональный институт защиты прав детей",
   },
   {
     name: "Министерство труда, социальной защиты и демографии Пензенской области",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Coat_of_arms_of_Penza_Oblast.svg/240px-Coat_of_arms_of_Penza_Oblast.svg.png",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Coat_of_arms_of_Penza_Oblast.svg/300px-Coat_of_arms_of_Penza_Oblast.svg.png",
     href: "https://trud.pnzreg.ru",
     description: "Государственная поддержка семей и социальная защита",
   },
   {
     name: "Благотворительный фонд «Царьград»",
-    logo: "https://tsargrad.tv/favicon.ico",
+    logo: "https://tsargrad.tv/favicons/apple-touch-icon-180x180.png",
     href: "https://tsargrad.tv",
     description: "Поддержка традиционных ценностей и благотворительности",
   },
@@ -85,11 +85,11 @@ export default function Partners() {
               rel="noopener noreferrer"
               className="group bg-white rounded-2xl p-7 flex flex-col items-center text-center shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 border border-beige-dark/40"
             >
-              <div className="w-20 h-20 flex items-center justify-center mb-5 rounded-xl bg-beige">
+              <div className="w-28 h-28 flex items-center justify-center mb-5 rounded-2xl bg-beige p-3">
                 <img
                   src={p.logo}
                   alt={p.name}
-                  className="w-14 h-14 object-contain"
+                  className="w-full h-full object-contain"
                   onError={(e) => {
                     (e.target as HTMLImageElement).style.display = "none";
                   }}
