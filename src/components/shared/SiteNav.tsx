@@ -9,10 +9,10 @@ const navItemsBefore = [
 ];
 
 const navItemsAfter = [
+  { label: "новости", href: "/news" },
   { label: "программа", href: "/program" },
   { label: "партнёры", href: "/partners" },
   { label: "наши семьи", href: "/our-families" },
-  { label: "новости", href: "/news" },
 ];
 
 const aboutItems = [
