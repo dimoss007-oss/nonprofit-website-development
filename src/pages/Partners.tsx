@@ -23,7 +23,7 @@ const partners = [
   },
   {
     name: "Уполномоченный по правам ребёнка Пензенской области",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Coat_of_arms_of_Penza_Oblast.svg/200px-Coat_of_arms_of_Penza_Oblast.svg.png",
+    logo: "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/c9cb9db2-6a6a-477e-95e0-c9522f4143d2.jpg",
     href: "https://ombudsmankid.pnzreg.ru",
     description: "Региональный институт защиты прав детей",
   },
