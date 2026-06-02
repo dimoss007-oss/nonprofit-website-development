@@ -5,7 +5,7 @@ import SiteFooter from "@/components/shared/SiteFooter";
 const partners = [
   {
     name: "Уполномоченный при Президенте Российской Федерации по правам ребёнка",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/Coat_of_Arms_of_the_Russian_Federation.svg/200px-Coat_of_Arms_of_the_Russian_Federation.svg.png",
+    logo: "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/c9cb9db2-6a6a-477e-95e0-c9522f4143d2.jpg",
     href: "http://deti.gov.ru",
     description: "Федеральный институт защиты прав детей в России",
   },
