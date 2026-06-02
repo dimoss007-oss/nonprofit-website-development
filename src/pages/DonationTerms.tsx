@@ -1,17 +1,18 @@
-import { Helmet } from "react-helmet-async";
+import { usePageMeta } from "@/hooks/usePageMeta";
 import { Link } from "react-router-dom";
 import SiteNav from "@/components/shared/SiteNav";
 import SiteFooter from "@/components/shared/SiteFooter";
 import Icon from "@/components/ui/icon";
 
 export default function DonationTerms() {
+  usePageMeta({
+    title: "Условия внесения пожертвования — АНО «Спасение надежды»",
+    description: "Условия внесения добровольных пожертвований в пользу АНО «Спасение надежды». Порядок, цели и возврат пожертвований.",
+    canonical: "https://spasenie58.ru/donation-terms",
+  });
+
   return (
     <div className="min-h-screen bg-beige font-golos">
-      <Helmet>
-        <title>Условия внесения пожертвования — АНО «Спасение надежды»</title>
-        <meta name="description" content="Условия внесения добровольных пожертвований в пользу АНО «Спасение надежды». Порядок, цели и возврат пожертвований." />
-        <link rel="canonical" href="https://spasenie58.ru/donation-terms" />
-      </Helmet>
       <SiteNav />
 
       <div className="pt-28 pb-24 max-w-3xl mx-auto px-6">

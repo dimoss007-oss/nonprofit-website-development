@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Helmet } from "react-helmet-async";
+import { usePageMeta } from "@/hooks/usePageMeta";
 import Icon from "@/components/ui/icon";
 import SiteNav from "@/components/shared/SiteNav";
 import SiteFooter from "@/components/shared/SiteFooter";
@@ -218,15 +218,16 @@ export default function News() {
   const news = allNews.slice(0, visible);
   const hasMore = visible < allNews.length;
 
+  usePageMeta({
+    title: "Новости — АНО «Спасение надежды»",
+    description: "Актуальные новости кризисного центра «Спасение надежды» в Пензе. Помощь семьям в трудной жизненной ситуации.",
+    ogTitle: "Новости — АНО «Спасение надежды»",
+    ogDescription: "Актуальные новости кризисного центра «Спасение надежды» в Пензе.",
+    canonical: "https://spasenie58.ru/news",
+  });
+
   return (
     <div className="min-h-screen bg-beige font-golos">
-      <Helmet>
-        <title>Новости — АНО «Спасение надежды»</title>
-        <meta name="description" content="Актуальные новости кризисного центра «Спасение надежды» в Пензе. Помощь семьям в трудной жизненной ситуации." />
-        <meta property="og:title" content="Новости — АНО «Спасение надежды»" />
-        <meta property="og:description" content="Актуальные новости кризисного центра «Спасение надежды» в Пензе." />
-        <link rel="canonical" href="https://spasenie58.ru/news" />
-      </Helmet>
       <SiteNav />
 
       <main id="main-content" tabIndex={-1} className="pt-24 pb-20 max-w-5xl mx-auto px-6">

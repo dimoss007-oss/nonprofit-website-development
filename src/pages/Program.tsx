@@ -1,4 +1,4 @@
-import { Helmet } from "react-helmet-async";
+import { usePageMeta } from "@/hooks/usePageMeta";
 import Icon from "@/components/ui/icon";
 import SiteNav from "@/components/shared/SiteNav";
 import SiteFooter from "@/components/shared/SiteFooter";
@@ -6,15 +6,16 @@ import ProgramFamily from "@/components/program/ProgramFamily";
 import ProgramDirections from "@/components/program/ProgramDirections";
 
 export default function Program() {
+  usePageMeta({
+    title: "Программы — АНО «Спасение надежды»",
+    description: "Программы помощи семьям кризисного центра «Спасение надежды» в Пензе: реабилитация, психологическая поддержка, социальная помощь.",
+    ogTitle: "Программы — АНО «Спасение надежды»",
+    ogDescription: "Программы помощи семьям: реабилитация, психологическая поддержка, социальная помощь.",
+    canonical: "https://spasenie58.ru/program",
+  });
+
   return (
     <div className="min-h-screen bg-beige font-golos">
-      <Helmet>
-        <title>Программы — АНО «Спасение надежды»</title>
-        <meta name="description" content="Программы помощи семьям кризисного центра «Спасение надежды» в Пензе: реабилитация, психологическая поддержка, социальная помощь." />
-        <meta property="og:title" content="Программы — АНО «Спасение надежды»" />
-        <meta property="og:description" content="Программы помощи семьям: реабилитация, психологическая поддержка, социальная помощь." />
-        <link rel="canonical" href="https://spasenie58.ru/program" />
-      </Helmet>
       <SiteNav />
 
       <main id="main-content" tabIndex={-1} className="pt-28 pb-24 max-w-5xl mx-auto px-6">
