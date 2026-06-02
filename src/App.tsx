@@ -17,6 +17,7 @@ import OurFamilies from "./pages/OurFamilies";
 import AdminFinance from "./pages/AdminFinance";
 import Gratitude from "./pages/Gratitude";
 import Donate from "./pages/Donate";
+import Partners from "./pages/Partners";
 import AccessibilityWidget from "./components/shared/AccessibilityWidget";
 
 const queryClient = new QueryClient();
@@ -41,6 +42,7 @@ const App = () => (
           <Route path="/admin/finance" element={<AdminFinance />} />
           <Route path="/gratitude" element={<Gratitude />} />
           <Route path="/donate" element={<Donate />} />
+          <Route path="/partners" element={<Partners />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
