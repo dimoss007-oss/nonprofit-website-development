@@ -159,7 +159,7 @@ export default function HomeAbout() {
               ))}
             </div>
 
-            <div className="mt-10 bg-sage-pale/60 rounded-sm p-8 flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="mt-10 bg-sage-pale/60 rounded-2xl p-8 flex flex-col md:flex-row items-center justify-between gap-6">
               <div>
                 <div className="font-cormorant text-ink text-2xl font-semibold mb-1">Хочешь стать волонтёром?</div>
                 <p className="text-muted-foreground text-sm">Мы всегда рады новым людям, готовым помогать.</p>
@@ -168,7 +168,7 @@ export default function HomeAbout() {
                 href={VK_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-7 py-3 bg-sage text-beige text-sm font-golos font-semibold uppercase tracking-wide rounded-sm hover:bg-sage-dark transition-colors whitespace-nowrap flex items-center gap-2"
+                className="px-7 py-3 bg-sage text-beige text-sm font-golos font-semibold uppercase tracking-wide rounded-xl hover:bg-sage-dark transition-colors whitespace-nowrap flex items-center gap-2"
               >
                 Написать нам <Icon name="ExternalLink" size={13} aria-hidden="true" />
               </a>

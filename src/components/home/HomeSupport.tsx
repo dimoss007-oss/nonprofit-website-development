@@ -39,7 +39,7 @@ function ContactForm() {
 
   if (sent) {
     return (
-      <div className="space-y-4 bg-beige rounded-sm p-8 flex flex-col items-center justify-center min-h-[300px]">
+      <div className="space-y-4 bg-beige rounded-2xl p-8 flex flex-col items-center justify-center min-h-[300px]">
         <div className="text-4xl mb-2">💚</div>
         <h3 className="font-cormorant text-ink text-2xl font-semibold">Сообщение отправлено!</h3>
         <p className="text-foreground/60 text-sm text-center">Мы свяжемся с вами в ближайшее время.</p>
@@ -49,7 +49,7 @@ function ContactForm() {
   }
 
   return (
-    <form className="space-y-4 bg-beige rounded-sm p-8" onSubmit={handleSubmit}>
+    <form className="space-y-4 bg-beige rounded-2xl p-8" onSubmit={handleSubmit}>
       <h3 className="font-cormorant text-ink text-2xl font-semibold mb-2">Написать нам</h3>
       <div className="grid grid-cols-2 gap-3">
         <input required type="text" placeholder="Имя" value={name} onChange={(e) => setName(e.target.value)} className="bg-white border border-beige-dark text-ink placeholder-muted-foreground px-3 py-2.5 focus:outline-none focus:border-sage text-sm rounded-sm" />
@@ -59,7 +59,7 @@ function ContactForm() {
       <input type="text" placeholder="Тема" value={subject} onChange={(e) => setSubject(e.target.value)} className="w-full bg-white border border-beige-dark text-ink placeholder-muted-foreground px-3 py-2.5 focus:outline-none focus:border-sage text-sm rounded-sm" />
       <textarea required placeholder="Сообщение..." rows={4} value={message} onChange={(e) => setMessage(e.target.value)} className="w-full bg-white border border-beige-dark text-ink placeholder-muted-foreground px-3 py-2.5 focus:outline-none focus:border-sage text-sm rounded-sm resize-none" />
       {error && <p className="text-red-600 text-sm">{error}</p>}
-      <button type="submit" disabled={loading} className="w-full bg-sage text-beige py-3.5 font-golos font-semibold text-sm tracking-wide uppercase rounded-sm hover:bg-sage-dark transition-colors duration-300 disabled:opacity-60">
+      <button type="submit" disabled={loading} className="w-full bg-sage text-beige py-3.5 font-golos font-semibold text-sm tracking-wide uppercase rounded-xl hover:bg-sage-dark transition-colors duration-300 disabled:opacity-60">
         {loading ? "Отправка..." : "Отправить"}
       </button>
     </form>
@@ -164,7 +164,7 @@ export default function HomeSupport({ onScrollTo }: Props) {
                 </div>
               </div>
 
-              <div className="bg-sage rounded-sm p-8 shadow-xl">
+              <div className="bg-sage rounded-2xl p-8 shadow-xl">
                 {qrUrl ? (
                   <div className="text-center py-6">
                     <h3 className="font-cormorant text-beige text-2xl font-semibold mb-1">Спасибо, {donorName.split(" ")[0]}!</h3>
@@ -264,7 +264,7 @@ export default function HomeSupport({ onScrollTo }: Props) {
                       successUrl={`${window.location.origin}/`}
                       failUrl={`${window.location.origin}/`}
                       buttonText={`Пожертвовать ${finalAmount ? `${finalAmount.toLocaleString()} ₽` : ""}${isRecurring ? " / мес" : ""}`}
-                      className="w-full bg-beige text-sage py-3.5 font-golos font-semibold text-sm tracking-wide uppercase rounded-sm hover:bg-beige-mid transition-all duration-300"
+                      className="w-full bg-beige text-sage py-3.5 font-golos font-semibold text-sm tracking-wide uppercase rounded-xl hover:bg-beige-mid transition-all duration-300"
                       disabled={!finalAmount || !donorName || !donorEmail}
                       onSuccess={(_orderNumber, paymentUrl) => { if (paymentUrl) setQrUrl(paymentUrl); }}
                     />
