@@ -111,7 +111,7 @@ export default function HomeAbout() {
                 { icon: "Shield", title: "Надёжно и честно", text: "Все пожертвования расходуются прозрачно, мы публикуем отчёты о каждом потраченном рубле." },
                 { icon: "Sprout", title: "Долгосрочно", text: "Мы не просто помогаем выжить сегодня — мы помогаем построить лучшее завтра." },
               ].map(({ icon, title, text }) => (
-                <div key={title} className="bg-white/10 border border-beige/20 p-7 rounded-sm hover:bg-white/15 transition-colors duration-300 group">
+                <div key={title} className="bg-white/10 border border-beige/20 p-7 rounded-2xl hover:bg-white/15 transition-colors duration-300 group">
                   <div className="w-11 h-11 rounded-full border border-beige/30 flex items-center justify-center mb-5 group-hover:border-beige/60 transition-colors" aria-hidden="true">
                     <Icon name={icon as "Heart"} size={20} className="text-beige/80" aria-hidden="true" />
                   </div>
@@ -138,7 +138,7 @@ export default function HomeAbout() {
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
               {teamMembers.map((m) => (
-                <article key={m.name} className="group bg-beige rounded-sm p-7 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+                <article key={m.name} className="group bg-white rounded-2xl p-7 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
                   {m.photo ? (
                     <button
                       className="w-28 h-28 rounded-full bg-sage-pale flex items-center justify-center text-3xl mb-5 overflow-hidden cursor-pointer"

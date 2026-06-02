@@ -109,8 +109,8 @@ export default function HomeNews() {
           {loading ? (
             <div className="grid md:grid-cols-3 gap-6">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="bg-beige rounded-sm p-6 animate-pulse">
-                  <div className="h-40 bg-beige-dark rounded-sm mb-4" />
+                <div key={i} className="bg-beige rounded-2xl p-6 animate-pulse">
+                  <div className="h-40 bg-beige-dark rounded-xl mb-4" />
                   <div className="h-4 bg-beige-dark rounded w-24 mb-3" />
                   <div className="h-5 bg-beige-dark rounded w-3/4 mb-2" />
                   <div className="h-4 bg-beige-dark rounded w-full" />
@@ -120,7 +120,7 @@ export default function HomeNews() {
           ) : (
             <div className="grid md:grid-cols-3 gap-6">
               {news.map((item) => (
-                <a key={item.id} href="/news" className="group bg-beige rounded-sm overflow-hidden hover:shadow-md transition-shadow duration-300 flex flex-col">
+                <a key={item.id} href="/news" className="group bg-beige rounded-2xl overflow-hidden hover:shadow-md transition-shadow duration-300 flex flex-col">
                   {(item.photos?.[0] || item.video_url) && (
                     <div className="aspect-video overflow-hidden bg-beige-dark relative">
                       {item.photos?.[0] ? (
