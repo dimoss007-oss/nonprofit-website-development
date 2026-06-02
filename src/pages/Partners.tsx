@@ -34,7 +34,7 @@ const partners = [
   {
     name: "Министерство труда, социальной защиты и демографии Пензенской области",
     fullName: "",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Coat_of_arms_of_Penza_Oblast.svg/200px-Coat_of_arms_of_Penza_Oblast.svg.png",
+    logo: "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/009117e1-89cc-4e49-a6ee-143503e0a26a.png",
     href: "https://trud.pnzreg.ru",
     description: "Государственная поддержка семей и социальная защита",
   },
