@@ -11,7 +11,7 @@ const partners = [
   },
   {
     name: "Губернатор Пензенской области",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Coat_of_arms_of_Penza_Oblast.svg/200px-Coat_of_arms_of_Penza_Oblast.svg.png",
+    logo: "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/881d2108-517b-4541-918f-0a776a31c104.jpg",
     href: "https://pnzreg.ru",
     description: "Официальный сайт Пензенской области",
   },
