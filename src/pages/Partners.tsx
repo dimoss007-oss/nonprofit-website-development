@@ -5,42 +5,49 @@ import SiteFooter from "@/components/shared/SiteFooter";
 const partners = [
   {
     name: "Уполномоченный при Президенте Российской Федерации по правам ребёнка",
+    fullName: "Львова-Белова Мария Алексеевна",
     logo: "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/c9cb9db2-6a6a-477e-95e0-c9522f4143d2.jpg",
     href: "http://deti.gov.ru",
     description: "Федеральный институт защиты прав детей в России",
   },
   {
     name: "Губернатор Пензенской области",
+    fullName: "Мельниченко Олег Владимирович",
     logo: "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/881d2108-517b-4541-918f-0a776a31c104.jpg",
     href: "https://pnzreg.ru",
     description: "Официальный сайт Пензенской области",
   },
   {
     name: "Фонд президентских грантов",
+    fullName: "",
     logo: "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/fe35576e-c533-469d-97ee-1a6ffde86c77.png",
     href: "https://президентскиегранты.рф",
     description: "Государственная поддержка некоммерческих организаций",
   },
   {
     name: "Уполномоченный по правам ребёнка Пензенской области",
+    fullName: "Рябихина Лариса Юрьевна",
     logo: "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/b307552c-a91d-44d8-bbcc-5d52418f0f45.jpg",
     href: "https://deti.gov.ru/upr58",
     description: "Региональный институт защиты прав детей",
   },
   {
     name: "Министерство труда, социальной защиты и демографии Пензенской области",
+    fullName: "",
     logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Coat_of_arms_of_Penza_Oblast.svg/200px-Coat_of_arms_of_Penza_Oblast.svg.png",
     href: "https://trud.pnzreg.ru",
     description: "Государственная поддержка семей и социальная защита",
   },
   {
     name: "Благотворительный фонд «Царьград»",
+    fullName: "",
     logo: "https://tsargrad.tv/favicons/apple-touch-icon-180x180.png",
     href: "https://tsargrad.tv",
     description: "Поддержка традиционных ценностей и благотворительности",
   },
   {
     name: "Благотворительный фонд «Страна для детей»",
+    fullName: "",
     logo: "https://stranadetey.ru/favicon.ico",
     href: "https://stranadetey.ru",
     description: "Помощь детям и семьям в трудной жизненной ситуации",
@@ -95,9 +102,12 @@ export default function Partners() {
                   }}
                 />
               </div>
-              <h2 className="font-cormorant text-ink text-lg font-semibold leading-snug mb-2 group-hover:text-sage transition-colors">
+              <h2 className="font-cormorant text-ink text-lg font-semibold leading-snug mb-1 group-hover:text-sage transition-colors">
                 {p.name}
               </h2>
+              {p.fullName && (
+                <p className="text-ink/70 text-sm font-golos font-medium mb-2">{p.fullName}</p>
+              )}
               <p className="text-foreground/55 text-sm leading-relaxed">
                 {p.description}
               </p>
