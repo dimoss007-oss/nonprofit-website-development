@@ -18,18 +18,18 @@ const partners = [
     description: "Официальный сайт Пензенской области",
   },
   {
-    name: "Фонд президентских грантов",
-    fullName: "",
-    logo: "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/fe35576e-c533-469d-97ee-1a6ffde86c77.png",
-    href: "https://президентскиегранты.рф",
-    description: "Государственная поддержка некоммерческих организаций",
-  },
-  {
     name: "Уполномоченный по правам ребёнка Пензенской области",
     fullName: "Рябихина Лариса Юрьевна",
     logo: "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/b307552c-a91d-44d8-bbcc-5d52418f0f45.jpg",
     href: "https://deti.gov.ru/upr58",
     description: "Региональный институт защиты прав детей",
+  },
+  {
+    name: "Фонд президентских грантов",
+    fullName: "",
+    logo: "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/fe35576e-c533-469d-97ee-1a6ffde86c77.png",
+    href: "https://президентскиегранты.рф",
+    description: "Государственная поддержка некоммерческих организаций",
   },
   {
     name: "Министерство труда, социальной защиты и демографии Пензенской области",
