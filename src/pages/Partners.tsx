@@ -42,7 +42,7 @@ const partners = [
     name: "Благотворительный фонд «Царьград»",
     fullName: "",
     logo: "https://tsargrad.tv/favicons/apple-touch-icon-180x180.png",
-    href: "https://tsargrad.tv",
+    href: "https://tsargrad.fund/",
     description: "Поддержка традиционных ценностей и благотворительности",
   },
   {
