@@ -18,7 +18,9 @@ export default function SiteFooter() {
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-6">
           <a href="/" aria-label="АНО Спасение надежды — на главную" className="flex items-center gap-3">
-            <img src={LOGO_IMG} alt="Логотип АНО Спасение надежды" className="w-12 h-12 object-cover rounded-full overflow-hidden" />
+            <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
+              <img src={LOGO_IMG} alt="Логотип АНО Спасение надежды" className="w-full h-full object-cover" />
+            </div>
             <div aria-hidden="true">
               <div className="font-cormorant text-beige text-lg font-semibold">Спасение надежды</div>
               <div className="text-beige/40 text-[10px] uppercase tracking-wider">АНО</div>
