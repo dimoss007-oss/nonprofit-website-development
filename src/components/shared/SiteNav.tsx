@@ -62,7 +62,7 @@ export default function SiteNav() {
         <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <a href="/" aria-label="АНО Спасение надежды — на главную" className="flex items-center gap-3">
-              <img src={LOGO_IMG} alt="Логотип АНО Спасение надежды" className="w-14 h-14 object-contain" />
+              <img src={LOGO_IMG} alt="Логотип АНО Спасение надежды" className="w-14 h-14 object-contain rounded-full" />
               <div aria-hidden="true">
                 <div className="font-cormorant text-ink text-lg font-semibold leading-none">Спасение надежды</div>
                 <div className="text-muted-foreground text-[10px] uppercase tracking-wider">Кризисный центр</div>
