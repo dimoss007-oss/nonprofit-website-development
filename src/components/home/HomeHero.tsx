@@ -91,7 +91,7 @@ export default function HomeHero({ onScrollTo, activeSection, setActiveSection }
                 src={LOGO_IMG}
                 alt=""
                 aria-hidden="true"
-                className="absolute top-4 right-4 w-16 h-16 object-contain z-10 drop-shadow-lg opacity-80"
+                className="absolute top-4 right-4 w-16 h-16 object-contain rounded-full z-10 drop-shadow-lg opacity-80"
               />
               <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10" role="group" aria-label="Переключение слайдов">
                 {HERO_IMGS.map((_, i) => (
