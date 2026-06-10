@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import Index from "./pages/Index";
 import News from "./pages/News";
@@ -34,7 +34,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/news" element={<News />} />
-          <Route path="/admin/news" element={<AdminNews />} />
+          <Route path="/admin/news" element={<Navigate to="/admin" replace />} />
           <Route path="/admin/gallery" element={<AdminGallery />} />
           <Route path="/program" element={<Program />} />
           <Route path="/donation-terms" element={<DonationTerms />} />
@@ -45,7 +45,7 @@ const App = () => (
           <Route path="/gratitude" element={<Gratitude />} />
           <Route path="/donate" element={<Donate />} />
           <Route path="/partners" element={<Partners />} />
-          <Route path="/crm" element={<CrmPatients />} />
+          <Route path="/crm" element={<Navigate to="/admin" replace />} />
           <Route path="/admin" element={<AdminPanel />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
