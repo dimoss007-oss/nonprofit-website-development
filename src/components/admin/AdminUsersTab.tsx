@@ -57,6 +57,19 @@ export default function AdminUsersTab({ authLogin, authPassword }: { authLogin: 
         </button>
       </div>
 
+      {/* Подсказка привязки Max */}
+      <div className="bg-beige-mid border border-beige-dark rounded-2xl px-5 py-4 flex items-start gap-3">
+        <Icon name="BellRing" size={18} className="text-ink/40 flex-shrink-0 mt-0.5" />
+        <div>
+          <p className="text-sm font-semibold text-ink">Уведомления о задачах в Max</p>
+          <p className="text-xs text-ink/50 mt-1">
+            Чтобы сотрудник получал уведомления в мессенджере Max при назначении задачи — пусть напишет боту команду:
+          </p>
+          <code className="inline-block mt-2 bg-white border border-beige-dark text-ink text-xs px-3 py-1.5 rounded-lg font-mono">/bind логин</code>
+          <p className="text-xs text-ink/40 mt-1.5">Например: <span className="font-mono">/bind maria</span> — если логин сотрудника «maria»</p>
+        </div>
+      </div>
+
       {adding && (
         <div className="bg-white border border-beige-dark rounded-2xl p-6 space-y-4">
           <h3 className="font-semibold text-ink">Новый пользователь</h3>
