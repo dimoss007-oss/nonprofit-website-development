@@ -4,12 +4,13 @@ import AdminNewsTab from "@/components/admin/AdminNewsTab";
 import AdminCrmTab from "@/components/admin/AdminCrmTab";
 import AdminUsersTab from "@/components/admin/AdminUsersTab";
 import AdminTasksTab from "@/components/admin/AdminTasksTab";
+import AdminRequestsTab from "@/components/admin/AdminRequestsTab";
 
 const AUTH_URL = "https://functions.poehali.dev/e6567f16-b3db-4b0d-9c1f-abed808c2ac8";
 const LOGO_IMG = "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/4ca974da-fec3-4fd3-834d-c7dccc97fca9.jpg";
 const SESSION_KEY = "admin_auth";
 
-type Tab = "crm" | "news" | "tasks" | "users";
+type Tab = "crm" | "news" | "tasks" | "requests" | "users";
 type Role = "admin" | "user";
 
 interface Session { login: string; password: string; role: Role; full_name: string }
@@ -102,6 +103,7 @@ export default function AdminPanel() {
     { id: "crm", label: "Пациенты", icon: "Users" },
     { id: "news", label: "Новости", icon: "Newspaper" },
     { id: "tasks", label: "Задачи", icon: "ClipboardList" },
+    { id: "requests", label: "Заявки", icon: "Inbox" },
     { id: "users", label: "Сотрудники", icon: "UserCog" },
   ];
 
@@ -151,6 +153,7 @@ export default function AdminPanel() {
             users={adminUsers}
           />
         )}
+        {tab === "requests" && <AdminRequestsTab isAdmin={isAdmin} />}
         {tab === "users" && <AdminUsersTab authLogin={session.login} authPassword={session.password} isAdmin={isAdmin} />}
       </main>
     </div>

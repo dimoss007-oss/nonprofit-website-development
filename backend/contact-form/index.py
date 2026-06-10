@@ -56,6 +56,17 @@ def handler(event: dict, context) -> dict:
     db_url = os.environ.get("DATABASE_URL", "")
     schema = os.environ.get("MAIN_DB_SCHEMA", "public")
 
+    # Сохраняем заявку в БД
+    conn = psycopg2.connect(db_url)
+    conn.autocommit = True
+    cur = conn.cursor()
+    cur.execute(
+        f"INSERT INTO {schema}.contact_requests (name, phone, email, subject, message) VALUES (%s,%s,%s,%s,%s)",
+        (name, phone or None, email or None, subject or None, message)
+    )
+    cur.close()
+    conn.close()
+
     text = (
         f"📩 Новая заявка с сайта!\n\n"
         f"👤 Имя: {name}\n"
