@@ -63,13 +63,13 @@ function LoginScreen({ onAuth }: { onAuth: () => void }) {
 }
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
-  { id: "news", label: "Новости", icon: "Newspaper" },
   { id: "crm", label: "Пациенты", icon: "Users" },
+  { id: "news", label: "Новости", icon: "Newspaper" },
 ];
 
 export default function AdminPanel() {
   const [authed, setAuthed] = useState(() => sessionStorage.getItem(SESSION_KEY) === "1");
-  const [tab, setTab] = useState<Tab>("news");
+  const [tab, setTab] = useState<Tab>("crm");
 
   if (!authed) return <LoginScreen onAuth={() => setAuthed(true)} />;
 
