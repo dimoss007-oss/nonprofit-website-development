@@ -39,7 +39,7 @@ function CrmLogin({ onAuth }: { onAuth: () => void }) {
     const r = await fetch(AUTH_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ login, password: pass }) });
     const d = await r.json();
     setLoading(false);
-    if (d.success) { sessionStorage.setItem(SESSION_KEY, "1"); onAuth(); }
+    if (d.ok) { sessionStorage.setItem(SESSION_KEY, "1"); onAuth(); }
     else setError("Неверный логин или пароль");
   };
 
