@@ -143,6 +143,51 @@ function ChildForm({ onAdd, onCancel }: { onAdd: (c: Omit<Child, "id">) => void;
   );
 }
 
+// ── Child Row (inline edit) ────────────────────────────
+function ChildRow({ child, onUpdate, onDelete }: {
+  child: Child;
+  onUpdate: (id: number, data: Omit<Child, "id">) => void;
+  onDelete: (id: number) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [form, setForm] = useState({ last_name: child.last_name ?? "", first_name: child.first_name, middle_name: child.middle_name ?? "", birth_date: child.birth_date?.slice(0, 10) ?? "" });
+  const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) => setForm(f => ({ ...f, [k]: e.target.value }));
+
+  const save = () => { onUpdate(child.id, form); setEditing(false); };
+
+  if (editing) return (
+    <div className="bg-beige-mid rounded-xl p-3 space-y-2">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <input placeholder="Фамилия" value={form.last_name} onChange={set("last_name")} className="border border-beige-dark bg-white rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-ink" />
+        <input placeholder="Имя *" value={form.first_name} onChange={set("first_name")} className="border border-beige-dark bg-white rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-ink" />
+        <input placeholder="Отчество" value={form.middle_name} onChange={set("middle_name")} className="border border-beige-dark bg-white rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-ink" />
+      </div>
+      <div className="flex items-center gap-2">
+        <input type="date" value={form.birth_date} onChange={set("birth_date")} className="border border-beige-dark bg-white rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-ink" />
+        <button onClick={save} disabled={!form.first_name} className="px-3 py-1.5 bg-ink text-beige text-sm rounded-lg hover:bg-ink/90 disabled:opacity-60">Сохранить</button>
+        <button onClick={() => setEditing(false)} className="px-3 py-1.5 text-sm rounded-lg border border-beige-dark hover:border-ink">Отмена</button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="flex items-center justify-between py-2 border-b border-beige-mid last:border-0 group">
+      <div>
+        <span className="text-sm text-ink">{[child.last_name, child.first_name, child.middle_name].filter(Boolean).join(" ")}</span>
+        {child.birth_date && <span className="text-xs text-ink/40 ml-2">{fmt(child.birth_date)}</span>}
+      </div>
+      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <button onClick={() => setEditing(true)} className="p-1 text-ink/40 hover:text-ink transition-colors">
+          <Icon name="Pencil" size={13} />
+        </button>
+        <button onClick={() => onDelete(child.id)} className="p-1 text-ink/30 hover:text-red-400 transition-colors">
+          <Icon name="X" size={14} />
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ── Patient Card ───────────────────────────────────────
 function PatientCard({ patientId, onBack, onDeleted }: { patientId: number; onBack: () => void; onDeleted: () => void }) {
   const [data, setData] = useState<PatientFull | null>(null);
@@ -186,6 +231,11 @@ function PatientCard({ patientId, onBack, onDeleted }: { patientId: number; onBa
   const deleteChild = async (childId: number) => {
     if (!confirm("Удалить запись о ребёнке?")) return;
     await fetch(API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "delete_child", child_id: childId }) });
+    load();
+  };
+
+  const updateChild = async (childId: number, data: Omit<Child, "id">) => {
+    await fetch(API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "update_child", child_id: childId, ...data }) });
     load();
   };
 
@@ -266,17 +316,9 @@ function PatientCard({ patientId, onBack, onDeleted }: { patientId: number; onBa
         </div>
         {addingChild && <div className="mb-4"><ChildForm onAdd={addChild} onCancel={() => setAddingChild(false)} /></div>}
         {children.length === 0 && !addingChild && <p className="text-ink/40 text-sm">Нет данных о детях</p>}
-        <div className="space-y-2">
+        <div className="space-y-1">
           {children.map(c => (
-            <div key={c.id} className="flex items-center justify-between py-2 border-b border-beige-mid last:border-0">
-              <div>
-                <span className="text-sm text-ink">{[c.last_name, c.first_name, c.middle_name].filter(Boolean).join(" ")}</span>
-                {c.birth_date && <span className="text-xs text-ink/40 ml-2">{fmt(c.birth_date)}</span>}
-              </div>
-              <button onClick={() => deleteChild(c.id)} className="p-1 text-ink/30 hover:text-red-400 transition-colors">
-                <Icon name="X" size={14} />
-              </button>
-            </div>
+            <ChildRow key={c.id} child={c} onUpdate={updateChild} onDelete={deleteChild} />
           ))}
         </div>
       </div>

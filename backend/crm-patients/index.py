@@ -91,6 +91,16 @@ def handler(event: dict, context) -> dict:
             conn.commit()
             return ok({"success": True})
 
+        if action == "update_child":
+            child_id = body.get("child_id")
+            cur.execute(
+                f"UPDATE {SCHEMA}.patient_children SET last_name=%s, first_name=%s, middle_name=%s, birth_date=%s WHERE id=%s RETURNING *",
+                (body.get("last_name"), body.get("first_name"), body.get("middle_name"), body.get("birth_date") or None, child_id)
+            )
+            child = cur.fetchone()
+            conn.commit()
+            return ok({"child": dict(child)})
+
         cur.execute(
             f"INSERT INTO {SCHEMA}.patients (last_name, first_name, middle_name, birth_date, address, admission_date, case_description) VALUES (%s,%s,%s,%s,%s,%s,%s) RETURNING *",
             (body.get("last_name"), body.get("first_name"), body.get("middle_name"),
