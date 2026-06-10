@@ -63,6 +63,15 @@ def handler(event: dict, context) -> dict:
 
         return ok({"ok": True, "role": user["role"], "full_name": user["full_name"] or login, "login": login})
 
+    # ── Список пользователей — публичный (без секретных данных) ──
+    if method == "GET":
+        conn = get_conn()
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        cur.execute(f"SELECT id, login, role, full_name, created_at FROM {SCHEMA}.admin_users ORDER BY created_at")
+        users = cur.fetchall()
+        conn.close()
+        return ok({"users": [dict(u) for u in users]})
+
     # ── Все остальные действия требуют мастер-аккаунта ──
     auth_login = body.get("auth_login", "")
     auth_password = body.get("auth_password", "")
@@ -71,13 +80,6 @@ def handler(event: dict, context) -> dict:
 
     conn = get_conn()
     cur = conn.cursor(cursor_factory=RealDictCursor)
-
-    # Список пользователей
-    if method == "GET":
-        cur.execute(f"SELECT id, login, role, full_name, created_at FROM {SCHEMA}.admin_users ORDER BY created_at")
-        users = cur.fetchall()
-        conn.close()
-        return ok({"users": [dict(u) for u in users]})
 
     if method == "POST":
         action = body.get("action")
