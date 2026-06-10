@@ -1,5 +1,5 @@
 import { useState } from "react";
-import QRCode from "react-qr-code";
+import { QRCodeSVG as QRCode } from "qrcode.react";
 import { useRobokassa, openPaymentPage, isValidEmail } from "@/components/extensions/robokassa/useRobokassa";
 
 const ROBOKASSA_URL = "https://functions.poehali.dev/cd7d4ba3-bafb-4d4f-8035-e06d64cd7b3c";
