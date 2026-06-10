@@ -1,0 +1,12 @@
+{
+  "tests": [
+    {
+      "name": "Список пациентов",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": {"patients": []},
+      "bodyMatcher": "partial"
+    }
+  ]
+}

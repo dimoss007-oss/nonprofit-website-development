@@ -1,0 +1,114 @@
+import json
+import os
+import psycopg2
+from psycopg2.extras import RealDictCursor
+
+SCHEMA = os.environ.get("MAIN_DB_SCHEMA", "public")
+
+CORS = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, X-User-Id, X-Auth-Token",
+}
+
+def get_conn():
+    return psycopg2.connect(os.environ["DATABASE_URL"])
+
+def ok(data, status=200):
+    return {"statusCode": status, "headers": {**CORS, "Content-Type": "application/json"}, "body": json.dumps(data, default=str)}
+
+def err(msg, status=400):
+    return {"statusCode": status, "headers": {**CORS, "Content-Type": "application/json"}, "body": json.dumps({"error": msg})}
+
+def handler(event: dict, context) -> dict:
+    """CRM: управление пациентами. GET /? — список, GET /?id=N — карточка, POST / — создать, PUT /?id=N — обновить"""
+    if event.get("httpMethod") == "OPTIONS":
+        return {"statusCode": 200, "headers": CORS, "body": ""}
+
+    method = event.get("httpMethod", "GET")
+    params = event.get("queryStringParameters") or {}
+    patient_id = params.get("id")
+
+    conn = get_conn()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+
+    if method == "GET":
+        if patient_id:
+            cur.execute(f"SELECT * FROM {SCHEMA}.patients WHERE id = %s", (patient_id,))
+            patient = cur.fetchone()
+            if not patient:
+                return err("Пациент не найден", 404)
+            cur.execute(f"SELECT * FROM {SCHEMA}.patient_children WHERE patient_id = %s ORDER BY birth_date", (patient_id,))
+            children = cur.fetchall()
+            cur.execute(f"SELECT * FROM {SCHEMA}.patient_documents WHERE patient_id = %s ORDER BY uploaded_at DESC", (patient_id,))
+            documents = cur.fetchall()
+            return ok({"patient": dict(patient), "children": [dict(c) for c in children], "documents": [dict(d) for d in documents]})
+        else:
+            search = params.get("search", "")
+            if search:
+                cur.execute(
+                    f"SELECT p.*, COUNT(c.id) as children_count FROM {SCHEMA}.patients p LEFT JOIN {SCHEMA}.patient_children c ON c.patient_id = p.id WHERE p.last_name ILIKE %s OR p.first_name ILIKE %s OR p.middle_name ILIKE %s GROUP BY p.id ORDER BY p.created_at DESC",
+                    (f"%{search}%", f"%{search}%", f"%{search}%")
+                )
+            else:
+                cur.execute(f"SELECT p.*, COUNT(c.id) as children_count FROM {SCHEMA}.patients p LEFT JOIN {SCHEMA}.patient_children c ON c.patient_id = p.id GROUP BY p.id ORDER BY p.created_at DESC")
+            rows = cur.fetchall()
+            return ok({"patients": [dict(r) for r in rows]})
+
+    body = json.loads(event.get("body") or "{}")
+
+    if method == "POST":
+        action = body.get("action")
+
+        if action == "delete_patient":
+            pid = body.get("patient_id")
+            cur.execute(f"DELETE FROM {SCHEMA}.patient_documents WHERE patient_id = %s", (pid,))
+            cur.execute(f"DELETE FROM {SCHEMA}.patient_children WHERE patient_id = %s", (pid,))
+            cur.execute(f"DELETE FROM {SCHEMA}.patients WHERE id = %s", (pid,))
+            conn.commit()
+            return ok({"success": True})
+
+        if action == "delete_document":
+            doc_id = body.get("document_id")
+            cur.execute(f"DELETE FROM {SCHEMA}.patient_documents WHERE id = %s RETURNING file_url", (doc_id,))
+            row = cur.fetchone()
+            conn.commit()
+            return ok({"success": True, "file_url": row["file_url"] if row else None})
+
+        if action == "add_child":
+            pid = body.get("patient_id")
+            cur.execute(
+                f"INSERT INTO {SCHEMA}.patient_children (patient_id, last_name, first_name, middle_name, birth_date) VALUES (%s,%s,%s,%s,%s) RETURNING *",
+                (pid, body.get("last_name"), body.get("first_name"), body.get("middle_name"), body.get("birth_date") or None)
+            )
+            child = cur.fetchone()
+            conn.commit()
+            return ok({"child": dict(child)})
+
+        if action == "delete_child":
+            child_id = body.get("child_id")
+            cur.execute(f"DELETE FROM {SCHEMA}.patient_children WHERE id = %s", (child_id,))
+            conn.commit()
+            return ok({"success": True})
+
+        cur.execute(
+            f"INSERT INTO {SCHEMA}.patients (last_name, first_name, middle_name, birth_date, address, admission_date, case_description) VALUES (%s,%s,%s,%s,%s,%s,%s) RETURNING *",
+            (body.get("last_name"), body.get("first_name"), body.get("middle_name"),
+             body.get("birth_date") or None, body.get("address"), body.get("admission_date") or None, body.get("case_description"))
+        )
+        patient = cur.fetchone()
+        conn.commit()
+        return ok({"patient": dict(patient)}, 201)
+
+    if method == "PUT" and patient_id:
+        cur.execute(
+            f"UPDATE {SCHEMA}.patients SET last_name=%s, first_name=%s, middle_name=%s, birth_date=%s, address=%s, admission_date=%s, case_description=%s, updated_at=NOW() WHERE id=%s RETURNING *",
+            (body.get("last_name"), body.get("first_name"), body.get("middle_name"),
+             body.get("birth_date") or None, body.get("address"), body.get("admission_date") or None,
+             body.get("case_description"), patient_id)
+        )
+        patient = cur.fetchone()
+        conn.commit()
+        return ok({"patient": dict(patient)})
+
+    return err("Метод не поддерживается", 405)
