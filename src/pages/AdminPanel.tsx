@@ -1,17 +1,19 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Icon from "@/components/ui/icon";
 import AdminNewsTab from "@/components/admin/AdminNewsTab";
 import AdminCrmTab from "@/components/admin/AdminCrmTab";
 import AdminUsersTab from "@/components/admin/AdminUsersTab";
+import AdminTasksTab from "@/components/admin/AdminTasksTab";
 
 const AUTH_URL = "https://functions.poehali.dev/e6567f16-b3db-4b0d-9c1f-abed808c2ac8";
 const LOGO_IMG = "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/4ca974da-fec3-4fd3-834d-c7dccc97fca9.jpg";
 const SESSION_KEY = "admin_auth";
 
-type Tab = "crm" | "news" | "users";
+type Tab = "crm" | "news" | "tasks" | "users";
 type Role = "admin" | "user";
 
 interface Session { login: string; password: string; role: Role; full_name: string }
+interface AdminUser { login: string; full_name?: string }
 
 function LoginScreen({ onAuth }: { onAuth: (s: Session) => void }) {
   const [login, setLogin] = useState("");
@@ -78,6 +80,18 @@ function getSession(): Session | null {
 export default function AdminPanel() {
   const [session, setSession] = useState<Session | null>(() => getSession());
   const [tab, setTab] = useState<Tab>("crm");
+  const [adminUsers, setAdminUsers] = useState<AdminUser[]>([]);
+
+  useEffect(() => {
+    if (!session) return;
+    fetch(AUTH_URL, { method: "GET" })
+      .then(r => r.json())
+      .then(d => {
+        const users: AdminUser[] = (d.users || []).map((u: { login: string; full_name?: string }) => ({ login: u.login, full_name: u.full_name }));
+        setAdminUsers([{ login: session.login, full_name: session.full_name }, ...users.filter(u => u.login !== session.login)]);
+      })
+      .catch(() => setAdminUsers([{ login: session.login, full_name: session.full_name }]));
+  }, [session?.login]);
 
   if (!session) return <LoginScreen onAuth={s => setSession(s)} />;
 
@@ -87,6 +101,7 @@ export default function AdminPanel() {
   const TABS: { id: Tab; label: string; icon: string; adminOnly?: boolean }[] = [
     { id: "crm", label: "Пациенты", icon: "Users" },
     { id: "news", label: "Новости", icon: "Newspaper" },
+    { id: "tasks", label: "Задачи", icon: "ClipboardList" },
     { id: "users", label: "Сотрудники", icon: "UserCog", adminOnly: true },
   ];
 
@@ -129,6 +144,13 @@ export default function AdminPanel() {
       <main className="pt-20 pb-16 max-w-6xl mx-auto px-4">
         {tab === "crm" && <AdminCrmTab isAdmin={isAdmin} />}
         {tab === "news" && <AdminNewsTab isAdmin={isAdmin} />}
+        {tab === "tasks" && (
+          <AdminTasksTab
+            session={{ login: session.login, full_name: session.full_name }}
+            isAdmin={isAdmin}
+            users={adminUsers}
+          />
+        )}
         {tab === "users" && isAdmin && <AdminUsersTab authLogin={session.login} authPassword={session.password} />}
       </main>
     </div>
