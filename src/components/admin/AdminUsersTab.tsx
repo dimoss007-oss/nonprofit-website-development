@@ -8,6 +8,39 @@ type AdminUser = { id: number; login: string; role: "admin" | "user"; full_name?
 const ROLE_LABELS = { admin: "Администратор", user: "Пользователь" };
 const ROLE_COLORS = { admin: "bg-ink text-beige", user: "bg-beige-dark text-ink" };
 
+const AVATAR_COLORS = [
+  "bg-rose-100 text-rose-600",
+  "bg-orange-100 text-orange-600",
+  "bg-amber-100 text-amber-700",
+  "bg-teal-100 text-teal-700",
+  "bg-sky-100 text-sky-700",
+  "bg-violet-100 text-violet-600",
+  "bg-pink-100 text-pink-600",
+  "bg-lime-100 text-lime-700",
+];
+
+function getInitials(name?: string, login?: string): string {
+  const src = name?.trim() || login || "?";
+  const parts = src.split(/\s+/).filter(Boolean);
+  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+  return src.slice(0, 2).toUpperCase();
+}
+
+function getAvatarColor(login: string): string {
+  let hash = 0;
+  for (let i = 0; i < login.length; i++) hash = login.charCodeAt(i) + ((hash << 5) - hash);
+  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+}
+
+function Avatar({ name, login, size = "md" }: { name?: string; login: string; size?: "sm" | "md" }) {
+  const sz = size === "sm" ? "w-8 h-8 text-xs" : "w-10 h-10 text-sm";
+  return (
+    <div className={`${sz} ${getAvatarColor(login)} rounded-xl flex items-center justify-center flex-shrink-0 font-semibold`}>
+      {getInitials(name, login)}
+    </div>
+  );
+}
+
 export default function AdminUsersTab({ authLogin, authPassword, isAdmin = false }: {
   authLogin: string;
   authPassword: string;
@@ -82,9 +115,7 @@ export default function AdminUsersTab({ authLogin, authPassword, isAdmin = false
 
             {users.map(u => (
               <div key={u.id} className="bg-white border border-beige-dark rounded-2xl px-5 py-4 flex items-center gap-4">
-                <div className="w-10 h-10 bg-beige-mid rounded-xl flex items-center justify-center flex-shrink-0">
-                  <Icon name="User" size={16} className="text-ink/50" />
-                </div>
+                <Avatar name={u.full_name} login={u.login} />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-semibold text-sm text-ink">{u.full_name || u.login}</span>
@@ -175,6 +206,7 @@ export default function AdminUsersTab({ authLogin, authPassword, isAdmin = false
             </div>
           </div>
 
+
           {users.length === 0 && (
             <p className="text-center text-ink/40 text-sm py-8">Дополнительных сотрудников нет</p>
           )}
@@ -249,9 +281,7 @@ function EditableUserRow({ user, authLogin, authPassword, onDeleted, onUpdated, 
 
   return (
     <div className="bg-white border border-beige-dark rounded-2xl px-5 py-4 flex items-center gap-4 group">
-      <div className="w-10 h-10 bg-beige-mid rounded-xl flex items-center justify-center flex-shrink-0">
-        <Icon name="User" size={16} className="text-ink/50" />
-      </div>
+      <Avatar name={user.full_name} login={user.login} />
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
           <span className="font-semibold text-sm text-ink">{user.full_name || user.login}</span>
