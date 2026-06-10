@@ -81,7 +81,7 @@ function ChildForm({ onAdd, onCancel }: { onAdd: (c: Omit<Child, "id">) => void;
   );
 }
 
-function ChildRow({ child, onUpdate, onDelete }: { child: Child; onUpdate: (id: number, data: Omit<Child, "id">) => void; onDelete: (id: number) => void }) {
+function ChildRow({ child, onUpdate, onDelete, isAdmin }: { child: Child; onUpdate: (id: number, data: Omit<Child, "id">) => void; onDelete: (id: number) => void; isAdmin: boolean }) {
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({ last_name: child.last_name ?? "", first_name: child.first_name, middle_name: child.middle_name ?? "", birth_date: child.birth_date?.slice(0, 10) ?? "" });
   const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) => setForm(f => ({ ...f, [k]: e.target.value }));
@@ -108,7 +108,7 @@ function ChildRow({ child, onUpdate, onDelete }: { child: Child; onUpdate: (id: 
       </div>
       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
         <button onClick={() => setEditing(true)} className="p-1 text-ink/40 hover:text-ink transition-colors"><Icon name="Pencil" size={13} /></button>
-        <button onClick={() => onDelete(child.id)} className="p-1 text-ink/30 hover:text-red-400 transition-colors"><Icon name="X" size={14} /></button>
+        {isAdmin && <button onClick={() => onDelete(child.id)} className="p-1 text-ink/30 hover:text-red-400 transition-colors"><Icon name="X" size={14} /></button>}
       </div>
     </div>
   );
@@ -120,7 +120,7 @@ function Row({ label, value }: { label: string; value: string }) {
   );
 }
 
-function PatientCard({ patientId, onBack, onDeleted }: { patientId: number; onBack: () => void; onDeleted: () => void }) {
+function PatientCard({ patientId, onBack, onDeleted, isAdmin }: { patientId: number; onBack: () => void; onDeleted: () => void; isAdmin: boolean }) {
   const [data, setData] = useState<PatientFull | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
@@ -201,9 +201,11 @@ function PatientCard({ patientId, onBack, onDeleted }: { patientId: number; onBa
         <button onClick={() => setEditing(e => !e)} className="px-3 py-1.5 text-sm border border-beige-dark rounded-lg hover:border-ink transition-colors flex items-center gap-1.5">
           <Icon name="Pencil" size={14} /> Редактировать
         </button>
-        <button onClick={deletePatient} className="px-3 py-1.5 text-sm border border-red-200 text-red-500 rounded-lg hover:bg-red-50 transition-colors flex items-center gap-1.5">
-          <Icon name="Trash2" size={14} /> Удалить
-        </button>
+        {isAdmin && (
+          <button onClick={deletePatient} className="px-3 py-1.5 text-sm border border-red-200 text-red-500 rounded-lg hover:bg-red-50 transition-colors flex items-center gap-1.5">
+            <Icon name="Trash2" size={14} /> Удалить
+          </button>
+        )}
       </div>
 
       {editing && (
@@ -240,7 +242,7 @@ function PatientCard({ patientId, onBack, onDeleted }: { patientId: number; onBa
         </div>
         {addingChild && <div className="mb-4"><ChildForm onAdd={addChild} onCancel={() => setAddingChild(false)} /></div>}
         {children.length === 0 && !addingChild && <p className="text-ink/40 text-sm">Нет данных о детях</p>}
-        <div className="space-y-1">{children.map(c => <ChildRow key={c.id} child={c} onUpdate={updateChild} onDelete={deleteChild} />)}</div>
+        <div className="space-y-1">{children.map(c => <ChildRow key={c.id} child={c} onUpdate={updateChild} onDelete={deleteChild} isAdmin={isAdmin} />)}</div>
       </div>
 
       <div className="bg-white border border-beige-dark rounded-2xl p-5">
@@ -265,7 +267,7 @@ function PatientCard({ patientId, onBack, onDeleted }: { patientId: number; onBa
                   <a href={d.file_url} target="_blank" rel="noopener noreferrer" className="text-sm text-ink hover:underline truncate block">{d.file_name}</a>
                   <span className="text-xs text-ink/40">{fmtSize(d.file_size)} · {fmt(d.uploaded_at)}</span>
                 </div>
-                <button onClick={() => deleteDoc(d.id)} className="p-1 text-ink/30 hover:text-red-400 transition-colors flex-shrink-0"><Icon name="X" size={14} /></button>
+                {isAdmin && <button onClick={() => deleteDoc(d.id)} className="p-1 text-ink/30 hover:text-red-400 transition-colors flex-shrink-0"><Icon name="X" size={14} /></button>}
               </div>
             );
           })}
@@ -275,7 +277,7 @@ function PatientCard({ patientId, onBack, onDeleted }: { patientId: number; onBa
   );
 }
 
-export default function AdminCrmTab() {
+export default function AdminCrmTab({ isAdmin = true }: { isAdmin?: boolean }) {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
@@ -309,7 +311,7 @@ export default function AdminCrmTab() {
   };
 
   if (selectedId) return (
-    <PatientCard patientId={selectedId} onBack={() => setSelectedId(null)} onDeleted={() => { setSelectedId(null); loadPatients(search); }} />
+    <PatientCard patientId={selectedId} onBack={() => setSelectedId(null)} onDeleted={() => { setSelectedId(null); loadPatients(search); }} isAdmin={isAdmin} />
   );
 
   return (

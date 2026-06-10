@@ -1,0 +1,13 @@
+{
+  "tests": [
+    {
+      "name": "Неверный логин",
+      "method": "POST",
+      "path": "/",
+      "body": {"action": "login", "login": "wrong", "password": "wrong"},
+      "expectedStatus": 401,
+      "expectedBody": {"ok": false},
+      "bodyMatcher": "partial"
+    }
+  ]
+}

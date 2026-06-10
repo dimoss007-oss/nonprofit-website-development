@@ -40,7 +40,7 @@ function compressAndConvert(file: File, maxWidth = 1600, quality = 0.82): Promis
   });
 }
 
-export default function AdminNewsTab() {
+export default function AdminNewsTab({ isAdmin = true }: { isAdmin?: boolean }) {
   const [news, setNews] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [title, setTitle] = useState("");
@@ -187,9 +187,11 @@ export default function AdminNewsTab() {
                   <p className="font-semibold text-ink text-sm mt-0.5 truncate">{item.title}</p>
                   <p className="text-ink/50 text-xs mt-1 line-clamp-2">{item.text}</p>
                 </div>
-                <button onClick={() => handleDelete(item.id)} disabled={deleting === item.id} className="p-2 text-ink/30 hover:text-red-400 transition-colors flex-shrink-0">
-                  <Icon name={deleting === item.id ? "Loader" : "Trash2"} size={16} className={deleting === item.id ? "animate-spin" : ""} />
-                </button>
+                {isAdmin && (
+                  <button onClick={() => handleDelete(item.id)} disabled={deleting === item.id} className="p-2 text-ink/30 hover:text-red-400 transition-colors flex-shrink-0">
+                    <Icon name={deleting === item.id ? "Loader" : "Trash2"} size={16} className={deleting === item.id ? "animate-spin" : ""} />
+                  </button>
+                )}
               </div>
             ))}
           </div>

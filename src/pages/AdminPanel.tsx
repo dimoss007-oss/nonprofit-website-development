@@ -2,14 +2,18 @@ import { useState } from "react";
 import Icon from "@/components/ui/icon";
 import AdminNewsTab from "@/components/admin/AdminNewsTab";
 import AdminCrmTab from "@/components/admin/AdminCrmTab";
+import AdminUsersTab from "@/components/admin/AdminUsersTab";
 
-const AUTH_URL = "https://functions.poehali.dev/a964c253-7e52-4d10-9000-b278238e84e4";
+const AUTH_URL = "https://functions.poehali.dev/e6567f16-b3db-4b0d-9c1f-abed808c2ac8";
 const LOGO_IMG = "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/4ca974da-fec3-4fd3-834d-c7dccc97fca9.jpg";
 const SESSION_KEY = "admin_auth";
 
-type Tab = "news" | "crm";
+type Tab = "crm" | "news" | "users";
+type Role = "admin" | "user";
 
-function LoginScreen({ onAuth }: { onAuth: () => void }) {
+interface Session { login: string; password: string; role: Role; full_name: string }
+
+function LoginScreen({ onAuth }: { onAuth: (s: Session) => void }) {
   const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -20,9 +24,13 @@ function LoginScreen({ onAuth }: { onAuth: () => void }) {
     e.preventDefault();
     setError(""); setLoading(true);
     try {
-      const res = await fetch(AUTH_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ login, password }) });
-      if (res.ok) { sessionStorage.setItem(SESSION_KEY, "1"); onAuth(); }
-      else setError("Неверный логин или пароль");
+      const res = await fetch(AUTH_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "login", login, password }) });
+      const d = await res.json();
+      if (d.ok) {
+        const session: Session = { login, password, role: d.role, full_name: d.full_name };
+        sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
+        onAuth(session);
+      } else { setError("Неверный логин или пароль"); }
     } catch { setError("Ошибка соединения. Попробуйте снова."); }
     finally { setLoading(false); }
   };
@@ -38,12 +46,12 @@ function LoginScreen({ onAuth }: { onAuth: () => void }) {
         <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-8 shadow-sm space-y-4">
           <div>
             <label className="block text-xs uppercase tracking-widest text-ink/50 mb-2">Логин</label>
-            <input type="text" value={login} onChange={(e) => setLogin(e.target.value)} placeholder="Введите логин" autoComplete="username" className="w-full border border-beige-dark rounded-xl px-4 py-3 text-ink placeholder-ink/30 focus:outline-none focus:border-ink transition-colors bg-beige/50 text-sm" required />
+            <input type="text" value={login} onChange={e => setLogin(e.target.value)} placeholder="Введите логин" autoComplete="username" className="w-full border border-beige-dark rounded-xl px-4 py-3 text-ink placeholder-ink/30 focus:outline-none focus:border-ink transition-colors bg-beige/50 text-sm" required />
           </div>
           <div>
             <label className="block text-xs uppercase tracking-widest text-ink/50 mb-2">Пароль</label>
             <div className="relative">
-              <input type={showPass ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Введите пароль" autoComplete="current-password" className="w-full border border-beige-dark rounded-xl px-4 py-3 pr-11 text-ink placeholder-ink/30 focus:outline-none focus:border-ink transition-colors bg-beige/50 text-sm" required />
+              <input type={showPass ? "text" : "password"} value={password} onChange={e => setPassword(e.target.value)} placeholder="Введите пароль" autoComplete="current-password" className="w-full border border-beige-dark rounded-xl px-4 py-3 pr-11 text-ink placeholder-ink/30 focus:outline-none focus:border-ink transition-colors bg-beige/50 text-sm" required />
               <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-3 top-1/2 -translate-y-1/2 text-ink/30 hover:text-ink/60 transition-colors">
                 <Icon name={showPass ? "EyeOff" : "Eye"} size={16} />
               </button>
@@ -62,22 +70,28 @@ function LoginScreen({ onAuth }: { onAuth: () => void }) {
   );
 }
 
-const TABS: { id: Tab; label: string; icon: string }[] = [
-  { id: "crm", label: "Пациенты", icon: "Users" },
-  { id: "news", label: "Новости", icon: "Newspaper" },
-];
+function getSession(): Session | null {
+  try { return JSON.parse(sessionStorage.getItem(SESSION_KEY) || "null"); }
+  catch { return null; }
+}
 
 export default function AdminPanel() {
-  const [authed, setAuthed] = useState(() => sessionStorage.getItem(SESSION_KEY) === "1");
+  const [session, setSession] = useState<Session | null>(() => getSession());
   const [tab, setTab] = useState<Tab>("crm");
 
-  if (!authed) return <LoginScreen onAuth={() => setAuthed(true)} />;
+  if (!session) return <LoginScreen onAuth={s => setSession(s)} />;
 
-  const logout = () => { sessionStorage.removeItem(SESSION_KEY); setAuthed(false); };
+  const logout = () => { sessionStorage.removeItem(SESSION_KEY); setSession(null); };
+  const isAdmin = session.role === "admin";
+
+  const TABS: { id: Tab; label: string; icon: string; adminOnly?: boolean }[] = [
+    { id: "crm", label: "Пациенты", icon: "Users" },
+    { id: "news", label: "Новости", icon: "Newspaper" },
+    { id: "users", label: "Сотрудники", icon: "UserCog", adminOnly: true },
+  ];
 
   return (
     <div className="min-h-screen bg-beige-mid font-golos">
-      {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-beige-dark">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
           <a href="/" className="flex items-center gap-3 flex-shrink-0">
@@ -88,31 +102,34 @@ export default function AdminPanel() {
             </div>
           </a>
 
-          {/* Tabs */}
           <nav className="flex items-center gap-1 bg-beige-mid rounded-xl p-1">
-            {TABS.map(t => (
-              <button
-                key={t.id}
-                onClick={() => setTab(t.id)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${tab === t.id ? "bg-white text-ink shadow-sm" : "text-ink/50 hover:text-ink"}`}
-              >
+            {TABS.filter(t => !t.adminOnly || isAdmin).map(t => (
+              <button key={t.id} onClick={() => setTab(t.id)} className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${tab === t.id ? "bg-white text-ink shadow-sm" : "text-ink/50 hover:text-ink"}`}>
                 <Icon name={t.icon} size={15} />
                 {t.label}
               </button>
             ))}
           </nav>
 
-          <button onClick={logout} className="flex items-center gap-2 text-ink/50 hover:text-ink text-sm transition-colors flex-shrink-0">
-            <Icon name="LogOut" size={15} />
-            <span className="hidden sm:inline">Выйти</span>
-          </button>
+          <div className="flex items-center gap-3 flex-shrink-0">
+            <div className="hidden sm:flex items-center gap-2 text-xs text-ink/40">
+              <span>{session.full_name}</span>
+              <span className={`px-2 py-0.5 rounded-full text-[10px] ${isAdmin ? "bg-ink text-beige" : "bg-beige-dark text-ink"}`}>
+                {isAdmin ? "Администратор" : "Пользователь"}
+              </span>
+            </div>
+            <button onClick={logout} className="flex items-center gap-2 text-ink/50 hover:text-ink text-sm transition-colors">
+              <Icon name="LogOut" size={15} />
+              <span className="hidden sm:inline">Выйти</span>
+            </button>
+          </div>
         </div>
       </header>
 
-      {/* Content */}
       <main className="pt-20 pb-16 max-w-6xl mx-auto px-4">
-        {tab === "news" && <AdminNewsTab />}
-        {tab === "crm" && <AdminCrmTab />}
+        {tab === "crm" && <AdminCrmTab isAdmin={isAdmin} />}
+        {tab === "news" && <AdminNewsTab isAdmin={isAdmin} />}
+        {tab === "users" && isAdmin && <AdminUsersTab authLogin={session.login} authPassword={session.password} />}
       </main>
     </div>
   );
