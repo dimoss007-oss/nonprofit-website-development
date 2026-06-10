@@ -12,6 +12,8 @@ type Patient = {
   id: number; last_name: string; first_name: string; middle_name?: string;
   birth_date?: string; address?: string; admission_date?: string;
   case_description?: string; created_at: string; children_count?: number;
+  passport_series?: string; passport_number?: string;
+  passport_issued_date?: string; passport_issued_by?: string;
 };
 type PatientFull = { patient: Patient; children: Child[]; documents: Document[] };
 
@@ -67,7 +69,7 @@ function CrmLogin({ onAuth }: { onAuth: () => void }) {
 }
 
 // ── Patient Form ───────────────────────────────────────
-const EMPTY_FORM = { last_name: "", first_name: "", middle_name: "", birth_date: "", address: "", admission_date: "", case_description: "" };
+const EMPTY_FORM = { last_name: "", first_name: "", middle_name: "", birth_date: "", address: "", admission_date: "", case_description: "", passport_series: "", passport_number: "", passport_issued_date: "", passport_issued_by: "" };
 
 function PatientForm({ initial, onSave, onCancel, loading }: {
   initial?: Partial<typeof EMPTY_FORM>;
@@ -107,6 +109,27 @@ function PatientForm({ initial, onSave, onCancel, loading }: {
       <div>
         <label className="text-xs text-ink/50 mb-1 block">Прописка</label>
         <input value={form.address} onChange={set("address")} className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" />
+      </div>
+      <div className="pt-1">
+        <p className="text-xs font-semibold text-ink/40 uppercase tracking-wide mb-2">Паспорт</p>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div>
+            <label className="text-xs text-ink/50 mb-1 block">Серия</label>
+            <input value={form.passport_series} onChange={set("passport_series")} placeholder="1234" className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" />
+          </div>
+          <div>
+            <label className="text-xs text-ink/50 mb-1 block">Номер</label>
+            <input value={form.passport_number} onChange={set("passport_number")} placeholder="567890" className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" />
+          </div>
+          <div className="col-span-2">
+            <label className="text-xs text-ink/50 mb-1 block">Дата выдачи</label>
+            <input type="date" value={form.passport_issued_date} onChange={set("passport_issued_date")} className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" />
+          </div>
+        </div>
+        <div className="mt-3">
+          <label className="text-xs text-ink/50 mb-1 block">Кем выдан</label>
+          <input value={form.passport_issued_by} onChange={set("passport_issued_by")} placeholder="Отделом УФМС России..." className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" />
+        </div>
       </div>
       <div>
         <label className="text-xs text-ink/50 mb-1 block">Описание случая</label>
@@ -288,7 +311,7 @@ function PatientCard({ patientId, onBack, onDeleted }: { patientId: number; onBa
         <div className="bg-white border border-beige-dark rounded-2xl p-6">
           <h3 className="font-semibold text-ink mb-4">Редактирование</h3>
           <PatientForm
-            initial={{ last_name: patient.last_name, first_name: patient.first_name, middle_name: patient.middle_name ?? "", birth_date: patient.birth_date?.slice(0, 10) ?? "", address: patient.address ?? "", admission_date: patient.admission_date?.slice(0, 10) ?? "", case_description: patient.case_description ?? "" }}
+            initial={{ last_name: patient.last_name, first_name: patient.first_name, middle_name: patient.middle_name ?? "", birth_date: patient.birth_date?.slice(0, 10) ?? "", address: patient.address ?? "", admission_date: patient.admission_date?.slice(0, 10) ?? "", case_description: patient.case_description ?? "", passport_series: patient.passport_series ?? "", passport_number: patient.passport_number ?? "", passport_issued_date: patient.passport_issued_date?.slice(0, 10) ?? "", passport_issued_by: patient.passport_issued_by ?? "" }}
             onSave={save} onCancel={() => setEditing(false)} loading={saving}
           />
         </div>
@@ -301,10 +324,16 @@ function PatientCard({ patientId, onBack, onDeleted }: { patientId: number; onBa
           <Row label="Прописка" value={patient.address || "—"} />
           <Row label="Дата поступления" value={fmt(patient.admission_date)} />
         </div>
-        <div className="bg-white border border-beige-dark rounded-2xl p-5">
-          <h3 className="font-semibold text-ink text-sm uppercase tracking-wide mb-3">Описание случая</h3>
-          <p className="text-sm text-ink/70 whitespace-pre-wrap">{patient.case_description || "Не заполнено"}</p>
+        <div className="bg-white border border-beige-dark rounded-2xl p-5 space-y-3">
+          <h3 className="font-semibold text-ink text-sm uppercase tracking-wide">Паспорт</h3>
+          <Row label="Серия и номер" value={[patient.passport_series, patient.passport_number].filter(Boolean).join(" ") || "—"} />
+          <Row label="Дата выдачи" value={fmt(patient.passport_issued_date)} />
+          <Row label="Кем выдан" value={patient.passport_issued_by || "—"} />
         </div>
+      </div>
+      <div className="bg-white border border-beige-dark rounded-2xl p-5">
+        <h3 className="font-semibold text-ink text-sm uppercase tracking-wide mb-3">Описание случая</h3>
+        <p className="text-sm text-ink/70 whitespace-pre-wrap">{patient.case_description || "Не заполнено"}</p>
       </div>
 
       <div className="bg-white border border-beige-dark rounded-2xl p-5">

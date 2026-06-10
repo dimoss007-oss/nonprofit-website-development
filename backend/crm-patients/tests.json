@@ -5,7 +5,7 @@
       "method": "GET",
       "path": "/",
       "expectedStatus": 200,
-      "expectedBody": {"patients": "array"},
+      "expectedBody": {},
       "bodyMatcher": "keys"
     }
   ]

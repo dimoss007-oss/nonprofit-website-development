@@ -102,9 +102,11 @@ def handler(event: dict, context) -> dict:
             return ok({"child": dict(child)})
 
         cur.execute(
-            f"INSERT INTO {SCHEMA}.patients (last_name, first_name, middle_name, birth_date, address, admission_date, case_description) VALUES (%s,%s,%s,%s,%s,%s,%s) RETURNING *",
+            f"INSERT INTO {SCHEMA}.patients (last_name, first_name, middle_name, birth_date, address, admission_date, case_description, passport_series, passport_number, passport_issued_date, passport_issued_by) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING *",
             (body.get("last_name"), body.get("first_name"), body.get("middle_name"),
-             body.get("birth_date") or None, body.get("address"), body.get("admission_date") or None, body.get("case_description"))
+             body.get("birth_date") or None, body.get("address"), body.get("admission_date") or None,
+             body.get("case_description"), body.get("passport_series"), body.get("passport_number"),
+             body.get("passport_issued_date") or None, body.get("passport_issued_by"))
         )
         patient = cur.fetchone()
         conn.commit()
@@ -112,10 +114,11 @@ def handler(event: dict, context) -> dict:
 
     if method == "PUT" and patient_id:
         cur.execute(
-            f"UPDATE {SCHEMA}.patients SET last_name=%s, first_name=%s, middle_name=%s, birth_date=%s, address=%s, admission_date=%s, case_description=%s, updated_at=NOW() WHERE id=%s RETURNING *",
+            f"UPDATE {SCHEMA}.patients SET last_name=%s, first_name=%s, middle_name=%s, birth_date=%s, address=%s, admission_date=%s, case_description=%s, passport_series=%s, passport_number=%s, passport_issued_date=%s, passport_issued_by=%s, updated_at=NOW() WHERE id=%s RETURNING *",
             (body.get("last_name"), body.get("first_name"), body.get("middle_name"),
              body.get("birth_date") or None, body.get("address"), body.get("admission_date") or None,
-             body.get("case_description"), patient_id)
+             body.get("case_description"), body.get("passport_series"), body.get("passport_number"),
+             body.get("passport_issued_date") or None, body.get("passport_issued_by"), patient_id)
         )
         patient = cur.fetchone()
         conn.commit()
