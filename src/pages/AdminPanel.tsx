@@ -102,7 +102,7 @@ export default function AdminPanel() {
     { id: "crm", label: "Пациенты", icon: "Users" },
     { id: "news", label: "Новости", icon: "Newspaper" },
     { id: "tasks", label: "Задачи", icon: "ClipboardList" },
-    { id: "users", label: "Сотрудники", icon: "UserCog", adminOnly: true },
+    { id: "users", label: "Сотрудники", icon: "UserCog" },
   ];
 
   return (
@@ -151,7 +151,7 @@ export default function AdminPanel() {
             users={adminUsers}
           />
         )}
-        {tab === "users" && isAdmin && <AdminUsersTab authLogin={session.login} authPassword={session.password} />}
+        {tab === "users" && <AdminUsersTab authLogin={session.login} authPassword={session.password} isAdmin={isAdmin} />}
       </main>
     </div>
   );

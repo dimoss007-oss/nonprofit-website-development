@@ -8,7 +8,11 @@ type AdminUser = { id: number; login: string; role: "admin" | "user"; full_name?
 const ROLE_LABELS = { admin: "Администратор", user: "Пользователь" };
 const ROLE_COLORS = { admin: "bg-ink text-beige", user: "bg-beige-dark text-ink" };
 
-export default function AdminUsersTab({ authLogin, authPassword }: { authLogin: string; authPassword: string }) {
+export default function AdminUsersTab({ authLogin, authPassword, isAdmin = false }: {
+  authLogin: string;
+  authPassword: string;
+  isAdmin?: boolean;
+}) {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
@@ -48,10 +52,59 @@ export default function AdminUsersTab({ authLogin, authPassword }: { authLogin: 
     load();
   };
 
+  // ── Режим только просмотра для обычных пользователей ──
+  if (!isAdmin) {
+    return (
+      <div className="space-y-6">
+        <h2 className="font-cormorant text-ink text-2xl font-semibold">Сотрудники</h2>
+
+        {loading ? (
+          <div className="flex justify-center py-12"><div className="w-6 h-6 border-2 border-ink border-t-transparent rounded-full animate-spin" /></div>
+        ) : (
+          <div className="space-y-2">
+            {/* Мастер-аккаунт */}
+            <div className="bg-white border border-beige-dark rounded-2xl px-5 py-4 flex items-center gap-4">
+              <div className="w-10 h-10 bg-ink rounded-xl flex items-center justify-center flex-shrink-0">
+                <Icon name="Shield" size={16} className="text-beige" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-semibold text-sm text-ink">Администратор</span>
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-ink text-beige">Администратор</span>
+                </div>
+                <p className="text-xs text-ink/40 mt-0.5">Главный аккаунт системы</p>
+              </div>
+            </div>
+
+            {users.length === 0 && (
+              <p className="text-center text-ink/40 text-sm py-8">Других сотрудников нет</p>
+            )}
+
+            {users.map(u => (
+              <div key={u.id} className="bg-white border border-beige-dark rounded-2xl px-5 py-4 flex items-center gap-4">
+                <div className="w-10 h-10 bg-beige-mid rounded-xl flex items-center justify-center flex-shrink-0">
+                  <Icon name="User" size={16} className="text-ink/50" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-semibold text-sm text-ink">{u.full_name || u.login}</span>
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${ROLE_COLORS[u.role]}`}>{ROLE_LABELS[u.role]}</span>
+                  </div>
+                  <p className="text-xs text-ink/40 mt-0.5">@{u.login}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // ── Полный режим для администратора ──
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="font-cormorant text-ink text-2xl font-semibold">Пользователи панели</h2>
+        <h2 className="font-cormorant text-ink text-2xl font-semibold">Сотрудники</h2>
         <button onClick={() => { setAdding(true); setError(""); }} className="flex items-center gap-2 bg-ink text-beige px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-ink/90 transition-colors">
           <Icon name="UserPlus" size={16} /> Добавить
         </button>
@@ -72,7 +125,7 @@ export default function AdminUsersTab({ authLogin, authPassword }: { authLogin: 
 
       {adding && (
         <div className="bg-white border border-beige-dark rounded-2xl p-6 space-y-4">
-          <h3 className="font-semibold text-ink">Новый пользователь</h3>
+          <h3 className="font-semibold text-ink">Новый сотрудник</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="text-xs text-ink/50 mb-1 block">Имя / Должность</label>
@@ -109,19 +162,21 @@ export default function AdminUsersTab({ authLogin, authPassword }: { authLogin: 
       ) : (
         <div className="space-y-2">
           {/* Мастер-аккаунт */}
-          <div className="bg-white border border-beige-dark rounded-2xl px-5 py-4 flex items-center justify-between">
-            <div>
+          <div className="bg-white border border-beige-dark rounded-2xl px-5 py-4 flex items-center gap-4">
+            <div className="w-10 h-10 bg-ink rounded-xl flex items-center justify-center flex-shrink-0">
+              <Icon name="Shield" size={16} className="text-beige" />
+            </div>
+            <div className="flex-1">
               <div className="flex items-center gap-2">
                 <span className="font-semibold text-sm text-ink">Администратор (мастер)</span>
                 <span className="text-xs px-2 py-0.5 rounded-full bg-ink text-beige">Администратор</span>
               </div>
               <p className="text-xs text-ink/40 mt-0.5">Главный аккаунт — логин и пароль из настроек системы</p>
             </div>
-            <Icon name="Shield" size={16} className="text-ink/30" />
           </div>
 
           {users.length === 0 && (
-            <p className="text-center text-ink/40 text-sm py-8">Дополнительных пользователей нет</p>
+            <p className="text-center text-ink/40 text-sm py-8">Дополнительных сотрудников нет</p>
           )}
 
           {users.map(u => (
@@ -193,9 +248,12 @@ function EditableUserRow({ user, authLogin, authPassword, onDeleted, onUpdated, 
   );
 
   return (
-    <div className="bg-white border border-beige-dark rounded-2xl px-5 py-4 flex items-center justify-between group">
-      <div>
-        <div className="flex items-center gap-2">
+    <div className="bg-white border border-beige-dark rounded-2xl px-5 py-4 flex items-center gap-4 group">
+      <div className="w-10 h-10 bg-beige-mid rounded-xl flex items-center justify-center flex-shrink-0">
+        <Icon name="User" size={16} className="text-ink/50" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 flex-wrap">
           <span className="font-semibold text-sm text-ink">{user.full_name || user.login}</span>
           <span className={`text-xs px-2 py-0.5 rounded-full ${ROLE_COLORS[user.role]}`}>{ROLE_LABELS[user.role]}</span>
         </div>
