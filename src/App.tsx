@@ -19,6 +19,7 @@ import Gratitude from "./pages/Gratitude";
 import Donate from "./pages/Donate";
 import Partners from "./pages/Partners";
 import CrmPatients from "./pages/CrmPatients";
+import AdminPanel from "./pages/AdminPanel";
 import AccessibilityWidget from "./components/shared/AccessibilityWidget";
 
 const queryClient = new QueryClient();
@@ -45,6 +46,7 @@ const App = () => (
           <Route path="/donate" element={<Donate />} />
           <Route path="/partners" element={<Partners />} />
           <Route path="/crm" element={<CrmPatients />} />
+          <Route path="/admin" element={<AdminPanel />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
