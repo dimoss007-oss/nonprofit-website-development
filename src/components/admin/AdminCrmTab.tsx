@@ -185,15 +185,18 @@ function PatientCard({ patientId, onBack, onDeleted, isAdmin }: { patientId: num
   };
 
   const uploadFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]; if (!file) return;
+    const files = Array.from(e.target.files ?? []); if (!files.length) return;
     setUploading(true);
-    const reader = new FileReader();
-    reader.onload = async () => {
-      const base64 = (reader.result as string).split(",")[1];
-      await fetch(UPLOAD_API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ patient_id: patientId, file_name: file.name, file_data: base64, file_type: file.type }) });
-      setUploading(false); load();
-    };
-    reader.readAsDataURL(file); e.target.value = "";
+    await Promise.all(files.map(file => new Promise<void>(resolve => {
+      const reader = new FileReader();
+      reader.onload = async () => {
+        const base64 = (reader.result as string).split(",")[1];
+        await fetch(UPLOAD_API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ patient_id: patientId, file_name: file.name, file_data: base64, file_type: file.type }) });
+        resolve();
+      };
+      reader.readAsDataURL(file);
+    })));
+    setUploading(false); load(); e.target.value = "";
   };
 
   const discharge = async () => {
@@ -310,7 +313,7 @@ function PatientCard({ patientId, onBack, onDeleted, isAdmin }: { patientId: num
             <Icon name={uploading ? "Loader" : "Upload"} size={14} className={uploading ? "animate-spin" : ""} />
             {uploading ? "Загрузка..." : "Прикрепить"}
           </button>
-          <input ref={fileRef} type="file" className="hidden" onChange={uploadFile} accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" />
+          <input ref={fileRef} type="file" multiple className="hidden" onChange={uploadFile} accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" />
         </div>
         {documents.length === 0 && <p className="text-ink/40 text-sm">Нет прикреплённых документов</p>}
         <div className="space-y-2">
