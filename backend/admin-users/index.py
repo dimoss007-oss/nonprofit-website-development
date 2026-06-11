@@ -67,7 +67,7 @@ def handler(event: dict, context) -> dict:
     if method == "GET":
         conn = get_conn()
         cur = conn.cursor(cursor_factory=RealDictCursor)
-        cur.execute(f"SELECT id, login, role, full_name, created_at FROM {SCHEMA}.admin_users ORDER BY created_at")
+        cur.execute(f"SELECT id, login, role, full_name, phone, created_at FROM {SCHEMA}.admin_users ORDER BY created_at")
         users = cur.fetchall()
         conn.close()
         return ok({"users": [dict(u) for u in users]})
@@ -100,9 +100,10 @@ def handler(event: dict, context) -> dict:
             if cur.fetchone():
                 return err("Пользователь с таким логином уже существует")
 
+            phone = body.get("phone", "").strip()
             cur.execute(
-                f"INSERT INTO {SCHEMA}.admin_users (login, password_hash, role, full_name) VALUES (%s,%s,%s,%s) RETURNING id, login, role, full_name, created_at",
-                (login, hash_password(password), role, full_name or None)
+                f"INSERT INTO {SCHEMA}.admin_users (login, password_hash, role, full_name, phone) VALUES (%s,%s,%s,%s,%s) RETURNING id, login, role, full_name, phone, created_at",
+                (login, hash_password(password), role, full_name or None, phone or None)
             )
             user = cur.fetchone()
             conn.commit()
@@ -114,6 +115,7 @@ def handler(event: dict, context) -> dict:
             user_id = body.get("user_id")
             role = body.get("role")
             full_name = body.get("full_name", "")
+            phone = body.get("phone", "").strip()
             new_password = body.get("new_password", "").strip()
 
             if role and role not in ("admin", "user"):
@@ -121,13 +123,13 @@ def handler(event: dict, context) -> dict:
 
             if new_password:
                 cur.execute(
-                    f"UPDATE {SCHEMA}.admin_users SET role=COALESCE(%s,role), full_name=%s, password_hash=%s WHERE id=%s RETURNING id, login, role, full_name",
-                    (role, full_name or None, hash_password(new_password), user_id)
+                    f"UPDATE {SCHEMA}.admin_users SET role=COALESCE(%s,role), full_name=%s, phone=%s, password_hash=%s WHERE id=%s RETURNING id, login, role, full_name, phone",
+                    (role, full_name or None, phone or None, hash_password(new_password), user_id)
                 )
             else:
                 cur.execute(
-                    f"UPDATE {SCHEMA}.admin_users SET role=COALESCE(%s,role), full_name=%s WHERE id=%s RETURNING id, login, role, full_name",
-                    (role, full_name or None, user_id)
+                    f"UPDATE {SCHEMA}.admin_users SET role=COALESCE(%s,role), full_name=%s, phone=%s WHERE id=%s RETURNING id, login, role, full_name, phone",
+                    (role, full_name or None, phone or None, user_id)
                 )
             user = cur.fetchone()
             conn.commit()

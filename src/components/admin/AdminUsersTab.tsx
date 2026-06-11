@@ -3,7 +3,7 @@ import Icon from "@/components/ui/icon";
 
 const API = "https://functions.poehali.dev/e6567f16-b3db-4b0d-9c1f-abed808c2ac8";
 
-type AdminUser = { id: number; login: string; role: "admin" | "user"; full_name?: string; created_at: string };
+type AdminUser = { id: number; login: string; role: "admin" | "user"; full_name?: string; phone?: string; created_at: string };
 
 const ROLE_LABELS = { admin: "Администратор", user: "Пользователь" };
 const ROLE_COLORS = { admin: "bg-ink text-beige", user: "bg-beige-dark text-ink" };
@@ -55,6 +55,7 @@ export default function AdminUsersTab({ authLogin, authPassword, isAdmin = false
   const [newPassword, setNewPassword] = useState("");
   const [newRole, setNewRole] = useState<"admin" | "user">("user");
   const [newFullName, setNewFullName] = useState("");
+  const [newPhone, setNewPhone] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -71,11 +72,11 @@ export default function AdminUsersTab({ authLogin, authPassword, isAdmin = false
   const createUser = async () => {
     if (!newLogin.trim() || !newPassword.trim()) { setError("Заполните логин и пароль"); return; }
     setSaving(true); setError("");
-    const r = await fetch(API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "create", auth_login: authLogin, auth_password: authPassword, login: newLogin, password: newPassword, role: newRole, full_name: newFullName }) });
+    const r = await fetch(API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "create", auth_login: authLogin, auth_password: authPassword, login: newLogin, password: newPassword, role: newRole, full_name: newFullName, phone: newPhone }) });
     const d = await r.json();
     setSaving(false);
     if (d.error) { setError(d.error); return; }
-    setAdding(false); setNewLogin(""); setNewPassword(""); setNewRole("user"); setNewFullName("");
+    setAdding(false); setNewLogin(""); setNewPassword(""); setNewRole("user"); setNewFullName(""); setNewPhone("");
     load();
   };
 
@@ -121,7 +122,10 @@ export default function AdminUsersTab({ authLogin, authPassword, isAdmin = false
                     <span className="font-semibold text-sm text-ink">{u.full_name || u.login}</span>
                     <span className={`text-xs px-2 py-0.5 rounded-full ${ROLE_COLORS[u.role]}`}>{ROLE_LABELS[u.role]}</span>
                   </div>
-                  <p className="text-xs text-ink/40 mt-0.5">@{u.login}</p>
+                  <div className="flex items-center gap-3 mt-0.5 flex-wrap">
+                    <p className="text-xs text-ink/40">@{u.login}</p>
+                    {u.phone && <p className="text-xs text-ink/50 flex items-center gap-1"><Icon name="Phone" size={11} />{u.phone}</p>}
+                  </div>
                 </div>
               </div>
             ))}
@@ -161,6 +165,10 @@ export default function AdminUsersTab({ authLogin, authPassword, isAdmin = false
             <div>
               <label className="text-xs text-ink/50 mb-1 block">Имя / Должность</label>
               <input value={newFullName} onChange={e => setNewFullName(e.target.value)} placeholder="Мария Иванова" className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" />
+            </div>
+            <div>
+              <label className="text-xs text-ink/50 mb-1 block">Телефон</label>
+              <input value={newPhone} onChange={e => setNewPhone(e.target.value)} placeholder="+7 (900) 000-00-00" className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" />
             </div>
             <div>
               <label className="text-xs text-ink/50 mb-1 block">Роль</label>
@@ -242,12 +250,13 @@ function EditableUserRow({ user, authLogin, authPassword, onDeleted, onUpdated, 
 }) {
   const [role, setRole] = useState<"admin" | "user">(user.role);
   const [fullName, setFullName] = useState(user.full_name || "");
+  const [phone, setPhone] = useState(user.phone || "");
   const [newPassword, setNewPassword] = useState("");
   const [saving, setSaving] = useState(false);
 
   const save = async () => {
     setSaving(true);
-    await fetch(API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "update", auth_login: authLogin, auth_password: authPassword, user_id: user.id, role, full_name: fullName, new_password: newPassword }) });
+    await fetch(API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "update", auth_login: authLogin, auth_password: authPassword, user_id: user.id, role, full_name: fullName, phone, new_password: newPassword }) });
     setSaving(false);
     onCancelEdit();
     onUpdated();
@@ -255,10 +264,14 @@ function EditableUserRow({ user, authLogin, authPassword, onDeleted, onUpdated, 
 
   if (editing) return (
     <div className="bg-white border border-ink/20 rounded-2xl p-5 space-y-3">
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className="text-xs text-ink/50 mb-1 block">Имя / Должность</label>
           <input value={fullName} onChange={e => setFullName(e.target.value)} className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" />
+        </div>
+        <div>
+          <label className="text-xs text-ink/50 mb-1 block">Телефон</label>
+          <input value={phone} onChange={e => setPhone(e.target.value)} placeholder="+7 (900) 000-00-00" className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" />
         </div>
         <div>
           <label className="text-xs text-ink/50 mb-1 block">Роль</label>
@@ -287,7 +300,10 @@ function EditableUserRow({ user, authLogin, authPassword, onDeleted, onUpdated, 
           <span className="font-semibold text-sm text-ink">{user.full_name || user.login}</span>
           <span className={`text-xs px-2 py-0.5 rounded-full ${ROLE_COLORS[user.role]}`}>{ROLE_LABELS[user.role]}</span>
         </div>
-        <p className="text-xs text-ink/40 mt-0.5">@{user.login}</p>
+        <div className="flex items-center gap-3 mt-0.5 flex-wrap">
+          <p className="text-xs text-ink/40">@{user.login}</p>
+          {user.phone && <p className="text-xs text-ink/50 flex items-center gap-1"><Icon name="Phone" size={11} />{user.phone}</p>}
+        </div>
       </div>
       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
         <button onClick={onEdit} className="p-1.5 text-ink/40 hover:text-ink transition-colors"><Icon name="Pencil" size={14} /></button>
