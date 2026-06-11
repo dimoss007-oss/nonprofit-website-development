@@ -403,17 +403,23 @@ export default function AdminCrmTab({ isAdmin = true }: { isAdmin?: boolean }) {
       ) : (
         <div className="space-y-2">
           {patients.map(p => (
-            <button key={p.id} onClick={() => setSelectedId(p.id)} className="w-full bg-white border border-beige-dark rounded-2xl px-5 py-4 text-left hover:border-ink transition-colors group">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-semibold text-ink">{p.last_name} {p.first_name} {p.middle_name ?? ""}</p>
-                  <div className="flex items-center gap-4 mt-1">
+            <button key={p.id} onClick={() => setSelectedId(p.id)} className={`w-full bg-white border rounded-2xl px-5 py-4 text-left hover:border-ink transition-colors group ${p.discharge_date ? "border-beige-dark" : "border-green-200"}`}>
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="font-semibold text-ink">{p.last_name} {p.first_name} {p.middle_name ?? ""}</p>
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0 ${p.discharge_date ? "bg-beige-dark text-ink/40" : "bg-green-100 text-green-700"}`}>
+                      {p.discharge_date ? "Выписана" : "В центре"}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-4 mt-1 flex-wrap">
                     {p.birth_date && <span className="text-xs text-ink/40">Р. {fmt(p.birth_date)}</span>}
                     {p.admission_date && <span className="text-xs text-ink/40">Поступила: {fmt(p.admission_date)}</span>}
+                    {p.discharge_date && <span className="text-xs text-ink/40">Выписана: {fmt(p.discharge_date)}</span>}
                     {(p.children_count ?? 0) > 0 && <span className="text-xs text-ink/40">{p.children_count} {Number(p.children_count) === 1 ? "ребёнок" : Number(p.children_count) < 5 ? "ребёнка" : "детей"}</span>}
                   </div>
                 </div>
-                <Icon name="ChevronRight" size={16} className="text-ink/30 group-hover:text-ink transition-colors" />
+                <Icon name="ChevronRight" size={16} className="text-ink/30 group-hover:text-ink transition-colors flex-shrink-0" />
               </div>
             </button>
           ))}
