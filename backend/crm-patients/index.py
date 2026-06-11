@@ -47,11 +47,11 @@ def handler(event: dict, context) -> dict:
             search = params.get("search", "")
             if search:
                 cur.execute(
-                    f"SELECT p.*, COUNT(c.id) as children_count FROM {SCHEMA}.patients p LEFT JOIN {SCHEMA}.patient_children c ON c.patient_id = p.id WHERE p.last_name ILIKE %s OR p.first_name ILIKE %s OR p.middle_name ILIKE %s GROUP BY p.id ORDER BY p.created_at DESC",
+                    f"SELECT p.*, COUNT(c.id) as children_count FROM {SCHEMA}.patients p LEFT JOIN {SCHEMA}.patient_children c ON c.patient_id = p.id WHERE p.last_name ILIKE %s OR p.first_name ILIKE %s OR p.middle_name ILIKE %s GROUP BY p.id ORDER BY (p.discharge_date IS NOT NULL) DESC, p.discharge_date DESC NULLS LAST, p.created_at DESC",
                     (f"%{search}%", f"%{search}%", f"%{search}%")
                 )
             else:
-                cur.execute(f"SELECT p.*, COUNT(c.id) as children_count FROM {SCHEMA}.patients p LEFT JOIN {SCHEMA}.patient_children c ON c.patient_id = p.id GROUP BY p.id ORDER BY p.created_at DESC")
+                cur.execute(f"SELECT p.*, COUNT(c.id) as children_count FROM {SCHEMA}.patients p LEFT JOIN {SCHEMA}.patient_children c ON c.patient_id = p.id GROUP BY p.id ORDER BY (p.discharge_date IS NOT NULL) DESC, p.discharge_date DESC NULLS LAST, p.created_at DESC")
             rows = cur.fetchall()
             return ok({"patients": [dict(r) for r in rows]})
 
