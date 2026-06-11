@@ -196,6 +196,17 @@ function PatientCard({ patientId, onBack, onDeleted, isAdmin }: { patientId: num
     reader.readAsDataURL(file); e.target.value = "";
   };
 
+  const discharge = async () => {
+    const today = new Date().toISOString().slice(0, 10);
+    await fetch(`${API}?id=${patientId}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...data!.patient, birth_date: data!.patient.birth_date?.slice(0, 10) ?? "", admission_date: data!.patient.admission_date?.slice(0, 10) ?? "", passport_issued_date: data!.patient.passport_issued_date?.slice(0, 10) ?? "", discharge_date: today }) });
+    load();
+  };
+
+  const readmit = async () => {
+    await fetch(`${API}?id=${patientId}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...data!.patient, birth_date: data!.patient.birth_date?.slice(0, 10) ?? "", admission_date: data!.patient.admission_date?.slice(0, 10) ?? "", passport_issued_date: data!.patient.passport_issued_date?.slice(0, 10) ?? "", discharge_date: "" }) });
+    load();
+  };
+
   const deleteDoc = async (docId: number) => {
     if (!confirm("Удалить документ?")) return;
     await fetch(API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "delete_document", document_id: docId }) });
@@ -226,6 +237,15 @@ function PatientCard({ patientId, onBack, onDeleted, isAdmin }: { patientId: num
         <button onClick={() => setEditing(e => !e)} className="px-3 py-1.5 text-sm border border-beige-dark rounded-lg hover:border-ink transition-colors flex items-center gap-1.5">
           <Icon name="Pencil" size={14} /> Редактировать
         </button>
+        {isActive ? (
+          <button onClick={() => confirm("Выписать пациента? Будет установлена сегодняшняя дата.") && discharge()} className="px-3 py-1.5 text-sm border border-orange-200 text-orange-600 rounded-lg hover:bg-orange-50 transition-colors flex items-center gap-1.5">
+            <Icon name="LogOut" size={14} /> Выписать
+          </button>
+        ) : (
+          <button onClick={readmit} className="px-3 py-1.5 text-sm border border-green-200 text-green-700 rounded-lg hover:bg-green-50 transition-colors flex items-center gap-1.5">
+            <Icon name="LogIn" size={14} /> Вернуть в центр
+          </button>
+        )}
         {isAdmin && (
           <button onClick={deletePatient} className="px-3 py-1.5 text-sm border border-red-200 text-red-500 rounded-lg hover:bg-red-50 transition-colors flex items-center gap-1.5">
             <Icon name="Trash2" size={14} /> Удалить
