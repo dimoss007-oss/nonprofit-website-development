@@ -8,7 +8,7 @@ type Child = { id: number; last_name?: string; first_name: string; middle_name?:
 type Document = { id: number; file_name: string; file_url: string; file_type?: string; file_size?: number; uploaded_at: string };
 type Patient = {
   id: number; last_name: string; first_name: string; middle_name?: string;
-  birth_date?: string; address?: string; admission_date?: string;
+  birth_date?: string; address?: string; admission_date?: string; discharge_date?: string;
   case_description?: string; created_at: string; children_count?: number;
   passport_series?: string; passport_number?: string;
   passport_issued_date?: string; passport_issued_by?: string;
@@ -26,7 +26,24 @@ function fmtSize(bytes?: number) {
   return `${(bytes / 1024 / 1024).toFixed(1)} МБ`;
 }
 
-const EMPTY_FORM = { last_name: "", first_name: "", middle_name: "", birth_date: "", address: "", admission_date: "", case_description: "", passport_series: "", passport_number: "", passport_issued_date: "", passport_issued_by: "" };
+function stayDuration(admission?: string, discharge?: string): string | null {
+  if (!admission) return null;
+  const from = new Date(admission);
+  const to = discharge ? new Date(discharge) : new Date();
+  if (isNaN(from.getTime())) return null;
+  let years = to.getFullYear() - from.getFullYear();
+  let months = to.getMonth() - from.getMonth();
+  let days = to.getDate() - from.getDate();
+  if (days < 0) { months--; days += new Date(to.getFullYear(), to.getMonth(), 0).getDate(); }
+  if (months < 0) { years--; months += 12; }
+  const parts: string[] = [];
+  if (years > 0) parts.push(`${years} ${years === 1 ? "год" : years < 5 ? "года" : "лет"}`);
+  if (months > 0) parts.push(`${months} ${months === 1 ? "месяц" : months < 5 ? "месяца" : "месяцев"}`);
+  if (days > 0 || parts.length === 0) parts.push(`${days} ${days === 1 ? "день" : days < 5 ? "дня" : "дней"}`);
+  return parts.join(" ");
+}
+
+const EMPTY_FORM = { last_name: "", first_name: "", middle_name: "", birth_date: "", address: "", admission_date: "", discharge_date: "", case_description: "", passport_series: "", passport_number: "", passport_issued_date: "", passport_issued_by: "" };
 
 function PatientForm({ initial, onSave, onCancel, loading }: { initial?: Partial<typeof EMPTY_FORM>; onSave: (data: typeof EMPTY_FORM) => void; onCancel: () => void; loading: boolean }) {
   const [form, setForm] = useState({ ...EMPTY_FORM, ...initial });
@@ -38,9 +55,10 @@ function PatientForm({ initial, onSave, onCancel, loading }: { initial?: Partial
         <div><label className="text-xs text-ink/50 mb-1 block">Имя *</label><input value={form.first_name} onChange={set("first_name")} className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" /></div>
         <div><label className="text-xs text-ink/50 mb-1 block">Отчество</label><input value={form.middle_name} onChange={set("middle_name")} className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" /></div>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div><label className="text-xs text-ink/50 mb-1 block">Дата рождения</label><input type="date" value={form.birth_date} onChange={set("birth_date")} className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" /></div>
         <div><label className="text-xs text-ink/50 mb-1 block">Дата поступления</label><input type="date" value={form.admission_date} onChange={set("admission_date")} className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" /></div>
+        <div><label className="text-xs text-ink/50 mb-1 block">Дата выписки</label><input type="date" value={form.discharge_date} onChange={set("discharge_date")} className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" /></div>
       </div>
       <div><label className="text-xs text-ink/50 mb-1 block">Прописка</label><input value={form.address} onChange={set("address")} className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" /></div>
       <div className="pt-1">
@@ -189,13 +207,20 @@ function PatientCard({ patientId, onBack, onDeleted, isAdmin }: { patientId: num
 
   const { patient, children, documents } = data;
   const fullName = [patient.last_name, patient.first_name, patient.middle_name].filter(Boolean).join(" ");
+  const duration = stayDuration(patient.admission_date, patient.discharge_date);
+  const isActive = !patient.discharge_date;
 
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3 flex-wrap">
         <button onClick={onBack} className="p-2 rounded-lg hover:bg-beige-mid transition-colors"><Icon name="ArrowLeft" size={18} /></button>
         <div className="flex-1">
-          <h2 className="font-cormorant text-ink text-2xl font-semibold">{fullName}</h2>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h2 className="font-cormorant text-ink text-2xl font-semibold">{fullName}</h2>
+            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${isActive ? "bg-green-100 text-green-700" : "bg-beige-dark text-ink/50"}`}>
+              {isActive ? "В центре" : "Выписана"}
+            </span>
+          </div>
           <p className="text-ink/50 text-sm">Поступила: {fmt(patient.admission_date)}</p>
         </div>
         <button onClick={() => setEditing(e => !e)} className="px-3 py-1.5 text-sm border border-beige-dark rounded-lg hover:border-ink transition-colors flex items-center gap-1.5">
@@ -211,7 +236,19 @@ function PatientCard({ patientId, onBack, onDeleted, isAdmin }: { patientId: num
       {editing && (
         <div className="bg-white border border-beige-dark rounded-2xl p-6">
           <h3 className="font-semibold text-ink mb-4">Редактирование</h3>
-          <PatientForm initial={{ last_name: patient.last_name, first_name: patient.first_name, middle_name: patient.middle_name ?? "", birth_date: patient.birth_date?.slice(0, 10) ?? "", address: patient.address ?? "", admission_date: patient.admission_date?.slice(0, 10) ?? "", case_description: patient.case_description ?? "", passport_series: patient.passport_series ?? "", passport_number: patient.passport_number ?? "", passport_issued_date: patient.passport_issued_date?.slice(0, 10) ?? "", passport_issued_by: patient.passport_issued_by ?? "" }} onSave={save} onCancel={() => setEditing(false)} loading={saving} />
+          <PatientForm initial={{ last_name: patient.last_name, first_name: patient.first_name, middle_name: patient.middle_name ?? "", birth_date: patient.birth_date?.slice(0, 10) ?? "", address: patient.address ?? "", admission_date: patient.admission_date?.slice(0, 10) ?? "", discharge_date: patient.discharge_date?.slice(0, 10) ?? "", case_description: patient.case_description ?? "", passport_series: patient.passport_series ?? "", passport_number: patient.passport_number ?? "", passport_issued_date: patient.passport_issued_date?.slice(0, 10) ?? "", passport_issued_by: patient.passport_issued_by ?? "" }} onSave={save} onCancel={() => setEditing(false)} loading={saving} />
+        </div>
+      )}
+
+      {duration && (
+        <div className={`rounded-2xl p-5 flex items-center gap-4 ${isActive ? "bg-green-50 border border-green-200" : "bg-beige border border-beige-dark"}`}>
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${isActive ? "bg-green-100" : "bg-beige-dark"}`}>
+            <Icon name="Timer" size={18} className={isActive ? "text-green-600" : "text-ink/40"} />
+          </div>
+          <div>
+            <p className="text-xs text-ink/40 uppercase tracking-wide mb-0.5">{isActive ? "Находится в центре" : "Находилась в центре"}</p>
+            <p className="font-semibold text-ink text-lg leading-tight">{duration}</p>
+          </div>
         </div>
       )}
 
@@ -221,6 +258,7 @@ function PatientCard({ patientId, onBack, onDeleted, isAdmin }: { patientId: num
           <Row label="Дата рождения" value={fmt(patient.birth_date)} />
           <Row label="Прописка" value={patient.address || "—"} />
           <Row label="Дата поступления" value={fmt(patient.admission_date)} />
+          <Row label="Дата выписки" value={fmt(patient.discharge_date)} />
         </div>
         <div className="bg-white border border-beige-dark rounded-2xl p-5 space-y-3">
           <h3 className="font-semibold text-ink text-sm uppercase tracking-wide">Паспорт</h3>

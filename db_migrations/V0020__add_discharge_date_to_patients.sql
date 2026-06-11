@@ -1,0 +1,1 @@
+ALTER TABLE t_p59822815_nonprofit_website_de.patients ADD COLUMN IF NOT EXISTS discharge_date DATE;
