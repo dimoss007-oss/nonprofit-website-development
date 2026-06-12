@@ -33,7 +33,7 @@ def get_max_chat_id(login: str):
     return row[0] if row and row[0] else None
 
 def send_max_notification(chat_id: int, text: str):
-    token = os.environ.get("MAX_CONTACT_BOT_TOKEN", "")
+    token = os.environ.get("MAX_TASKS_BOT_TOKEN", "")
     if not token or not chat_id:
         return
     try:
