@@ -100,13 +100,13 @@ export default function AdminPanel() {
   const logout = () => { sessionStorage.removeItem(SESSION_KEY); setSession(null); };
   const isAdmin = session.role === "admin";
 
-  const TABS: { id: Tab; label: string; icon: string; color: string; adminOnly?: boolean }[] = [
-    { id: "crm",      label: "Пациенты",   icon: "Users",         color: "bg-blue-100 text-blue-700 hover:bg-blue-100" },
-    { id: "news",     label: "Новости",    icon: "Newspaper",     color: "bg-amber-100 text-amber-700 hover:bg-amber-100" },
-    { id: "tasks",    label: "Задачи",     icon: "ClipboardList", color: "bg-violet-100 text-violet-700 hover:bg-violet-100" },
-    { id: "requests", label: "Заявки",     icon: "Inbox",         color: "bg-rose-100 text-rose-700 hover:bg-rose-100" },
-    { id: "users",    label: "Сотрудники", icon: "UserCog",       color: "bg-sage-pale text-sage-dark hover:bg-sage-pale" },
-    { id: "gallery",  label: "Галерея",    icon: "Images",        color: "bg-orange-100 text-orange-700 hover:bg-orange-100", adminOnly: true },
+  const TABS: { id: Tab; label: string; icon: string; active: string; inactive: string; adminOnly?: boolean }[] = [
+    { id: "crm",      label: "Пациенты",   icon: "Users",         active: "bg-blue-100 text-blue-700 shadow-sm",           inactive: "text-blue-400 hover:bg-blue-50 hover:text-blue-600" },
+    { id: "news",     label: "Новости",    icon: "Newspaper",     active: "bg-amber-100 text-amber-700 shadow-sm",         inactive: "text-amber-400 hover:bg-amber-50 hover:text-amber-600" },
+    { id: "tasks",    label: "Задачи",     icon: "ClipboardList", active: "bg-violet-100 text-violet-700 shadow-sm",       inactive: "text-violet-400 hover:bg-violet-50 hover:text-violet-600" },
+    { id: "requests", label: "Заявки",     icon: "Inbox",         active: "bg-rose-100 text-rose-700 shadow-sm",           inactive: "text-rose-400 hover:bg-rose-50 hover:text-rose-600" },
+    { id: "users",    label: "Сотрудники", icon: "UserCog",       active: "bg-sage-pale text-sage-dark shadow-sm",         inactive: "text-sage hover:bg-sage-pale/50 hover:text-sage-dark" },
+    { id: "gallery",  label: "Галерея",    icon: "Images",        active: "bg-orange-100 text-orange-700 shadow-sm",       inactive: "text-orange-400 hover:bg-orange-50 hover:text-orange-600", adminOnly: true },
   ];
 
   return (
@@ -123,7 +123,7 @@ export default function AdminPanel() {
 
           <nav className="flex items-center gap-1 bg-beige-mid rounded-xl p-1">
             {TABS.filter(t => !t.adminOnly || isAdmin).map(t => (
-              <button key={t.id} onClick={() => setTab(t.id)} className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${tab === t.id ? `${t.color} shadow-sm` : "text-ink/50 hover:text-ink"}`}>
+              <button key={t.id} onClick={() => setTab(t.id)} className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${tab === t.id ? t.active : t.inactive}`}>
                 <Icon name={t.icon} size={15} />
                 {t.label}
               </button>
