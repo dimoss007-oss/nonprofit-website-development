@@ -100,13 +100,13 @@ export default function AdminPanel() {
   const logout = () => { sessionStorage.removeItem(SESSION_KEY); setSession(null); };
   const isAdmin = session.role === "admin";
 
-  const TABS: { id: Tab; label: string; icon: string; adminOnly?: boolean }[] = [
-    { id: "crm", label: "Пациенты", icon: "Users" },
-    { id: "news", label: "Новости", icon: "Newspaper" },
-    { id: "tasks", label: "Задачи", icon: "ClipboardList" },
-    { id: "requests", label: "Заявки", icon: "Inbox" },
-    { id: "users", label: "Сотрудники", icon: "UserCog" },
-    { id: "gallery", label: "Галерея", icon: "Images", adminOnly: true },
+  const TABS: { id: Tab; label: string; icon: string; color: string; adminOnly?: boolean }[] = [
+    { id: "crm",      label: "Пациенты",   icon: "Users",         color: "bg-blue-100 text-blue-700 hover:bg-blue-100" },
+    { id: "news",     label: "Новости",    icon: "Newspaper",     color: "bg-amber-100 text-amber-700 hover:bg-amber-100" },
+    { id: "tasks",    label: "Задачи",     icon: "ClipboardList", color: "bg-violet-100 text-violet-700 hover:bg-violet-100" },
+    { id: "requests", label: "Заявки",     icon: "Inbox",         color: "bg-rose-100 text-rose-700 hover:bg-rose-100" },
+    { id: "users",    label: "Сотрудники", icon: "UserCog",       color: "bg-sage-pale text-sage-dark hover:bg-sage-pale" },
+    { id: "gallery",  label: "Галерея",    icon: "Images",        color: "bg-orange-100 text-orange-700 hover:bg-orange-100", adminOnly: true },
   ];
 
   return (
@@ -123,7 +123,7 @@ export default function AdminPanel() {
 
           <nav className="flex items-center gap-1 bg-beige-mid rounded-xl p-1">
             {TABS.filter(t => !t.adminOnly || isAdmin).map(t => (
-              <button key={t.id} onClick={() => setTab(t.id)} className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${tab === t.id ? "bg-white text-ink shadow-sm" : "text-ink/50 hover:text-ink"}`}>
+              <button key={t.id} onClick={() => setTab(t.id)} className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${tab === t.id ? `${t.color} shadow-sm` : "text-ink/50 hover:text-ink"}`}>
                 <Icon name={t.icon} size={15} />
                 {t.label}
               </button>
