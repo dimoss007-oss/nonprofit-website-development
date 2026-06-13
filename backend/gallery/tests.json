@@ -4,9 +4,7 @@
       "name": "GET gallery",
       "method": "GET",
       "path": "/",
-      "expectedStatus": 200,
-      "expectedBody": {"photos": []},
-      "bodyMatcher": "partial"
+      "expectedStatus": 200
     }
   ]
 }

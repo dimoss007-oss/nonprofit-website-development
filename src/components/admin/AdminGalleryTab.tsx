@@ -40,7 +40,10 @@ export default function AdminGalleryTab() {
   const [saving, setSaving] = useState(false);
   const [savedCount, setSavedCount] = useState(0);
   const [deleting, setDeleting] = useState<number | null>(null);
-  const [dragOver, setDragOver] = useState(false);
+  const [dropZoneDrag, setDropZoneDrag] = useState(false);
+  const [reordering, setReordering] = useState(false);
+  const dragIdx = useRef<number | null>(null);
+  const dragOverIdx = useRef<number | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const loadPhotos = () => {
@@ -97,6 +100,38 @@ export default function AdminGalleryTab() {
     loadPhotos();
   };
 
+  // Drag & drop сортировка
+  const handleDragStart = (idx: number) => {
+    dragIdx.current = idx;
+  };
+
+  const handleDragEnter = (idx: number) => {
+    if (dragIdx.current === null || dragIdx.current === idx) return;
+    dragOverIdx.current = idx;
+    setPhotos((prev) => {
+      const next = [...prev];
+      const [moved] = next.splice(dragIdx.current!, 1);
+      next.splice(idx, 0, moved);
+      dragIdx.current = idx;
+      return next;
+    });
+  };
+
+  const handleDragEnd = async () => {
+    dragIdx.current = null;
+    dragOverIdx.current = null;
+    setReordering(true);
+    try {
+      await fetch(GALLERY_URL, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ order: photos.map((p) => p.id) }),
+      });
+    } finally {
+      setReordering(false);
+    }
+  };
+
   return (
     <div className="space-y-8">
       {/* Загрузка фото */}
@@ -115,15 +150,15 @@ export default function AdminGalleryTab() {
           </div>
 
           <div
-            className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors ${dragOver ? "border-ink bg-beige/60" : "border-beige-dark hover:border-ink/40"}`}
+            className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors ${dropZoneDrag ? "border-ink bg-beige/60" : "border-beige-dark hover:border-ink/40"}`}
             onClick={() => fileRef.current?.click()}
-            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-            onDragLeave={() => setDragOver(false)}
-            onDrop={(e) => { e.preventDefault(); setDragOver(false); handleFiles(e.dataTransfer.files); }}
+            onDragOver={(e) => { e.preventDefault(); setDropZoneDrag(true); }}
+            onDragLeave={() => setDropZoneDrag(false)}
+            onDrop={(e) => { e.preventDefault(); setDropZoneDrag(false); handleFiles(e.dataTransfer.files); }}
           >
             <Icon name="ImagePlus" size={32} className="mx-auto text-ink/30 mb-3" />
             <div className="text-sm text-ink/50">Перетащите фото сюда или <span className="text-ink underline">выберите файлы</span></div>
-            <div className="text-xs text-ink/30 mt-1">JPG, PNG, WEBP — до нескольких файлов сразу</div>
+            <div className="text-xs text-ink/30 mt-1">JPG, PNG, WEBP — несколько файлов сразу</div>
             <input
               ref={fileRef}
               type="file"
@@ -151,32 +186,42 @@ export default function AdminGalleryTab() {
             </div>
           )}
 
-          {saving && (
-            <div className="text-sm text-ink/60 bg-beige/50 rounded-xl px-4 py-3">
-              Загрузка {savedCount} из {pendingFiles.length + savedCount}...
-            </div>
-          )}
-
           <button
             type="submit"
             disabled={saving || pendingFiles.length === 0}
             className="w-full bg-ink text-beige py-3 rounded-xl font-semibold text-sm hover:bg-ink/90 transition-colors disabled:opacity-40"
           >
-            {saving ? `Загружаем ${savedCount}/${pendingFiles.length + savedCount}...` : `Загрузить ${pendingFiles.length > 0 ? `${pendingFiles.length} фото` : "фото"}`}
+            {saving
+              ? `Загружаем ${savedCount}/${pendingFiles.length + savedCount}...`
+              : `Загрузить ${pendingFiles.length > 0 ? `${pendingFiles.length} фото` : "фото"}`}
           </button>
         </form>
       </div>
 
-      {/* Список фото */}
+      {/* Список фото с drag & drop */}
       <div className="bg-white rounded-2xl p-6 shadow-sm">
-        <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center justify-between mb-2">
           <h2 className="font-cormorant text-xl font-semibold text-ink">
             Фотографии в галерее {!loading && <span className="text-ink/40 text-base font-normal">({photos.length})</span>}
           </h2>
-          <button onClick={loadPhotos} className="text-ink/40 hover:text-ink transition-colors" title="Обновить">
-            <Icon name="RefreshCw" size={16} />
-          </button>
+          <div className="flex items-center gap-3">
+            {reordering && (
+              <span className="text-xs text-ink/40 flex items-center gap-1">
+                <Icon name="Loader2" size={12} className="animate-spin" /> Сохраняем порядок...
+              </span>
+            )}
+            <button onClick={loadPhotos} className="text-ink/40 hover:text-ink transition-colors" title="Обновить">
+              <Icon name="RefreshCw" size={16} />
+            </button>
+          </div>
         </div>
+
+        {photos.length > 1 && !loading && (
+          <p className="text-xs text-ink/40 mb-4 flex items-center gap-1.5">
+            <Icon name="GripVertical" size={13} />
+            Перетащите фото чтобы изменить порядок
+          </p>
+        )}
 
         {loading ? (
           <div className="flex items-center justify-center py-16 text-ink/30">
@@ -190,15 +235,30 @@ export default function AdminGalleryTab() {
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {photos.map((photo) => (
-              <div key={photo.id} className="relative group aspect-square rounded-xl overflow-hidden bg-beige-mid">
-                <img src={photo.photo_url} alt={photo.title} className="w-full h-full object-cover" />
+            {photos.map((photo, idx) => (
+              <div
+                key={photo.id}
+                draggable
+                onDragStart={() => handleDragStart(idx)}
+                onDragEnter={() => handleDragEnter(idx)}
+                onDragEnd={handleDragEnd}
+                onDragOver={(e) => e.preventDefault()}
+                className="relative group aspect-square rounded-xl overflow-hidden bg-beige-mid cursor-grab active:cursor-grabbing select-none transition-transform active:scale-95"
+              >
+                <img src={photo.photo_url} alt={photo.title} className="w-full h-full object-cover pointer-events-none" />
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors" />
+
+                {/* Иконка перетаскивания */}
+                <div className="absolute top-2 left-2 bg-black/50 text-white rounded-lg p-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Icon name="GripVertical" size={13} />
+                </div>
+
                 {photo.title && (
                   <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
                     <div className="text-white text-xs truncate">{photo.title}</div>
                   </div>
                 )}
+
                 <button
                   onClick={() => handleDelete(photo.id)}
                   disabled={deleting === photo.id}
@@ -207,8 +267,7 @@ export default function AdminGalleryTab() {
                 >
                   {deleting === photo.id
                     ? <Icon name="Loader2" size={13} className="animate-spin" />
-                    : <Icon name="Trash2" size={13} />
-                  }
+                    : <Icon name="Trash2" size={13} />}
                 </button>
               </div>
             ))}

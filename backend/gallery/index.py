@@ -1,8 +1,9 @@
 """
-Галерея фотографий — получение, добавление и удаление фото.
+Галерея фотографий — получение, добавление, удаление и сортировка фото.
 GET  / — список всех фото
 POST / — добавить фото (base64)
 DELETE /?id=N — удалить фото
+PUT  / — обновить порядок фото (body: {order: [id1, id2, ...]})
 """
 import json
 import os
@@ -13,7 +14,7 @@ import boto3
 
 CORS = {
     "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
+    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type",
 }
 
@@ -101,6 +102,23 @@ def handler(event: dict, context) -> dict:
         conn = get_db()
         cur = conn.cursor()
         cur.execute("DELETE FROM gallery WHERE id = %s", (photo_id,))
+        conn.commit()
+        cur.close()
+        conn.close()
+        return {
+            "statusCode": 200,
+            "headers": {**CORS, "Content-Type": "application/json"},
+            "body": json.dumps({"ok": True}),
+            "isBase64Encoded": False,
+        }
+
+    if method == "PUT":
+        body = json.loads(event.get("body") or "{}")
+        order = body.get("order", [])
+        conn = get_db()
+        cur = conn.cursor()
+        for idx, photo_id in enumerate(order):
+            cur.execute("UPDATE gallery SET sort_order = %s WHERE id = %s", (idx, photo_id))
         conn.commit()
         cur.close()
         conn.close()
