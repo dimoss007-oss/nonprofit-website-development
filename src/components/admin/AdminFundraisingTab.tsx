@@ -52,18 +52,6 @@ function exportToCsv(filename: string, rows: string[][], headers: string[]) {
   URL.revokeObjectURL(url);
 }
 
-// ─── Экспорт в CSV (открывается в Excel) ────────────────────────────────────
-function exportToCsv(filename: string, rows: string[][], headers: string[]) {
-  const escape = (v: string) => `"${String(v ?? "").replace(/"/g, '""')}"`;
-  const lines = [headers, ...rows].map(r => r.map(escape).join(";")).join("\r\n");
-  // BOM для корректного открытия кириллицы в Excel
-  const blob = new Blob(["\uFEFF" + lines], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url; a.download = filename; a.click();
-  URL.revokeObjectURL(url);
-}
-
 // ─── Форма организации ──────────────────────────────────────────────────────
 function OrgForm({ initial, adminUsers, onSave, onCancel }: {
   initial?: Partial<Org>;
