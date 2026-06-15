@@ -6,12 +6,13 @@ import AdminUsersTab from "@/components/admin/AdminUsersTab";
 import AdminTasksTab from "@/components/admin/AdminTasksTab";
 import AdminRequestsTab from "@/components/admin/AdminRequestsTab";
 import AdminGalleryTab from "@/components/admin/AdminGalleryTab";
+import AdminFundraisingTab from "@/components/admin/AdminFundraisingTab";
 
 const AUTH_URL = "https://functions.poehali.dev/e6567f16-b3db-4b0d-9c1f-abed808c2ac8";
 const LOGO_IMG = "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/4ca974da-fec3-4fd3-834d-c7dccc97fca9.jpg";
 const SESSION_KEY = "admin_auth";
 
-type Tab = "crm" | "news" | "tasks" | "requests" | "users" | "gallery";
+type Tab = "crm" | "news" | "tasks" | "requests" | "users" | "gallery" | "fundraising";
 type Role = "admin" | "user";
 
 interface Session { login: string; password: string; role: Role; full_name: string }
@@ -106,7 +107,8 @@ export default function AdminPanel() {
     { id: "tasks",    label: "Задачи",     icon: "ClipboardList", active: "bg-violet-100 text-violet-700 shadow-sm",       inactive: "text-violet-400 hover:bg-violet-50 hover:text-violet-600" },
     { id: "requests", label: "Заявки",     icon: "Inbox",         active: "bg-rose-100 text-rose-700 shadow-sm",           inactive: "text-rose-400 hover:bg-rose-50 hover:text-rose-600" },
     { id: "users",    label: "Сотрудники", icon: "UserCog",       active: "bg-sage-pale text-sage-dark shadow-sm",         inactive: "text-sage hover:bg-sage-pale/50 hover:text-sage-dark" },
-    { id: "gallery",  label: "Галерея",    icon: "Images",        active: "bg-orange-100 text-orange-700 shadow-sm",       inactive: "text-orange-400 hover:bg-orange-50 hover:text-orange-600", adminOnly: true },
+    { id: "gallery",      label: "Галерея",      icon: "Images",      active: "bg-orange-100 text-orange-700 shadow-sm",  inactive: "text-orange-400 hover:bg-orange-50 hover:text-orange-600", adminOnly: true },
+    { id: "fundraising",  label: "Фандрайзинг",  icon: "HandCoins",   active: "bg-green-100 text-green-700 shadow-sm",    inactive: "text-green-500 hover:bg-green-50 hover:text-green-700", adminOnly: true },
   ];
 
   return (
@@ -158,6 +160,7 @@ export default function AdminPanel() {
         {tab === "requests" && <AdminRequestsTab isAdmin={isAdmin} />}
         {tab === "users" && <AdminUsersTab authLogin={session.login} authPassword={session.password} isAdmin={isAdmin} />}
         {tab === "gallery" && <AdminGalleryTab />}
+        {tab === "fundraising" && <AdminFundraisingTab adminUsers={adminUsers.map(u => u.full_name || u.login)} />}
       </main>
     </div>
   );

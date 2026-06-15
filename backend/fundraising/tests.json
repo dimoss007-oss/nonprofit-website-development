@@ -1,0 +1,22 @@
+{
+  "tests": [
+    {
+      "name": "GET stats",
+      "method": "GET",
+      "path": "/?type=stats",
+      "expectedStatus": 200
+    },
+    {
+      "name": "GET orgs",
+      "method": "GET",
+      "path": "/?type=orgs",
+      "expectedStatus": 200
+    },
+    {
+      "name": "GET persons",
+      "method": "GET",
+      "path": "/?type=persons",
+      "expectedStatus": 200
+    }
+  ]
+}
