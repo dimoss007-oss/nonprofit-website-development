@@ -42,6 +42,28 @@ const STATUS_LABELS: Record<string, string> = {
 };
 const SOURCE_OPTIONS = ["Сайт", "Соцсети", "Мероприятие", "Рекомендация", "Холодный контакт", "Другое"];
 
+function exportToCsv(filename: string, rows: string[][], headers: string[]) {
+  const escape = (v: string) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+  const lines = [headers, ...rows].map(r => r.map(escape).join(";")).join("\r\n");
+  const blob = new Blob(["\uFEFF" + lines], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ─── Экспорт в CSV (открывается в Excel) ────────────────────────────────────
+function exportToCsv(filename: string, rows: string[][], headers: string[]) {
+  const escape = (v: string) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+  const lines = [headers, ...rows].map(r => r.map(escape).join(";")).join("\r\n");
+  // BOM для корректного открытия кириллицы в Excel
+  const blob = new Blob(["\uFEFF" + lines], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
+
 // ─── Форма организации ──────────────────────────────────────────────────────
 function OrgForm({ initial, adminUsers, onSave, onCancel }: {
   initial?: Partial<Org>;
@@ -488,6 +510,15 @@ export default function AdminFundraisingTab({ adminUsers }: { adminUsers: string
                 placeholder="Поиск по названию, email, менеджеру..."
                 className="w-full border border-beige-dark rounded-xl pl-9 pr-4 py-2.5 text-sm text-ink focus:outline-none focus:border-ink bg-white" />
             </div>
+            <button
+              onClick={() => exportToCsv(
+                `организации-${new Date().toLocaleDateString("ru-RU").replace(/\./g,"-")}.csv`,
+                orgs.map(o => [o.name, o.phone, o.email, o.website, o.manager, STATUS_LABELS[o.status] || o.status, String(o.total_donated), String(o.donations_count), o.notes, new Date(o.created_at).toLocaleDateString("ru-RU")]),
+                ["Название","Телефон","Email","Сайт","Менеджер","Статус","Сумма пожертвований","Кол-во пожертвований","Заметки","Дата добавления"]
+              )}
+              className="flex items-center gap-2 border border-beige-dark text-ink/60 px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-beige-mid transition-colors">
+              <Icon name="Download" size={15} /> Excel
+            </button>
             <button onClick={() => { setShowForm(true); setEditOrg(null); }}
               className="flex items-center gap-2 bg-ink text-beige px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-ink/90 transition-colors">
               <Icon name="Plus" size={15} /> Добавить
@@ -569,6 +600,15 @@ export default function AdminFundraisingTab({ adminUsers }: { adminUsers: string
                 placeholder="Поиск по имени, email, телефону..."
                 className="w-full border border-beige-dark rounded-xl pl-9 pr-4 py-2.5 text-sm text-ink focus:outline-none focus:border-ink bg-white" />
             </div>
+            <button
+              onClick={() => exportToCsv(
+                `жертвователи-${new Date().toLocaleDateString("ru-RU").replace(/\./g,"-")}.csv`,
+                persons.map(p => [p.full_name, p.phone, p.email, p.source, STATUS_LABELS[p.status] || p.status, String(p.total_donated), String(p.donations_count), p.notes, new Date(p.created_at).toLocaleDateString("ru-RU")]),
+                ["ФИО","Телефон","Email","Источник","Статус","Сумма пожертвований","Кол-во пожертвований","Заметки","Дата добавления"]
+              )}
+              className="flex items-center gap-2 border border-beige-dark text-ink/60 px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-beige-mid transition-colors">
+              <Icon name="Download" size={15} /> Excel
+            </button>
             <button onClick={() => { setShowForm(true); setEditPerson(null); }}
               className="flex items-center gap-2 bg-ink text-beige px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-ink/90 transition-colors">
               <Icon name="Plus" size={15} /> Добавить
