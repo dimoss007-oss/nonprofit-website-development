@@ -89,7 +89,25 @@ function DonateQR() {
           <h3 className="font-medium text-ink text-sm flex items-center gap-2">
             <Icon name="CreditCard" size={15} /> Прямая оплата ЮКасса
           </h3>
-          <QRCard url={DONATE_LINK_URL} label="Сразу открывает форму оплаты" filename="qr-юкасса-donate.png" size={size} />
+          <div className="flex flex-col items-center gap-3">
+            <div className="bg-white border border-beige-dark rounded-2xl p-6 flex flex-col items-center gap-3 shadow-sm">
+              <img
+                src="https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/dc6bf240-210a-4de7-89eb-385cddae5a3c.png"
+                alt="QR-код ЮКасса"
+                style={{ width: size, height: size }}
+                className="object-contain"
+              />
+              <p className="text-ink/40 text-xs text-center max-w-[200px]">Сразу открывает форму оплаты</p>
+            </div>
+            <a
+              href="https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/dc6bf240-210a-4de7-89eb-385cddae5a3c.png"
+              download="qr-юкасса-donate.png"
+              className="flex items-center gap-2 bg-ink text-beige px-4 py-2 rounded-xl text-sm font-semibold hover:bg-ink/90 transition-colors"
+            >
+              <Icon name="Download" size={14} />
+              Скачать PNG
+            </a>
+          </div>
         </div>
       </div>
     </div>
