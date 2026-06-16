@@ -204,20 +204,38 @@ export default function PatientCard({ patientId, onBack, onDeleted }: { patientI
     load();
   };
 
+  const [uploadProgress, setUploadProgress] = useState<{ done: number; total: number } | null>(null);
+
   const uploadFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    const files = Array.from(e.target.files || []);
     const input = e.target;
-    if (!file) return;
+    if (!files.length) return;
     setUploading(true);
-    const reader = new FileReader();
-    reader.onload = async () => {
-      const base64 = (reader.result as string).split(",")[1];
-      await fetch(UPLOAD_API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ patient_id: patientId, file_name: file.name, file_data: base64, file_type: file.type }) });
-      input.value = "";
-      setUploading(false);
-      load();
-    };
-    reader.readAsDataURL(file);
+    setUploadProgress({ done: 0, total: files.length });
+
+    const readAsBase64 = (file: File): Promise<string> =>
+      new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve((reader.result as string).split(",")[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const base64 = await readAsBase64(file);
+      await fetch(UPLOAD_API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ patient_id: patientId, file_name: file.name, file_data: base64, file_type: file.type }),
+      });
+      setUploadProgress({ done: i + 1, total: files.length });
+    }
+
+    input.value = "";
+    setUploading(false);
+    setUploadProgress(null);
+    load();
   };
 
   const deleteDoc = async (docId: number) => {
@@ -300,9 +318,9 @@ export default function PatientCard({ patientId, onBack, onDeleted }: { patientI
           <h3 className="font-semibold text-ink text-sm uppercase tracking-wide">Документы ({documents.length})</h3>
           <button onClick={() => fileRef.current?.click()} disabled={uploading} className="text-sm flex items-center gap-1 text-ink/60 hover:text-ink transition-colors disabled:opacity-50">
             <Icon name={uploading ? "Loader" : "Upload"} size={14} className={uploading ? "animate-spin" : ""} />
-            {uploading ? "Загрузка..." : "Прикрепить"}
+            {uploadProgress ? `${uploadProgress.done} из ${uploadProgress.total}...` : uploading ? "Загрузка..." : "Прикрепить"}
           </button>
-          <input ref={fileRef} type="file" className="hidden" onChange={uploadFile} accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" />
+          <input ref={fileRef} type="file" className="hidden" onChange={uploadFile} multiple />
         </div>
         {documents.length === 0 && <p className="text-ink/40 text-sm">Нет прикреплённых документов</p>}
         <div className="space-y-2">
