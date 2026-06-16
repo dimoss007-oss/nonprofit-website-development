@@ -179,9 +179,10 @@ export default function AdminRequestsTab({ isAdmin }: { isAdmin: boolean }) {
 
       {/* Фильтры */}
       <div className="flex items-center gap-1 bg-beige-mid rounded-xl p-1 w-fit flex-wrap">
-        {([["all", "Все"], ["new", "Новые"], ["in_progress", "В работе"], ["done", "Обработанные"]] as [Status | "all", string][]).map(([s, label]) => (
+        {([["all", "Все", "Layers"], ["new", "Новые", "Sparkles"], ["in_progress", "В работе", "Clock"], ["done", "Обработанные", "CheckCircle2"]] as [Status | "all", string, string][]).map(([s, label, icon]) => (
           <button key={s} onClick={() => setFilterStatus(s)}
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5 ${filterStatus === s ? "bg-white text-ink shadow-sm" : "text-ink/50 hover:text-ink"}`}>
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${filterStatus === s ? "bg-white text-ink shadow-sm" : "text-ink/50 hover:text-ink"}`}>
+            <Icon name={icon} size={14} />
             {label}
             {counts[s] > 0 && <span className={`text-xs rounded-full px-1.5 py-0.5 ${s === "new" && counts.new > 0 ? "bg-red-100 text-red-600" : "opacity-50"}`}>{counts[s]}</span>}
           </button>

@@ -241,12 +241,13 @@ export default function AdminTasksTab({
       </div>
 
       {/* Фильтры */}
-      <div className="flex items-center gap-1 bg-beige-mid rounded-xl p-1 w-fit">
-        {([["all", "Все"], ["new", "Новые"], ["in_progress", "В работе"], ["done", "Выполнены"]] as [Status | "all", string][]).map(([s, label]) => (
+      <div className="flex items-center gap-1 bg-beige-mid rounded-xl p-1 w-fit flex-wrap">
+        {([["all", "Все", "Layers"], ["new", "Новые", "Sparkles"], ["in_progress", "В работе", "Clock"], ["done", "Выполнены", "CheckCircle2"]] as [Status | "all", string, string][]).map(([s, label, icon]) => (
           <button key={s} onClick={() => setFilterStatus(s)}
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5 ${filterStatus === s ? "bg-white text-ink shadow-sm" : "text-ink/50 hover:text-ink"}`}>
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${filterStatus === s ? "bg-white text-ink shadow-sm" : "text-ink/50 hover:text-ink"}`}>
+            <Icon name={icon} size={14} />
             {label}
-            <span className="text-xs opacity-60">{counts[s]}</span>
+            {counts[s] > 0 && <span className="text-xs opacity-60">{counts[s]}</span>}
           </button>
         ))}
       </div>
