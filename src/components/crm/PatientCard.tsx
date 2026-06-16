@@ -206,17 +206,18 @@ export default function PatientCard({ patientId, onBack, onDeleted }: { patientI
 
   const uploadFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    const input = e.target;
     if (!file) return;
     setUploading(true);
     const reader = new FileReader();
     reader.onload = async () => {
       const base64 = (reader.result as string).split(",")[1];
       await fetch(UPLOAD_API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ patient_id: patientId, file_name: file.name, file_data: base64, file_type: file.type }) });
+      input.value = "";
       setUploading(false);
       load();
     };
     reader.readAsDataURL(file);
-    e.target.value = "";
   };
 
   const deleteDoc = async (docId: number) => {
