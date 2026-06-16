@@ -205,12 +205,14 @@ export default function PatientCard({ patientId, onBack, onDeleted }: { patientI
   };
 
   const [uploadProgress, setUploadProgress] = useState<{ done: number; total: number } | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const uploadFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     const input = e.target;
     if (!files.length) return;
     setUploading(true);
+    setUploadError(null);
     setUploadProgress({ done: 0, total: files.length });
 
     const readAsBase64 = (file: File): Promise<string> =>
@@ -221,14 +223,23 @@ export default function PatientCard({ patientId, onBack, onDeleted }: { patientI
         reader.readAsDataURL(file);
       });
 
+    const errors: string[] = [];
     let done = 0;
     await Promise.all(files.map(async (file) => {
-      const base64 = await readAsBase64(file);
-      await fetch(UPLOAD_API, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ patient_id: patientId, file_name: file.name, file_data: base64, file_type: file.type }),
-      });
+      try {
+        const base64 = await readAsBase64(file);
+        const res = await fetch(UPLOAD_API, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ patient_id: patientId, file_name: file.name, file_data: base64, file_type: file.type }),
+        });
+        if (!res.ok) {
+          const json = await res.json().catch(() => ({}));
+          errors.push(`${file.name}: ${json.error || `ошибка ${res.status}`}`);
+        }
+      } catch {
+        errors.push(`${file.name}: ошибка сети`);
+      }
       done += 1;
       setUploadProgress({ done, total: files.length });
     }));
@@ -236,6 +247,7 @@ export default function PatientCard({ patientId, onBack, onDeleted }: { patientI
     input.value = "";
     setUploading(false);
     setUploadProgress(null);
+    if (errors.length) setUploadError(errors.join("; "));
     load();
   };
 
@@ -323,6 +335,12 @@ export default function PatientCard({ patientId, onBack, onDeleted }: { patientI
           </button>
           <input ref={fileRef} type="file" className="hidden" onChange={uploadFile} multiple />
         </div>
+        {uploadError && (
+          <div className="mb-3 text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2 flex items-start gap-2">
+            <Icon name="AlertCircle" size={13} className="mt-0.5 flex-shrink-0" />
+            <span>{uploadError}</span>
+          </div>
+        )}
         {documents.length === 0 && <p className="text-ink/40 text-sm">Нет прикреплённых документов</p>}
         <div className="space-y-2">
           {documents.map(d => {

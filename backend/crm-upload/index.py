@@ -28,7 +28,14 @@ def handler(event: dict, context) -> dict:
     if event.get("httpMethod") == "OPTIONS":
         return {"statusCode": 200, "headers": CORS, "body": ""}
 
-    body = json.loads(event.get("body") or "{}")
+    raw_body = event.get("body") or ""
+    if not raw_body:
+        return err("Тело запроса пустое — возможно файл слишком большой (лимит ~10 МБ)")
+
+    if event.get("isBase64Encoded"):
+        raw_body = base64.b64decode(raw_body).decode("utf-8")
+
+    body = json.loads(raw_body)
     patient_id = body.get("patient_id")
     file_name = body.get("file_name")
     file_data = body.get("file_data")

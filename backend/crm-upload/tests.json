@@ -4,9 +4,16 @@
       "name": "Загрузка без данных — ошибка",
       "method": "POST",
       "path": "/",
-      "body": {},
+      "body": {"patient_id": 1},
       "expectedStatus": 400,
       "expectedBody": {"error": "Обязательные поля: patient_id, file_name, file_data"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Пустое тело — ошибка",
+      "method": "POST",
+      "path": "/",
+      "expectedStatus": 400,
       "bodyMatcher": "partial"
     }
   ]
