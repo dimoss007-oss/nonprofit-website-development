@@ -10,6 +10,7 @@ import { DonorPanel } from "./FundraisingDonorPanel";
 import { FundraisingStats } from "./FundraisingStats";
 
 const DONATE_URL = "https://спасениенадежды.рф/donate";
+const DONATE_LINK_URL = "https://functions.poehali.dev/c23f2972-a113-4230-8f83-748ba3f217fa";
 const LOGO_URL = "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/4ca974da-fec3-4fd3-834d-c7dccc97fca9.jpg";
 
 function QRCard({ url, label, filename, size }: { url: string; label: string; filename: string; size: number }) {
@@ -61,14 +62,9 @@ function QRCard({ url, label, filename, size }: { url: string; label: string; fi
 
 function DonateQR() {
   const [size, setSize] = useState(260);
-  const [ykUrl, setYkUrl] = useState("");
-  const [ykInput, setYkInput] = useState("");
-
-  const isValidUrl = (s: string) => { try { new URL(s); return true; } catch { return false; } };
 
   return (
     <div className="space-y-8 py-2">
-      {/* Размер */}
       <div className="flex items-center gap-2">
         <span className="text-sm text-ink/50">Размер:</span>
         <div className="flex items-center gap-1 bg-beige-mid rounded-xl p-1">
@@ -82,55 +78,18 @@ function DonateQR() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-        {/* QR на сайт */}
         <div className="space-y-3">
           <h3 className="font-medium text-ink text-sm flex items-center gap-2">
             <Icon name="Globe" size={15} /> Страница пожертвований
           </h3>
-          <QRCard
-            url={DONATE_URL}
-            label="спасениенадежды.рф/donate"
-            filename="qr-сайт-donate.png"
-            size={size}
-          />
+          <QRCard url={DONATE_URL} label="спасениенадежды.рф/donate" filename="qr-сайт-donate.png" size={size} />
         </div>
 
-        {/* QR на ЮКасса */}
         <div className="space-y-3">
           <h3 className="font-medium text-ink text-sm flex items-center gap-2">
             <Icon name="CreditCard" size={15} /> Прямая оплата ЮКасса
           </h3>
-          {ykUrl ? (
-            <div className="space-y-3">
-              <QRCard
-                url={ykUrl}
-                label="Прямая ссылка на оплату"
-                filename="qr-юкасса-donate.png"
-                size={size}
-              />
-              <button onClick={() => { setYkUrl(""); setYkInput(""); }}
-                className="text-xs text-ink/40 hover:text-ink/60 transition-colors flex items-center gap-1 mx-auto">
-                <Icon name="Pencil" size={12} /> Изменить ссылку
-              </button>
-            </div>
-          ) : (
-            <div className="bg-white border border-beige-dark rounded-2xl p-6 space-y-3">
-              <p className="text-sm text-ink/60">Вставьте ссылку из кабинета ЮКасса:</p>
-              <p className="text-xs text-ink/40">Кабинет ЮКасса → <span className="font-medium">Платёжные ссылки</span> → создать ссылку → скопировать</p>
-              <input
-                value={ykInput}
-                onChange={e => setYkInput(e.target.value)}
-                placeholder="https://yookassa.ru/..."
-                className="w-full border border-sage/20 text-ink placeholder-foreground/30 px-3 py-2.5 rounded-lg focus:outline-none focus:border-sage text-sm"
-              />
-              <button
-                onClick={() => isValidUrl(ykInput) && setYkUrl(ykInput)}
-                disabled={!isValidUrl(ykInput)}
-                className="w-full bg-sage text-beige py-2.5 rounded-lg text-sm font-semibold hover:bg-sage-dark transition-colors disabled:opacity-40">
-                Сгенерировать QR
-              </button>
-            </div>
-          )}
+          <QRCard url={DONATE_LINK_URL} label="Сразу открывает форму оплаты" filename="qr-юкасса-donate.png" size={size} />
         </div>
       </div>
     </div>
