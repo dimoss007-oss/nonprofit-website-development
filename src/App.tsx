@@ -17,6 +17,7 @@ import OurFamilies from "./pages/OurFamilies";
 import AdminFinance from "./pages/AdminFinance";
 import Gratitude from "./pages/Gratitude";
 import Donate from "./pages/Donate";
+import DonatePay from "./pages/DonatePay";
 import Partners from "./pages/Partners";
 import CrmPatients from "./pages/CrmPatients";
 import AdminPanel from "./pages/AdminPanel";
@@ -44,6 +45,7 @@ const App = () => (
           <Route path="/admin/finance" element={<AdminFinance />} />
           <Route path="/gratitude" element={<Gratitude />} />
           <Route path="/donate" element={<Donate />} />
+          <Route path="/donate-pay" element={<DonatePay />} />
           <Route path="/partners" element={<Partners />} />
           <Route path="/crm" element={<Navigate to="/admin" replace />} />
           <Route path="/admin" element={<AdminPanel />} />

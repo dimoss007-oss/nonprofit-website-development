@@ -10,7 +10,7 @@ import { DonorPanel } from "./FundraisingDonorPanel";
 import { FundraisingStats } from "./FundraisingStats";
 
 const DONATE_URL = "https://спасениенадежды.рф/donate";
-const DONATE_LINK_URL = "https://functions.poehali.dev/c23f2972-a113-4230-8f83-748ba3f217fa";
+const DONATE_LINK_URL = "https://спасениенадежды.рф/donate-pay";
 const LOGO_URL = "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/4ca974da-fec3-4fd3-834d-c7dccc97fca9.jpg";
 
 function QRCard({ url, label, filename, size }: { url: string; label: string; filename: string; size: number }) {
