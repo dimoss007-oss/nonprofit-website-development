@@ -3,28 +3,30 @@ import Icon from "@/components/ui/icon";
 import { API, EMPTY_FORM, Patient, fmt } from "./crmTypes";
 import { PatientForm } from "./PatientCard";
 
+function plural(n: number, one: string, few: string, many: string) {
+  const m10 = n % 10, m100 = n % 100;
+  if (m100 >= 11 && m100 <= 14) return many;
+  if (m10 === 1) return one;
+  if (m10 >= 2 && m10 <= 4) return few;
+  return many;
+}
+
 export default function PatientList({ onSelect }: { onSelect: (id: number) => void }) {
-  const [patients, setPatients] = useState<Patient[]>([]);
+  const [all, setAll] = useState<Patient[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [adding, setAdding] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  const loadPatients = async (q = "") => {
+  const load = async () => {
     setLoading(true);
-    const url = q ? `${API}?search=${encodeURIComponent(q)}` : API;
-    const r = await fetch(url);
+    const r = await fetch(API);
     const d = await r.json();
-    setPatients(d.patients || []);
+    setAll(d.patients || []);
     setLoading(false);
   };
 
-  useEffect(() => { loadPatients(); }, []);
-
-  useEffect(() => {
-    const t = setTimeout(() => loadPatients(search), 400);
-    return () => clearTimeout(t);
-  }, [search]);
+  useEffect(() => { load(); }, []);
 
   const createPatient = async (form: typeof EMPTY_FORM) => {
     setSaving(true);
@@ -32,24 +34,17 @@ export default function PatientList({ onSelect }: { onSelect: (id: number) => vo
     const d = await r.json();
     setSaving(false);
     setAdding(false);
+    await load();
     if (d.patient?.id) onSelect(d.patient.id);
-    loadPatients(search);
   };
 
-  const [allForStats, setAllForStats] = useState<Patient[]>([]);
-  useEffect(() => {
-    fetch(API).then(r => r.json()).then(d => setAllForStats(d.patients || []));
-  }, [patients]); // обновляем при изменении списка
+  const q = search.toLowerCase();
+  const patients = search
+    ? all.filter(p => `${p.last_name} ${p.first_name} ${p.middle_name ?? ""}`.toLowerCase().includes(q))
+    : all;
 
-  const totalPatients = allForStats.length;
-  const totalChildren = allForStats.reduce((s, p) => s + (Number(p.children_count) || 0), 0);
-  function plural(n: number, one: string, few: string, many: string) {
-    const mod10 = n % 10, mod100 = n % 100;
-    if (mod100 >= 11 && mod100 <= 14) return many;
-    if (mod10 === 1) return one;
-    if (mod10 >= 2 && mod10 <= 4) return few;
-    return many;
-  }
+  const totalPatients = all.length;
+  const totalChildren = all.reduce((s, p) => s + (Number(p.children_count) || 0), 0);
 
   return (
     <div className="space-y-6">
