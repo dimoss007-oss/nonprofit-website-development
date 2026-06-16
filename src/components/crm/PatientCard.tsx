@@ -163,15 +163,15 @@ export default function PatientCard({ patientId, onBack, onDeleted }: { patientI
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const load = async () => {
-    setLoading(true);
+  const load = async (showSpinner = false) => {
+    if (showSpinner) setLoading(true);
     const r = await fetch(`${API}?id=${patientId}`);
     const d = await r.json();
     setData(d);
-    setLoading(false);
+    if (showSpinner) setLoading(false);
   };
 
-  useEffect(() => { load(); }, [patientId]);
+  useEffect(() => { load(true); }, [patientId]);
 
   const save = async (form: typeof EMPTY_FORM) => {
     setSaving(true);
@@ -221,16 +221,17 @@ export default function PatientCard({ patientId, onBack, onDeleted }: { patientI
         reader.readAsDataURL(file);
       });
 
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
+    let done = 0;
+    await Promise.all(files.map(async (file) => {
       const base64 = await readAsBase64(file);
       await fetch(UPLOAD_API, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ patient_id: patientId, file_name: file.name, file_data: base64, file_type: file.type }),
       });
-      setUploadProgress({ done: i + 1, total: files.length });
-    }
+      done += 1;
+      setUploadProgress({ done, total: files.length });
+    }));
 
     input.value = "";
     setUploading(false);
