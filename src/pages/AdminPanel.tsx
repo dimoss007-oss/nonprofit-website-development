@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import Icon from "@/components/ui/icon";
 import AdminNewsTab from "@/components/admin/AdminNewsTab";
 import AdminCrmTab from "@/components/admin/AdminCrmTab";
-import AdminUsersTab from "@/components/admin/AdminUsersTab";
+import AdminUsersTab, { parsePermissions, ALL_TABS, type TabId } from "@/components/admin/AdminUsersTab";
 import AdminTasksTab from "@/components/admin/AdminTasksTab";
 import AdminRequestsTab from "@/components/admin/AdminRequestsTab";
 import AdminGalleryTab from "@/components/admin/AdminGalleryTab";
@@ -12,10 +12,10 @@ const AUTH_URL = "https://functions.poehali.dev/e6567f16-b3db-4b0d-9c1f-abed808c
 const LOGO_IMG = "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/4ca974da-fec3-4fd3-834d-c7dccc97fca9.jpg";
 const SESSION_KEY = "admin_auth";
 
-type Tab = "crm" | "news" | "tasks" | "requests" | "users" | "gallery" | "fundraising";
+type Tab = TabId;
 type Role = "admin" | "user";
 
-interface Session { login: string; password: string; role: Role; full_name: string }
+interface Session { login: string; password: string; role: Role; full_name: string; permissions?: string | null }
 interface AdminUser { login: string; full_name?: string }
 
 function LoginScreen({ onAuth }: { onAuth: (s: Session) => void }) {
@@ -32,7 +32,7 @@ function LoginScreen({ onAuth }: { onAuth: (s: Session) => void }) {
       const res = await fetch(AUTH_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "login", login, password }) });
       const d = await res.json();
       if (d.ok) {
-        const session: Session = { login, password, role: d.role, full_name: d.full_name };
+        const session: Session = { login, password, role: d.role, full_name: d.full_name, permissions: d.permissions ?? null };
         sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
         onAuth(session);
       } else { setError("Неверный логин или пароль"); }
@@ -86,6 +86,15 @@ export default function AdminPanel() {
   const [adminUsers, setAdminUsers] = useState<AdminUser[]>([]);
 
   useEffect(() => {
+    if (!session || session.role === "admin") return;
+    const perms = parsePermissions(session.permissions);
+    if (perms && !perms.includes(tab)) {
+      const first = ALL_TABS.find(t => perms.includes(t.id));
+      if (first) setTab(first.id);
+    }
+  }, [session?.login]);
+
+  useEffect(() => {
     if (!session) return;
     fetch(AUTH_URL, { method: "GET" })
       .then(r => r.json())
@@ -100,16 +109,21 @@ export default function AdminPanel() {
 
   const logout = () => { sessionStorage.removeItem(SESSION_KEY); setSession(null); };
   const isAdmin = session.role === "admin";
+  const userPerms = parsePermissions(session.permissions);
 
-  const TABS: { id: Tab; label: string; icon: string; active: string; inactive: string; adminOnly?: boolean }[] = [
-    { id: "crm",      label: "Пациенты",   icon: "Users",         active: "bg-blue-100 text-blue-700 shadow-sm",           inactive: "text-blue-400 hover:bg-blue-50 hover:text-blue-600" },
-    { id: "news",     label: "Новости",    icon: "Newspaper",     active: "bg-amber-100 text-amber-700 shadow-sm",         inactive: "text-amber-400 hover:bg-amber-50 hover:text-amber-600" },
-    { id: "tasks",    label: "Задачи",     icon: "ClipboardList", active: "bg-violet-100 text-violet-700 shadow-sm",       inactive: "text-violet-400 hover:bg-violet-50 hover:text-violet-600" },
-    { id: "requests", label: "Заявки",     icon: "Inbox",         active: "bg-rose-100 text-rose-700 shadow-sm",           inactive: "text-rose-400 hover:bg-rose-50 hover:text-rose-600" },
-    { id: "users",    label: "Сотрудники", icon: "UserCog",       active: "bg-sage-pale text-sage-dark shadow-sm",         inactive: "text-sage hover:bg-sage-pale/50 hover:text-sage-dark" },
-    { id: "gallery",      label: "Галерея",      icon: "Images",      active: "bg-orange-100 text-orange-700 shadow-sm",  inactive: "text-orange-400 hover:bg-orange-50 hover:text-orange-600", adminOnly: true },
-    { id: "fundraising",  label: "Фандрайзинг",  icon: "HandCoins",   active: "bg-green-100 text-green-700 shadow-sm",    inactive: "text-green-500 hover:bg-green-50 hover:text-green-700", adminOnly: true },
+  const TABS: { id: Tab; label: string; icon: string; active: string; inactive: string }[] = [
+    { id: "crm",         label: "Пациенты",     icon: "Users",         active: "bg-blue-100 text-blue-700 shadow-sm",     inactive: "text-blue-400 hover:bg-blue-50 hover:text-blue-600" },
+    { id: "news",        label: "Новости",       icon: "Newspaper",     active: "bg-amber-100 text-amber-700 shadow-sm",   inactive: "text-amber-400 hover:bg-amber-50 hover:text-amber-600" },
+    { id: "tasks",       label: "Задачи",        icon: "ClipboardList", active: "bg-violet-100 text-violet-700 shadow-sm", inactive: "text-violet-400 hover:bg-violet-50 hover:text-violet-600" },
+    { id: "requests",    label: "Заявки",        icon: "Inbox",         active: "bg-rose-100 text-rose-700 shadow-sm",     inactive: "text-rose-400 hover:bg-rose-50 hover:text-rose-600" },
+    { id: "users",       label: "Сотрудники",    icon: "UserCog",       active: "bg-sage-pale text-sage-dark shadow-sm",   inactive: "text-sage hover:bg-sage-pale/50 hover:text-sage-dark" },
+    { id: "gallery",     label: "Галерея",       icon: "Images",        active: "bg-orange-100 text-orange-700 shadow-sm", inactive: "text-orange-400 hover:bg-orange-50 hover:text-orange-600" },
+    { id: "fundraising", label: "Фандрайзинг",   icon: "HandCoins",     active: "bg-green-100 text-green-700 shadow-sm",   inactive: "text-green-500 hover:bg-green-50 hover:text-green-700" },
   ];
+
+  const visibleTabs = isAdmin
+    ? TABS
+    : TABS.filter(t => userPerms ? userPerms.includes(t.id) : true);
 
   return (
     <div className="min-h-screen bg-beige-mid font-golos">
@@ -123,8 +137,8 @@ export default function AdminPanel() {
             </div>
           </a>
 
-          <nav className="flex items-center gap-1 bg-beige-mid rounded-xl p-1">
-            {TABS.filter(t => !t.adminOnly || isAdmin).map(t => (
+          <nav className="flex items-center gap-1 bg-beige-mid rounded-xl p-1 flex-wrap">
+            {visibleTabs.map(t => (
               <button key={t.id} onClick={() => setTab(t.id)} className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${tab === t.id ? t.active : t.inactive}`}>
                 <Icon name={t.icon} size={15} />
                 {t.label}

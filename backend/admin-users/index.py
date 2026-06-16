@@ -31,7 +31,7 @@ def verify_master(login: str, password: str) -> bool:
     return hmac.compare_digest(login, master_login) and hmac.compare_digest(password, master_password)
 
 def handler(event: dict, context) -> dict:
-    """Управление пользователями админ-панели и авторизация с ролями."""
+    """Управление пользователями админ-панели и авторизация с ролями и правами доступа к разделам."""
     if event.get("httpMethod") == "OPTIONS":
         return {"statusCode": 200, "headers": CORS, "body": ""}
 
@@ -44,11 +44,9 @@ def handler(event: dict, context) -> dict:
         login = body.get("login", "")
         password = body.get("password", "")
 
-        # Сначала проверяем мастер-аккаунт (из секретов) — он всегда admin
         if verify_master(login, password):
-            return ok({"ok": True, "role": "admin", "full_name": "Администратор", "login": login})
+            return ok({"ok": True, "role": "admin", "full_name": "Администратор", "login": login, "permissions": None})
 
-        # Затем проверяем таблицу пользователей
         conn = get_conn()
         cur = conn.cursor(cursor_factory=RealDictCursor)
         cur.execute(f"SELECT * FROM {SCHEMA}.admin_users WHERE login = %s", (login,))
@@ -61,13 +59,13 @@ def handler(event: dict, context) -> dict:
         if not hmac.compare_digest(hash_password(password), user["password_hash"]):
             return ok({"ok": False, "error": "Неверный логин или пароль"}, 401)
 
-        return ok({"ok": True, "role": user["role"], "full_name": user["full_name"] or login, "login": login})
+        return ok({"ok": True, "role": user["role"], "full_name": user["full_name"] or login, "login": login, "permissions": user.get("permissions")})
 
-    # ── Список пользователей — публичный (без секретных данных) ──
+    # ── Список пользователей ──────────────────────────────
     if method == "GET":
         conn = get_conn()
         cur = conn.cursor(cursor_factory=RealDictCursor)
-        cur.execute(f"SELECT id, login, role, full_name, phone, created_at FROM {SCHEMA}.admin_users ORDER BY created_at")
+        cur.execute(f"SELECT id, login, role, full_name, phone, created_at, permissions FROM {SCHEMA}.admin_users ORDER BY created_at")
         users = cur.fetchall()
         conn.close()
         return ok({"users": [dict(u) for u in users]})
@@ -90,6 +88,8 @@ def handler(event: dict, context) -> dict:
             password = body.get("password", "").strip()
             role = body.get("role", "user")
             full_name = body.get("full_name", "").strip()
+            phone = body.get("phone", "").strip()
+            permissions = body.get("permissions")
 
             if not login or not password:
                 return err("Логин и пароль обязательны")
@@ -100,36 +100,39 @@ def handler(event: dict, context) -> dict:
             if cur.fetchone():
                 return err("Пользователь с таким логином уже существует")
 
-            phone = body.get("phone", "").strip()
+            permissions_str = json.dumps(permissions) if permissions is not None else None
             cur.execute(
-                f"INSERT INTO {SCHEMA}.admin_users (login, password_hash, role, full_name, phone) VALUES (%s,%s,%s,%s,%s) RETURNING id, login, role, full_name, phone, created_at",
-                (login, hash_password(password), role, full_name or None, phone or None)
+                f"INSERT INTO {SCHEMA}.admin_users (login, password_hash, role, full_name, phone, permissions) VALUES (%s,%s,%s,%s,%s,%s) RETURNING id, login, role, full_name, phone, created_at, permissions",
+                (login, hash_password(password), role, full_name or None, phone or None, permissions_str)
             )
             user = cur.fetchone()
             conn.commit()
             conn.close()
             return ok({"user": dict(user)}, 201)
 
-        # Изменить роль / имя
+        # Обновить пользователя
         if action == "update":
             user_id = body.get("user_id")
             role = body.get("role")
             full_name = body.get("full_name", "")
             phone = body.get("phone", "").strip()
             new_password = body.get("new_password", "").strip()
+            permissions = body.get("permissions")
 
             if role and role not in ("admin", "user"):
                 return err("Неверная роль")
 
+            permissions_str = json.dumps(permissions) if permissions is not None else None
+
             if new_password:
                 cur.execute(
-                    f"UPDATE {SCHEMA}.admin_users SET role=COALESCE(%s,role), full_name=%s, phone=%s, password_hash=%s WHERE id=%s RETURNING id, login, role, full_name, phone",
-                    (role, full_name or None, phone or None, hash_password(new_password), user_id)
+                    f"UPDATE {SCHEMA}.admin_users SET role=COALESCE(%s,role), full_name=%s, phone=%s, password_hash=%s, permissions=%s WHERE id=%s RETURNING id, login, role, full_name, phone, permissions",
+                    (role, full_name or None, phone or None, hash_password(new_password), permissions_str, user_id)
                 )
             else:
                 cur.execute(
-                    f"UPDATE {SCHEMA}.admin_users SET role=COALESCE(%s,role), full_name=%s, phone=%s WHERE id=%s RETURNING id, login, role, full_name, phone",
-                    (role, full_name or None, phone or None, user_id)
+                    f"UPDATE {SCHEMA}.admin_users SET role=COALESCE(%s,role), full_name=%s, phone=%s, permissions=%s WHERE id=%s RETURNING id, login, role, full_name, phone, permissions",
+                    (role, full_name or None, phone or None, permissions_str, user_id)
                 )
             user = cur.fetchone()
             conn.commit()
