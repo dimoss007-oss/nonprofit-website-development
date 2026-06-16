@@ -344,29 +344,39 @@ function PatientCard({ patientId, onBack, onDeleted, isAdmin }: { patientId: num
   );
 }
 
+function plural(n: number, one: string, few: string, many: string) {
+  const m10 = n % 10, m100 = n % 100;
+  if (m100 >= 11 && m100 <= 14) return many;
+  if (m10 === 1) return one;
+  if (m10 >= 2 && m10 <= 4) return few;
+  return many;
+}
+
 export default function AdminCrmTab({ isAdmin = true }: { isAdmin?: boolean }) {
-  const [patients, setPatients] = useState<Patient[]>([]);
+  const [allPatients, setAllPatients] = useState<Patient[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [adding, setAdding] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  const loadPatients = async (q = "") => {
+  const loadPatients = async () => {
     setLoading(true);
-    const url = q ? `${API}?search=${encodeURIComponent(q)}` : API;
-    const r = await fetch(url);
+    const r = await fetch(API);
     const d = await r.json();
-    setPatients(d.patients || []);
+    setAllPatients(d.patients || []);
     setLoading(false);
   };
 
   useEffect(() => { loadPatients(); }, []);
 
-  useEffect(() => {
-    const t = setTimeout(() => loadPatients(search), 400);
-    return () => clearTimeout(t);
-  }, [search]);
+  const q = search.toLowerCase();
+  const patients = search
+    ? allPatients.filter(p => `${p.last_name} ${p.first_name} ${p.middle_name ?? ""}`.toLowerCase().includes(q))
+    : allPatients;
+
+  const inCenter = allPatients.filter(p => !p.discharge_date);
+  const totalChildren = inCenter.reduce((s, p) => s + (Number(p.children_count) || 0), 0);
 
   const createPatient = async (form: typeof EMPTY_FORM) => {
     setSaving(true);
@@ -374,11 +384,11 @@ export default function AdminCrmTab({ isAdmin = true }: { isAdmin?: boolean }) {
     const d = await r.json();
     setSaving(false); setAdding(false);
     setSelectedId(d.patient?.id);
-    loadPatients(search);
+    loadPatients();
   };
 
   if (selectedId) return (
-    <PatientCard patientId={selectedId} onBack={() => setSelectedId(null)} onDeleted={() => { setSelectedId(null); loadPatients(search); }} isAdmin={isAdmin} />
+    <PatientCard patientId={selectedId} onBack={() => setSelectedId(null)} onDeleted={() => { setSelectedId(null); loadPatients(); }} isAdmin={isAdmin} />
   );
 
   return (
@@ -389,6 +399,23 @@ export default function AdminCrmTab({ isAdmin = true }: { isAdmin?: boolean }) {
           <Icon name="UserPlus" size={16} /> Добавить
         </button>
       </div>
+
+      {allPatients.length > 0 && (
+        <div className="grid grid-cols-3 gap-3">
+          <div className="bg-white border border-green-200 rounded-2xl px-4 py-3.5 text-center">
+            <p className="font-cormorant text-3xl font-semibold text-green-700">{inCenter.length}</p>
+            <p className="text-xs text-ink/50 mt-0.5">{plural(inCenter.length, "пациентка", "пациентки", "пациенток")} в центре</p>
+          </div>
+          <div className="bg-white border border-beige-dark rounded-2xl px-4 py-3.5 text-center">
+            <p className="font-cormorant text-3xl font-semibold text-ink">{totalChildren}</p>
+            <p className="text-xs text-ink/50 mt-0.5">{plural(totalChildren, "ребёнок", "ребёнка", "детей")} с ними</p>
+          </div>
+          <div className="bg-white border border-beige-dark rounded-2xl px-4 py-3.5 text-center">
+            <p className="font-cormorant text-3xl font-semibold text-ink">{allPatients.length}</p>
+            <p className="text-xs text-ink/50 mt-0.5">всего в базе</p>
+          </div>
+        </div>
+      )}
 
       {adding && (
         <div className="bg-white border border-beige-dark rounded-2xl p-6">
