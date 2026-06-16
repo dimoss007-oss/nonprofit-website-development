@@ -7,7 +7,7 @@
       "expectedStatus": 200
     },
     {
-      "name": "Redirect to Robokassa",
+      "name": "Redirect to YooKassa",
       "method": "GET",
       "path": "/",
       "expectedStatus": 302

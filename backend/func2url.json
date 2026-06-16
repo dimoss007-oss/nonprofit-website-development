@@ -1,4 +1,6 @@
 {
+  "yookassa": "https://functions.poehali.dev/96a24ba0-1990-499e-97df-59219cdda4af",
+  "yookassa-webhook": "https://functions.poehali.dev/65e0cf87-134a-4667-b481-11d7a2178f23",
   "fundraising": "https://functions.poehali.dev/c07dbd95-dad7-4562-8589-f3a6fd76c820",
   "max-tasks-bot": "https://functions.poehali.dev/11041203-9ea5-4d83-8090-741bd1859405",
   "contact-requests": "https://functions.poehali.dev/2a909b11-72ee-48fd-9e6a-24527476dc11",

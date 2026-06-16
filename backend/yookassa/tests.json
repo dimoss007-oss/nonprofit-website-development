@@ -1,0 +1,19 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Нет суммы — ошибка",
+      "method": "POST",
+      "path": "/",
+      "body": {"amount": 0, "user_name": "Тест"},
+      "expectedStatus": 400,
+      "expectedBody": {"error": "Сумма должна быть не менее 1 ₽"},
+      "bodyMatcher": "partial"
+    }
+  ]
+}

@@ -1,69 +1,62 @@
-import hashlib
 import json
 import os
-import random
-import psycopg2
-from datetime import datetime
-from urllib.parse import urlencode
+import uuid
+import base64
+from urllib.request import urlopen, Request
+from urllib.error import URLError
 
-ROBOKASSA_URL = "https://auth.robokassa.ru/Merchant/Index.aspx"
+YOOKASSA_API = "https://api.yookassa.ru/v3/payments"
 
+CORS = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
+}
 
-def calculate_signature(*args) -> str:
-    joined = ":".join(str(a) for a in args)
-    return hashlib.md5(joined.encode()).hexdigest()
+RETURN_URL = "https://spasenienadezhdi.ru/donate"
 
 
 def handler(event: dict, context) -> dict:
-    """Генерирует прямую ссылку на оплату Robokassa для пожертвования с произвольной суммой."""
-    cors = {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type",
-    }
-
+    """Создаёт платёж в ЮКасса и перенаправляет жертвователя на страницу оплаты."""
     if event.get("httpMethod") == "OPTIONS":
-        return {"statusCode": 200, "headers": cors, "body": ""}
+        return {"statusCode": 200, "headers": CORS, "body": ""}
 
-    merchant_login = os.environ.get("ROBOKASSA_MERCHANT_LOGIN", "")
-    password_1 = os.environ.get("ROBOKASSA_PASSWORD_1", "")
-    db_url = os.environ.get("DATABASE_URL", "")
+    shop_id = os.environ.get("YOOKASSA_SHOP_ID", "")
+    secret_key = os.environ.get("YOOKASSA_SECRET_KEY", "")
+    if not shop_id or not secret_key:
+        return {"statusCode": 302, "headers": {**CORS, "Location": RETURN_URL}, "body": ""}
 
-    inv_id = random.randint(100000, 2147483647)
+    params = event.get("queryStringParameters") or {}
+    amount = float(params.get("amount", "100"))
+    if amount < 1:
+        amount = 100.0
 
-    # Сохраняем заказ в БД
-    conn = psycopg2.connect(db_url)
-    conn.autocommit = True
-    cur = conn.cursor()
-    order_number = f"DON-{datetime.now().strftime('%Y%m%d')}-{inv_id}"
-    cur.execute(
-        "INSERT INTO orders (order_number, user_name, user_email, user_phone, amount, robokassa_inv_id, status, delivery_address, order_comment) "
-        "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
-        (order_number, "Жертвователь", "noreply@spasenienadezhdi.ru", "", 0, inv_id, "pending", "", "Пожертвование")
-    )
-    cur.close()
-    conn.close()
-
-    # Сумма 0 — Robokassa покажет поле для ввода суммы
-    amount_str = "0.00"
-    signature = calculate_signature(merchant_login, amount_str, inv_id, password_1)
-
-    params = {
-        "MerchantLogin": merchant_login,
-        "OutSum": amount_str,
-        "InvoiceID": inv_id,
-        "SignatureValue": signature,
-        "Culture": "ru",
-        "Description": "Пожертвование АНО Спасение надежды",
+    idempotence_key = str(uuid.uuid4())
+    payload = {
+        "amount": {"value": f"{amount:.2f}", "currency": "RUB"},
+        "confirmation": {"type": "redirect", "return_url": RETURN_URL},
+        "description": "Пожертвование АНО Спасение надежды",
+        "capture": True,
     }
 
-    payment_url = f"{ROBOKASSA_URL}?{urlencode(params)}"
-
-    return {
-        "statusCode": 302,
-        "headers": {
-            **cors,
-            "Location": payment_url,
+    credentials = base64.b64encode(f"{shop_id}:{secret_key}".encode()).decode()
+    req = Request(
+        YOOKASSA_API,
+        data=json.dumps(payload).encode(),
+        headers={
+            "Authorization": f"Basic {credentials}",
+            "Content-Type": "application/json",
+            "Idempotence-Key": idempotence_key,
         },
-        "body": "",
-    }
+        method="POST",
+    )
+
+    confirmation_url = RETURN_URL
+    try:
+        with urlopen(req) as resp:
+            data = json.loads(resp.read().decode())
+        confirmation_url = data.get("confirmation", {}).get("confirmation_url", RETURN_URL)
+    except URLError:
+        pass
+
+    return {"statusCode": 302, "headers": {**CORS, "Location": confirmation_url}, "body": ""}
