@@ -36,6 +36,21 @@ export default function PatientList({ onSelect }: { onSelect: (id: number) => vo
     loadPatients(search);
   };
 
+  const [allForStats, setAllForStats] = useState<Patient[]>([]);
+  useEffect(() => {
+    fetch(API).then(r => r.json()).then(d => setAllForStats(d.patients || []));
+  }, [patients]); // обновляем при изменении списка
+
+  const totalPatients = allForStats.length;
+  const totalChildren = allForStats.reduce((s, p) => s + (Number(p.children_count) || 0), 0);
+  function plural(n: number, one: string, few: string, many: string) {
+    const mod10 = n % 10, mod100 = n % 100;
+    if (mod100 >= 11 && mod100 <= 14) return many;
+    if (mod10 === 1) return one;
+    if (mod10 >= 2 && mod10 <= 4) return few;
+    return many;
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -47,6 +62,23 @@ export default function PatientList({ onSelect }: { onSelect: (id: number) => vo
           <Icon name="UserPlus" size={16} /> Добавить
         </button>
       </div>
+
+      {totalPatients > 0 && (
+        <div className="grid grid-cols-3 gap-3">
+          <div className="bg-white border border-beige-dark rounded-2xl px-4 py-3.5 text-center">
+            <p className="font-cormorant text-3xl font-semibold text-ink">{totalPatients}</p>
+            <p className="text-xs text-ink/50 mt-0.5">{plural(totalPatients, "пациентка", "пациентки", "пациенток")} в базе</p>
+          </div>
+          <div className="bg-white border border-beige-dark rounded-2xl px-4 py-3.5 text-center">
+            <p className="font-cormorant text-3xl font-semibold text-ink">{totalChildren}</p>
+            <p className="text-xs text-ink/50 mt-0.5">{plural(totalChildren, "ребёнок", "ребёнка", "детей")} всего</p>
+          </div>
+          <div className="bg-white border border-beige-dark rounded-2xl px-4 py-3.5 text-center">
+            <p className="font-cormorant text-3xl font-semibold text-ink">{totalPatients + totalChildren}</p>
+            <p className="text-xs text-ink/50 mt-0.5">{plural(totalPatients + totalChildren, "человек", "человека", "человек")} в центре</p>
+          </div>
+        </div>
+      )}
 
       {adding && (
         <div className="bg-white border border-beige-dark rounded-2xl p-6">
