@@ -136,16 +136,6 @@ export default function AdminPanel() {
               <div className="text-ink/40 text-[10px] uppercase tracking-wider mt-0.5">Панель управления</div>
             </div>
           </a>
-
-          <nav className="flex items-center gap-1 bg-beige-mid rounded-xl p-1 flex-wrap">
-            {visibleTabs.map(t => (
-              <button key={t.id} onClick={() => setTab(t.id)} className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${tab === t.id ? t.active : t.inactive}`}>
-                <Icon name={t.icon} size={15} />
-                {t.label}
-              </button>
-            ))}
-          </nav>
-
           <div className="flex items-center gap-3 flex-shrink-0">
             <div className="hidden sm:flex items-center gap-2 text-xs text-ink/40">
               <span>{session.full_name}</span>
@@ -159,9 +149,21 @@ export default function AdminPanel() {
             </button>
           </div>
         </div>
+        <div className="border-t border-beige-dark/50 bg-white">
+          <div className="max-w-6xl mx-auto px-4 py-1.5">
+            <nav className="flex items-center gap-1 flex-wrap">
+              {visibleTabs.map(t => (
+                <button key={t.id} onClick={() => setTab(t.id)} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${tab === t.id ? t.active : t.inactive}`}>
+                  <Icon name={t.icon} size={14} />
+                  {t.label}
+                </button>
+              ))}
+            </nav>
+          </div>
+        </div>
       </header>
 
-      <main className="pt-20 pb-16 max-w-6xl mx-auto px-4">
+      <main className="pt-28 pb-16 max-w-6xl mx-auto px-4">
         {tab === "crm" && <AdminCrmTab isAdmin={isAdmin} />}
         {tab === "news" && <AdminNewsTab isAdmin={isAdmin} />}
         {tab === "tasks" && (
