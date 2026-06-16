@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Icon from "@/components/ui/icon";
+import { QRCodeSVG } from "qrcode.react";
 import {
   DonorType, Section, Org, Person, Stats,
   FUNDRAISING_URL, STATUS_LABELS, fmt, exportToCsv,
@@ -7,6 +8,70 @@ import {
 import { OrgForm, PersonForm } from "./FundraisingForms";
 import { DonorPanel } from "./FundraisingDonorPanel";
 import { FundraisingStats } from "./FundraisingStats";
+
+const DONATE_URL = "https://spasenienadezhdi.ru/donate";
+const LOGO_URL = "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/4ca974da-fec3-4fd3-834d-c7dccc97fca9.jpg";
+
+function DonateQR() {
+  const qrRef = useRef<SVGSVGElement>(null);
+  const [size, setSize] = useState(280);
+
+  const downloadPng = () => {
+    const svg = qrRef.current;
+    if (!svg) return;
+    const padding = 40;
+    const totalSize = size + padding * 2;
+    const canvas = document.createElement("canvas");
+    canvas.width = totalSize;
+    canvas.height = totalSize;
+    const ctx = canvas.getContext("2d")!;
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, totalSize, totalSize);
+    const svgData = new XMLSerializer().serializeToString(svg);
+    const img = new Image();
+    img.onload = () => {
+      ctx.drawImage(img, padding, padding, size, size);
+      const a = document.createElement("a");
+      a.download = "qr-donate-spasenienadezhdi.png";
+      a.href = canvas.toDataURL("image/png");
+      a.click();
+    };
+    img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgData)));
+  };
+
+  return (
+    <div className="flex flex-col items-center gap-6 py-4">
+      <div className="bg-white border border-beige-dark rounded-2xl p-8 flex flex-col items-center gap-4 shadow-sm">
+        <img src={LOGO_URL} alt="Спасение надежды" className="w-14 h-14 object-contain" />
+        <QRCodeSVG
+          ref={qrRef}
+          value={DONATE_URL}
+          size={size}
+          level="M"
+          includeMargin={false}
+          imageSettings={{ src: LOGO_URL, height: 48, width: 48, excavate: true }}
+        />
+        <p className="text-ink/40 text-xs text-center max-w-[200px]">Ведёт на страницу пожертвований сайта</p>
+      </div>
+
+      <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1 bg-beige-mid rounded-xl p-1">
+          {[200, 280, 400].map(s => (
+            <button key={s} onClick={() => setSize(s)}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${size === s ? "bg-white text-ink shadow-sm" : "text-ink/50 hover:text-ink"}`}>
+              {s === 200 ? "S" : s === 280 ? "M" : "L"}
+            </button>
+          ))}
+        </div>
+        <button onClick={downloadPng}
+          className="flex items-center gap-2 bg-ink text-beige px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-ink/90 transition-colors">
+          <Icon name="Download" size={15} />
+          Скачать PNG
+        </button>
+      </div>
+    </div>
+  );
+}
 
 export default function AdminFundraisingTab({ adminUsers }: { adminUsers: string[] }) {
   const apiUrl = FUNDRAISING_URL;
@@ -87,6 +152,7 @@ export default function AdminFundraisingTab({ adminUsers }: { adminUsers: string
     { id: "stats" as Section, label: "Статистика", icon: "BarChart3" },
     { id: "orgs" as Section, label: "Организации", icon: "Building2" },
     { id: "persons" as Section, label: "Физлица", icon: "UserHeart" },
+    { id: "qr" as Section, label: "QR-код", icon: "QrCode" },
   ];
 
   return (
@@ -289,6 +355,9 @@ export default function AdminFundraisingTab({ adminUsers }: { adminUsers: string
           )}
         </div>
       )}
+
+      {/* ── QR-КОД ── */}
+      {section === "qr" && <DonateQR />}
 
       {/* Панель пожертвований */}
       {donorPanel && (

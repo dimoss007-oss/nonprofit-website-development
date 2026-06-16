@@ -1,5 +1,5 @@
 export type DonorType = "org" | "person";
-export type Section = "stats" | "orgs" | "persons";
+export type Section = "stats" | "orgs" | "persons" | "qr";
 export type Status = "active" | "inactive";
 
 export interface Stats {
