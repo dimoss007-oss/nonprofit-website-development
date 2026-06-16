@@ -12,27 +12,25 @@ import { FundraisingStats } from "./FundraisingStats";
 const DONATE_URL = "https://спасениенадежды.рф/donate";
 const LOGO_URL = "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/4ca974da-fec3-4fd3-834d-c7dccc97fca9.jpg";
 
-function DonateQR() {
+function QRCard({ url, label, filename, size }: { url: string; label: string; filename: string; size: number }) {
   const qrRef = useRef<SVGSVGElement>(null);
-  const [size, setSize] = useState(280);
 
   const downloadPng = () => {
     const svg = qrRef.current;
     if (!svg) return;
     const padding = 40;
-    const totalSize = size + padding * 2;
+    const total = size + padding * 2;
     const canvas = document.createElement("canvas");
-    canvas.width = totalSize;
-    canvas.height = totalSize;
+    canvas.width = total; canvas.height = total;
     const ctx = canvas.getContext("2d")!;
     ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, totalSize, totalSize);
+    ctx.fillRect(0, 0, total, total);
     const svgData = new XMLSerializer().serializeToString(svg);
     const img = new Image();
     img.onload = () => {
       ctx.drawImage(img, padding, padding, size, size);
       const a = document.createElement("a");
-      a.download = "qr-donate-spasenienadezhdi.png";
+      a.download = filename;
       a.href = canvas.toDataURL("image/png");
       a.click();
     };
@@ -40,34 +38,100 @@ function DonateQR() {
   };
 
   return (
-    <div className="flex flex-col items-center gap-6 py-4">
-      <div className="bg-white border border-beige-dark rounded-2xl p-8 flex flex-col items-center gap-4 shadow-sm">
-        <img src={LOGO_URL} alt="Спасение надежды" className="w-14 h-14 object-contain" />
+    <div className="flex flex-col items-center gap-3">
+      <div className="bg-white border border-beige-dark rounded-2xl p-6 flex flex-col items-center gap-3 shadow-sm">
         <QRCodeSVG
           ref={qrRef}
-          value={DONATE_URL}
+          value={url}
           size={size}
           level="M"
           includeMargin={false}
-          imageSettings={{ src: LOGO_URL, height: 48, width: 48, excavate: true }}
+          imageSettings={{ src: LOGO_URL, height: 40, width: 40, excavate: true }}
         />
-        <p className="text-ink/40 text-xs text-center max-w-[200px]">Ведёт на страницу пожертвований сайта</p>
+        <p className="text-ink/40 text-xs text-center max-w-[200px]">{label}</p>
       </div>
+      <button onClick={downloadPng}
+        className="flex items-center gap-2 bg-ink text-beige px-4 py-2 rounded-xl text-sm font-semibold hover:bg-ink/90 transition-colors">
+        <Icon name="Download" size={14} />
+        Скачать PNG
+      </button>
+    </div>
+  );
+}
 
-      <div className="flex items-center gap-3">
+function DonateQR() {
+  const [size, setSize] = useState(260);
+  const [ykUrl, setYkUrl] = useState("");
+  const [ykInput, setYkInput] = useState("");
+
+  const isValidUrl = (s: string) => { try { new URL(s); return true; } catch { return false; } };
+
+  return (
+    <div className="space-y-8 py-2">
+      {/* Размер */}
+      <div className="flex items-center gap-2">
+        <span className="text-sm text-ink/50">Размер:</span>
         <div className="flex items-center gap-1 bg-beige-mid rounded-xl p-1">
-          {[200, 280, 400].map(s => (
+          {[200, 260, 360].map(s => (
             <button key={s} onClick={() => setSize(s)}
               className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${size === s ? "bg-white text-ink shadow-sm" : "text-ink/50 hover:text-ink"}`}>
-              {s === 200 ? "S" : s === 280 ? "M" : "L"}
+              {s === 200 ? "S" : s === 260 ? "M" : "L"}
             </button>
           ))}
         </div>
-        <button onClick={downloadPng}
-          className="flex items-center gap-2 bg-ink text-beige px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-ink/90 transition-colors">
-          <Icon name="Download" size={15} />
-          Скачать PNG
-        </button>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+        {/* QR на сайт */}
+        <div className="space-y-3">
+          <h3 className="font-medium text-ink text-sm flex items-center gap-2">
+            <Icon name="Globe" size={15} /> Страница пожертвований
+          </h3>
+          <QRCard
+            url={DONATE_URL}
+            label="спасениенадежды.рф/donate"
+            filename="qr-сайт-donate.png"
+            size={size}
+          />
+        </div>
+
+        {/* QR на ЮКасса */}
+        <div className="space-y-3">
+          <h3 className="font-medium text-ink text-sm flex items-center gap-2">
+            <Icon name="CreditCard" size={15} /> Прямая оплата ЮКасса
+          </h3>
+          {ykUrl ? (
+            <div className="space-y-3">
+              <QRCard
+                url={ykUrl}
+                label="Прямая ссылка на оплату"
+                filename="qr-юкасса-donate.png"
+                size={size}
+              />
+              <button onClick={() => { setYkUrl(""); setYkInput(""); }}
+                className="text-xs text-ink/40 hover:text-ink/60 transition-colors flex items-center gap-1 mx-auto">
+                <Icon name="Pencil" size={12} /> Изменить ссылку
+              </button>
+            </div>
+          ) : (
+            <div className="bg-white border border-beige-dark rounded-2xl p-6 space-y-3">
+              <p className="text-sm text-ink/60">Вставьте ссылку из кабинета ЮКасса:</p>
+              <p className="text-xs text-ink/40">Кабинет ЮКасса → <span className="font-medium">Платёжные ссылки</span> → создать ссылку → скопировать</p>
+              <input
+                value={ykInput}
+                onChange={e => setYkInput(e.target.value)}
+                placeholder="https://yookassa.ru/..."
+                className="w-full border border-sage/20 text-ink placeholder-foreground/30 px-3 py-2.5 rounded-lg focus:outline-none focus:border-sage text-sm"
+              />
+              <button
+                onClick={() => isValidUrl(ykInput) && setYkUrl(ykInput)}
+                disabled={!isValidUrl(ykInput)}
+                className="w-full bg-sage text-beige py-2.5 rounded-lg text-sm font-semibold hover:bg-sage-dark transition-colors disabled:opacity-40">
+                Сгенерировать QR
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
