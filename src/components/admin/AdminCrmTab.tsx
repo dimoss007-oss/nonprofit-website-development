@@ -447,6 +447,12 @@ export default function AdminCrmTab({ isAdmin = true }: { isAdmin?: boolean }) {
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0 ${p.discharge_date ? "bg-beige-dark text-ink/40" : "bg-green-100 text-green-700"}`}>
                       {p.discharge_date ? "Выписана" : "В центре"}
                     </span>
+                    {!p.discharge_date && stayDuration(p.admission_date) && (
+                      <span className="text-xs text-green-600 flex-shrink-0">{stayDuration(p.admission_date)}</span>
+                    )}
+                    {p.discharge_date && stayDuration(p.admission_date, p.discharge_date) && (
+                      <span className="text-xs text-ink/40 flex-shrink-0">{stayDuration(p.admission_date, p.discharge_date)}</span>
+                    )}
                   </div>
                   <div className="flex items-center gap-4 mt-1 flex-wrap">
                     {p.birth_date && <span className="text-xs text-ink/40">Р. {fmt(p.birth_date)}</span>}
