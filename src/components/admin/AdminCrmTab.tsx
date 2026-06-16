@@ -147,14 +147,14 @@ function PatientCard({ patientId, onBack, onDeleted, isAdmin }: { patientId: num
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const load = async () => {
-    setLoading(true);
+  const load = async (showSpinner = false) => {
+    if (showSpinner) setLoading(true);
     const r = await fetch(`${API}?id=${patientId}`);
     setData(await r.json());
-    setLoading(false);
+    if (showSpinner) setLoading(false);
   };
 
-  useEffect(() => { load(); }, [patientId]);
+  useEffect(() => { load(true); }, [patientId]);
 
   const save = async (form: typeof EMPTY_FORM) => {
     setSaving(true);
@@ -185,18 +185,24 @@ function PatientCard({ patientId, onBack, onDeleted, isAdmin }: { patientId: num
   };
 
   const uploadFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files ?? []); if (!files.length) return;
+    const files = Array.from(e.target.files ?? []);
+    const input = e.target;
+    if (!files.length) return;
     setUploading(true);
-    await Promise.all(files.map(file => new Promise<void>(resolve => {
-      const reader = new FileReader();
-      reader.onload = async () => {
-        const base64 = (reader.result as string).split(",")[1];
-        await fetch(UPLOAD_API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ patient_id: patientId, file_name: file.name, file_data: base64, file_type: file.type }) });
-        resolve();
-      };
-      reader.readAsDataURL(file);
-    })));
-    setUploading(false); load(); e.target.value = "";
+    const readAsBase64 = (file: File): Promise<string> =>
+      new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve((reader.result as string).split(",")[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    await Promise.all(files.map(async (file) => {
+      const base64 = await readAsBase64(file);
+      await fetch(UPLOAD_API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ patient_id: patientId, file_name: file.name, file_data: base64, file_type: file.type }) });
+    }));
+    input.value = "";
+    setUploading(false);
+    load();
   };
 
   const discharge = async () => {
