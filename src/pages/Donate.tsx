@@ -10,6 +10,7 @@ export default function Donate() {
   const [customAmount, setCustomAmount] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [monthly, setMonthly] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -27,7 +28,7 @@ export default function Donate() {
           amount: finalAmount,
           user_name: name || "Аноним",
           user_email: email || undefined,
-          description: "Пожертвование АНО Спасение надежды",
+          monthly,
           success_url: `${window.location.origin}/donate`,
         }),
       });
@@ -98,6 +99,28 @@ export default function Donate() {
             />
           </div>
 
+          <label className="flex items-start gap-3 cursor-pointer select-none group">
+            <div className="relative mt-0.5 flex-shrink-0">
+              <input
+                type="checkbox"
+                checked={monthly}
+                onChange={(e) => setMonthly(e.target.checked)}
+                className="sr-only"
+              />
+              <div className={`w-5 h-5 rounded border-2 transition-all flex items-center justify-center ${monthly ? "bg-sage border-sage" : "border-sage/30 group-hover:border-sage/60"}`}>
+                {monthly && (
+                  <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+                    <path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                )}
+              </div>
+            </div>
+            <div>
+              <span className="text-sm font-medium text-ink">Ежемесячное пожертвование</span>
+              <p className="text-xs text-foreground/50 mt-0.5">Карта будет сохранена, списание произойдёт автоматически каждый месяц</p>
+            </div>
+          </label>
+
           {error && (
             <div className="text-red-500 text-sm bg-red-50 px-4 py-3 rounded-lg">{error}</div>
           )}
@@ -107,7 +130,7 @@ export default function Donate() {
             disabled={loading || !finalAmount || finalAmount < 1}
             className="w-full bg-sage text-beige py-3.5 font-golos font-semibold text-sm tracking-wide uppercase rounded-lg hover:bg-sage-dark transition-colors duration-300 disabled:opacity-60"
           >
-            {loading ? "Переходим к оплате..." : `Пожертвовать ${finalAmount ? `${finalAmount.toLocaleString("ru")} ₽` : ""}`}
+            {loading ? "Переходим к оплате..." : `${monthly ? "Подписаться" : "Пожертвовать"} ${finalAmount ? `${finalAmount.toLocaleString("ru")} ₽` : ""}${monthly ? " / мес" : ""}`}
           </button>
 
           <p className="text-foreground/40 text-xs text-center">

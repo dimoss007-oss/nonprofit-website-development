@@ -46,7 +46,9 @@ def handler(event: dict, context) -> dict:
     user_name = str(body.get("user_name", "Аноним")).strip()
     user_email = str(body.get("user_email", "")).strip()
     success_url = str(body.get("success_url", "")).strip()
-    description = str(body.get("description", "Пожертвование АНО Спасение надежды")).strip()
+    monthly = bool(body.get("monthly", False))
+    description_base = "Пожертвование АНО Спасение надежды"
+    description = (f"Ежемесячное {description_base.lower()}" if monthly else description_base)
 
     if amount < 1:
         return err("Сумма должна быть не менее 1 ₽")
@@ -61,9 +63,11 @@ def handler(event: dict, context) -> dict:
         },
         "description": description,
         "capture": True,
+        "save_payment_method": monthly,
         "metadata": {
             "user_name": user_name,
             "user_email": user_email,
+            "monthly": str(monthly),
         },
     }
 
@@ -112,7 +116,7 @@ def handler(event: dict, context) -> dict:
             f"""INSERT INTO {schema}.orders
                 (order_number, user_name, user_email, user_phone, amount, status, order_comment)
                 VALUES (%s, %s, %s, %s, %s, %s, %s)""",
-            (order_number, user_name, user_email or None, None, round(amount, 2), "pending", f"yookassa:{payment_id}")
+            (order_number, user_name, user_email or None, None, round(amount, 2), "pending", f"yookassa:{payment_id}{'|monthly' if monthly else ''}")
         )
         conn.commit()
         cur.close()
