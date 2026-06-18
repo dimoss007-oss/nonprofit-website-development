@@ -1,0 +1,12 @@
+{
+  "tests": [
+    {"name": "GET all cards", "method": "GET", "path": "/", "expectedStatus": 200},
+    {
+      "name": "POST create card",
+      "method": "POST",
+      "path": "/",
+      "body": {"name": "Тестовый донор", "stage": "identified", "donor_type": "org"},
+      "expectedStatus": 200
+    }
+  ]
+}

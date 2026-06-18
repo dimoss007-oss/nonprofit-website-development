@@ -10,6 +10,7 @@ import { OrgForm, PersonForm } from "./FundraisingForms";
 import { DonorPanel } from "./FundraisingDonorPanel";
 import { FundraisingStats } from "./FundraisingStats";
 import FundraisingGoalsTab from "./FundraisingGoalsTab";
+import FundraisingFunnelTab from "./FundraisingFunnelTab";
 
 const DONATE_URL = "https://спасениенадежды.рф/donate";
 const DONATE_LINK_URL = "https://спасениенадежды.рф/donate-pay";
@@ -193,6 +194,7 @@ export default function AdminFundraisingTab({ adminUsers }: { adminUsers: string
 
   const SECTIONS = [
     { id: "stats" as Section, label: "Статистика", icon: "BarChart3" },
+    { id: "funnel" as Section, label: "Воронка", icon: "Filter" },
     { id: "orgs" as Section, label: "Организации", icon: "Building2" },
     { id: "persons" as Section, label: "Физлица", icon: "UserHeart" },
     { id: "goals" as Section, label: "Цели сбора", icon: "Target" },
@@ -409,6 +411,9 @@ export default function AdminFundraisingTab({ adminUsers }: { adminUsers: string
           )}
         </div>
       )}
+
+      {/* ── ВОРОНКА ── */}
+      {section === "funnel" && <FundraisingFunnelTab adminUsers={adminUsers} />}
 
       {/* ── ЦЕЛИ СБОРА ── */}
       {section === "goals" && <FundraisingGoalsTab />}

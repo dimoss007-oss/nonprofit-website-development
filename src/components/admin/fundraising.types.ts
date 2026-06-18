@@ -1,5 +1,5 @@
 export type DonorType = "org" | "person";
-export type Section = "stats" | "orgs" | "persons" | "goals" | "qr";
+export type Section = "stats" | "orgs" | "persons" | "goals" | "funnel" | "qr";
 export type Status = "active" | "inactive" | "potential" | "lost";
 export type DonorCategory = "donation" | "grant" | "subsidy" | "targeted" | "corporate" | "fund";
 export type DonationType = "money" | "goods" | "services" | "volunteer";
@@ -43,6 +43,45 @@ export interface FundraisingGoal {
 }
 
 export const FUNDRAISING_URL = "https://functions.poehali.dev/c07dbd95-dad7-4562-8589-f3a6fd76c820";
+export const FUNNEL_URL = "https://functions.poehali.dev/96d356b3-84cb-4fdc-9772-5b7d1a94967e";
+
+export type FunnelStage =
+  | "identified" | "first_contact" | "meeting" | "proposal_sent"
+  | "negotiation" | "confirmed" | "funded" | "reporting" | "renewal";
+
+export interface FunnelCard {
+  id: number;
+  name: string;
+  donor_type: DonorType;
+  donor_category: DonorCategory;
+  stage: FunnelStage;
+  stage_order: number;
+  contact_person: string | null;
+  phone: string | null;
+  email: string | null;
+  potential_amount: number | null;
+  notes: string | null;
+  manager: string | null;
+  last_action_at: string | null;
+  next_action_at: string | null;
+  next_action_note: string | null;
+  linked_org_id: number | null;
+  linked_person_id: number | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export const FUNNEL_STAGES: { id: FunnelStage; label: string; color: string; icon: string }[] = [
+  { id: "identified",    label: "Идентифицирован",       color: "bg-slate-100 border-slate-200",   icon: "Binoculars" },
+  { id: "first_contact", label: "Первый контакт",         color: "bg-blue-50 border-blue-200",      icon: "Phone" },
+  { id: "meeting",       label: "Встреча / презентация",  color: "bg-violet-50 border-violet-200",  icon: "CalendarCheck" },
+  { id: "proposal_sent", label: "Отправлено предложение", color: "bg-amber-50 border-amber-200",    icon: "Send" },
+  { id: "negotiation",   label: "Переговоры",             color: "bg-orange-50 border-orange-200",  icon: "MessageSquare" },
+  { id: "confirmed",     label: "Подтверждение поддержки",color: "bg-lime-50 border-lime-200",      icon: "ThumbsUp" },
+  { id: "funded",        label: "Получено финансирование",color: "bg-green-50 border-green-200",    icon: "Banknote" },
+  { id: "reporting",     label: "Отчётность и сопровожд.",color: "bg-teal-50 border-teal-200",      icon: "FileText" },
+  { id: "renewal",       label: "Повторное привлечение",  color: "bg-indigo-50 border-indigo-200",  icon: "RefreshCw" },
+];
 
 export const STATUS_LABELS: Record<Status, string> = {
   active: "Активный", inactive: "Неактивный",
