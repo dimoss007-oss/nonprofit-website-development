@@ -7,10 +7,15 @@ import {
   fmt, exportToCsv,
 } from "./fundraising.types";
 import { OrgForm, PersonForm } from "./FundraisingForms";
-import { DonorPanel } from "./FundraisingDonorPanel";
 import { FundraisingStats } from "./FundraisingStats";
 import FundraisingGoalsTab from "./FundraisingGoalsTab";
 import FundraisingFunnelTab from "./FundraisingFunnelTab";
+import FundraisingCampaignsTab from "./FundraisingCampaignsTab";
+import FundraisingProjectsTab from "./FundraisingProjectsTab";
+import FundraisingTasksTab from "./FundraisingTasksTab";
+import FundraisingDocsTab from "./FundraisingDocsTab";
+import FundraisingKpiTab from "./FundraisingKpiTab";
+import { DonorCrmPanel } from "./DonorCrmPanel";
 
 const DONATE_URL = "https://спасениенадежды.рф/donate";
 const DONATE_LINK_URL = "https://спасениенадежды.рф/donate-pay";
@@ -194,24 +199,31 @@ export default function AdminFundraisingTab({ adminUsers }: { adminUsers: string
 
   const SECTIONS = [
     { id: "stats" as Section, label: "Статистика", icon: "BarChart3" },
+    { id: "kpi" as Section, label: "KPI", icon: "TrendingUp" },
     { id: "funnel" as Section, label: "Воронка", icon: "Filter" },
     { id: "orgs" as Section, label: "Организации", icon: "Building2" },
     { id: "persons" as Section, label: "Физлица", icon: "UserHeart" },
-    { id: "goals" as Section, label: "Цели сбора", icon: "Target" },
-    { id: "qr" as Section, label: "QR-код", icon: "QrCode" },
+    { id: "goals" as Section, label: "Цели", icon: "Target" },
+    { id: "campaigns" as Section, label: "Кампании", icon: "Megaphone" },
+    { id: "projects" as Section, label: "Проекты", icon: "FolderOpen" },
+    { id: "tasks" as Section, label: "Задачи", icon: "CheckSquare" },
+    { id: "docs" as Section, label: "Документы", icon: "FileText" },
+    { id: "qr" as Section, label: "QR", icon: "QrCode" },
   ];
 
   return (
     <div className="space-y-6">
-      {/* Подвкладки */}
-      <div className="flex items-center gap-1 bg-beige-mid rounded-xl p-1 w-fit">
-        {SECTIONS.map(s => (
-          <button key={s.id} onClick={() => { setSection(s.id); setShowForm(false); setSearch(""); }}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${section === s.id ? "bg-white text-ink shadow-sm" : "text-ink/50 hover:text-ink"}`}>
-            <Icon name={s.icon} size={15} />
-            {s.label}
-          </button>
-        ))}
+      {/* Подвкладки — скролл */}
+      <div className="overflow-x-auto pb-1 -mx-1 px-1">
+        <div className="flex items-center gap-1 bg-beige-mid rounded-xl p-1 w-fit min-w-full sm:min-w-0">
+          {SECTIONS.map(s => (
+            <button key={s.id} onClick={() => { setSection(s.id); setShowForm(false); setSearch(""); }}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${section === s.id ? "bg-white text-ink shadow-sm" : "text-ink/50 hover:text-ink"}`}>
+              <Icon name={s.icon} size={13} />
+              {s.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* ── СТАТИСТИКА ── */}
@@ -291,9 +303,9 @@ export default function AdminFundraisingTab({ adminUsers }: { adminUsers: string
                         </div>
                         <div className="flex items-center gap-1 flex-shrink-0">
                           <button onClick={() => setDonorPanel({ type: "org", id: org.id, name: org.name })}
-                            className="flex items-center gap-1.5 text-xs text-green-700 bg-green-50 px-3 py-1.5 rounded-lg hover:bg-green-100 transition-colors font-medium">
-                            <Icon name="Banknote" size={13} />
-                            {org.donations_count > 0 ? fmt(org.total_donated) : "Взносы"}
+                            className="flex items-center gap-1.5 text-xs text-ink/60 bg-beige-mid px-3 py-1.5 rounded-lg hover:bg-beige-dark transition-colors font-medium">
+                            <Icon name="ClipboardList" size={13} />
+                            CRM{org.donations_count > 0 ? ` · ${fmt(org.total_donated)}` : ""}
                           </button>
                           <button onClick={() => { setEditOrg(org); setShowForm(false); }}
                             className="p-1.5 text-ink/30 hover:text-ink transition-colors rounded-lg hover:bg-beige-mid">
@@ -389,9 +401,9 @@ export default function AdminFundraisingTab({ adminUsers }: { adminUsers: string
                         </div>
                         <div className="flex items-center gap-1 flex-shrink-0">
                           <button onClick={() => setDonorPanel({ type: "person", id: p.id, name: p.full_name })}
-                            className="flex items-center gap-1.5 text-xs text-green-700 bg-green-50 px-3 py-1.5 rounded-lg hover:bg-green-100 transition-colors font-medium">
-                            <Icon name="Banknote" size={13} />
-                            {p.donations_count > 0 ? fmt(p.total_donated) : "Взносы"}
+                            className="flex items-center gap-1.5 text-xs text-ink/60 bg-beige-mid px-3 py-1.5 rounded-lg hover:bg-beige-dark transition-colors font-medium">
+                            <Icon name="ClipboardList" size={13} />
+                            CRM{p.donations_count > 0 ? ` · ${fmt(p.total_donated)}` : ""}
                           </button>
                           <button onClick={() => { setEditPerson(p); setShowForm(false); }}
                             className="p-1.5 text-ink/30 hover:text-ink transition-colors rounded-lg hover:bg-beige-mid">
@@ -418,17 +430,31 @@ export default function AdminFundraisingTab({ adminUsers }: { adminUsers: string
       {/* ── ЦЕЛИ СБОРА ── */}
       {section === "goals" && <FundraisingGoalsTab />}
 
+      {/* ── КАМПАНИИ ── */}
+      {section === "campaigns" && <FundraisingCampaignsTab />}
+
+      {/* ── ПРОЕКТЫ ── */}
+      {section === "projects" && <FundraisingProjectsTab />}
+
+      {/* ── ЗАДАЧИ ── */}
+      {section === "tasks" && <FundraisingTasksTab />}
+
+      {/* ── ДОКУМЕНТЫ ── */}
+      {section === "docs" && <FundraisingDocsTab />}
+
+      {/* ── KPI ── */}
+      {section === "kpi" && <FundraisingKpiTab />}
+
       {/* ── QR-КОД ── */}
       {section === "qr" && <DonateQR />}
 
-      {/* Панель пожертвований */}
+      {/* CRM-панель донора */}
       {donorPanel && (
-        <DonorPanel
+        <DonorCrmPanel
           donorType={donorPanel.type}
           donorId={donorPanel.id}
           donorName={donorPanel.name}
           onClose={() => { setDonorPanel(null); loadStats(); if (section === "orgs") loadOrgs(); else loadPersons(); }}
-          apiUrl={apiUrl}
         />
       )}
     </div>

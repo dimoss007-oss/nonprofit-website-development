@@ -1,0 +1,9 @@
+{
+  "tests": [
+    {"name": "GET campaigns", "method": "GET", "path": "/?type=campaigns", "expectedStatus": 200},
+    {"name": "GET projects", "method": "GET", "path": "/?type=projects", "expectedStatus": 200},
+    {"name": "GET tasks all", "method": "GET", "path": "/?type=tasks&all=1", "expectedStatus": 200},
+    {"name": "GET documents all", "method": "GET", "path": "/?type=documents&all=1", "expectedStatus": 200},
+    {"name": "GET KPI", "method": "GET", "path": "/?type=kpi", "expectedStatus": 200}
+  ]
+}

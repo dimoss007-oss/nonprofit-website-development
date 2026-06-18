@@ -1,5 +1,5 @@
 export type DonorType = "org" | "person";
-export type Section = "stats" | "orgs" | "persons" | "goals" | "funnel" | "qr";
+export type Section = "stats" | "orgs" | "persons" | "goals" | "funnel" | "campaigns" | "projects" | "tasks" | "kpi" | "docs" | "qr";
 export type Status = "active" | "inactive" | "potential" | "lost";
 export type DonorCategory = "donation" | "grant" | "subsidy" | "targeted" | "corporate" | "fund";
 export type DonationType = "money" | "goods" | "services" | "volunteer";
@@ -44,6 +44,143 @@ export interface FundraisingGoal {
 
 export const FUNDRAISING_URL = "https://functions.poehali.dev/c07dbd95-dad7-4562-8589-f3a6fd76c820";
 export const FUNNEL_URL = "https://functions.poehali.dev/96d356b3-84cb-4fdc-9772-5b7d1a94967e";
+export const CRM_URL = "https://functions.poehali.dev/03ecea86-140d-49ee-b920-856fe1803e1d";
+
+// ── CRM-типы ──────────────────────────────────────────────────────────────────
+
+export type InteractionType = "call" | "meeting" | "email" | "event" | "comment" | "agreement";
+export type TaskType = "call" | "email" | "report" | "congrats" | "proposal" | "meeting" | "other";
+export type DocType = "contract" | "support_letter" | "report" | "presentation" | "template" | "other";
+export type CampaignStatus = "planned" | "active" | "completed" | "cancelled";
+export type ProjectStatus = "active" | "completed" | "paused" | "cancelled";
+
+export interface Interaction {
+  id: number;
+  donor_type: DonorType;
+  donor_id: number;
+  interaction_type: InteractionType;
+  title: string | null;
+  description: string;
+  interaction_date: string;
+  manager: string | null;
+  outcome: string | null;
+  next_step: string | null;
+  created_at: string;
+}
+
+export interface Campaign {
+  id: number;
+  title: string;
+  goal: string | null;
+  budget: number | null;
+  start_date: string | null;
+  end_date: string | null;
+  audience: string | null;
+  channel: string | null;
+  status: CampaignStatus;
+  result_amount: number | null;
+  result_donors: number | null;
+  notes: string | null;
+  created_at: string;
+}
+
+export interface OrgProject {
+  id: number;
+  title: string;
+  description: string | null;
+  start_date: string | null;
+  end_date: string | null;
+  budget: number | null;
+  status: ProjectStatus;
+  result: string | null;
+  created_at: string;
+  donors?: { donor_type: string; donor_id: number; amount: number | null; donor_name: string }[];
+}
+
+export interface DonorDocument {
+  id: number;
+  donor_type: string | null;
+  donor_id: number | null;
+  campaign_id: number | null;
+  project_id: number | null;
+  doc_type: DocType;
+  title: string;
+  url: string | null;
+  notes: string | null;
+  doc_date: string | null;
+  created_at: string;
+}
+
+export interface DonorTask {
+  id: number;
+  donor_type: string | null;
+  donor_id: number | null;
+  donor_name?: string;
+  title: string;
+  task_type: TaskType;
+  due_date: string | null;
+  is_done: boolean;
+  done_at: string | null;
+  manager: string | null;
+  notes: string | null;
+  created_at: string;
+}
+
+export interface DonorMetrics {
+  id: number;
+  donor_type: DonorType;
+  donor_id: number;
+  engagement_level: number;
+  support_probability: number;
+  interests: string | null;
+  last_contact_at: string | null;
+  next_step: string | null;
+  next_step_date: string | null;
+  updated_at: string;
+}
+
+export interface KpiData {
+  total_year: number; total_month: number;
+  donors_year: number; donors_month: number;
+  donations_total: number; avg_donation: number;
+  regular_count: number; new_donors_month: number;
+  repeat_rate: number;
+  funnel_total: number; funnel_funded: number; funnel_conversion: number;
+}
+
+export const INTERACTION_LABELS: Record<InteractionType, string> = {
+  call: "Звонок", meeting: "Встреча", email: "Письмо",
+  event: "Мероприятие", comment: "Комментарий", agreement: "Договорённость",
+};
+export const INTERACTION_ICONS: Record<InteractionType, string> = {
+  call: "Phone", meeting: "Users", email: "Mail",
+  event: "CalendarCheck", comment: "MessageSquare", agreement: "Handshake",
+};
+export const TASK_LABELS: Record<TaskType, string> = {
+  call: "Позвонить", email: "Отправить письмо", report: "Отправить отчёт",
+  congrats: "Поздравить", proposal: "Подготовить предложение",
+  meeting: "Провести встречу", other: "Другое",
+};
+export const DOC_TYPE_LABELS: Record<DocType, string> = {
+  contract: "Договор", support_letter: "Письмо поддержки",
+  report: "Отчёт", presentation: "Презентация",
+  template: "Шаблон", other: "Другое",
+};
+export const CAMPAIGN_STATUS_LABELS: Record<CampaignStatus, string> = {
+  planned: "Планируется", active: "Активная",
+  completed: "Завершена", cancelled: "Отменена",
+};
+export const CAMPAIGN_STATUS_COLORS: Record<CampaignStatus, string> = {
+  planned: "bg-blue-100 text-blue-700",
+  active: "bg-green-100 text-green-700",
+  completed: "bg-beige-dark text-ink/50",
+  cancelled: "bg-red-100 text-red-500",
+};
+export const PROJECT_STATUS_LABELS: Record<ProjectStatus, string> = {
+  active: "Активный", completed: "Завершён",
+  paused: "Приостановлен", cancelled: "Отменён",
+};
+export const CHANNEL_OPTIONS = ["Email", "Соцсети", "Мероприятие", "Личная встреча", "СМИ", "Сайт", "Партнёры", "Другое"];
 
 export type FunnelStage =
   | "identified" | "first_contact" | "meeting" | "proposal_sent"
