@@ -3,11 +3,13 @@ import Icon from "@/components/ui/icon";
 import { QRCodeSVG } from "qrcode.react";
 import {
   DonorType, Section, Org, Person, Stats,
-  FUNDRAISING_URL, STATUS_LABELS, fmt, exportToCsv,
+  FUNDRAISING_URL, STATUS_LABELS, STATUS_COLORS, DONOR_CATEGORY_LABELS, DONOR_CATEGORY_COLORS,
+  fmt, exportToCsv,
 } from "./fundraising.types";
 import { OrgForm, PersonForm } from "./FundraisingForms";
 import { DonorPanel } from "./FundraisingDonorPanel";
 import { FundraisingStats } from "./FundraisingStats";
+import FundraisingGoalsTab from "./FundraisingGoalsTab";
 
 const DONATE_URL = "https://спасениенадежды.рф/donate";
 const DONATE_LINK_URL = "https://спасениенадежды.рф/donate-pay";
@@ -193,6 +195,7 @@ export default function AdminFundraisingTab({ adminUsers }: { adminUsers: string
     { id: "stats" as Section, label: "Статистика", icon: "BarChart3" },
     { id: "orgs" as Section, label: "Организации", icon: "Building2" },
     { id: "persons" as Section, label: "Физлица", icon: "UserHeart" },
+    { id: "goals" as Section, label: "Цели сбора", icon: "Target" },
     { id: "qr" as Section, label: "QR-код", icon: "QrCode" },
   ];
 
@@ -267,9 +270,14 @@ export default function AdminFundraisingTab({ adminUsers }: { adminUsers: string
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-semibold text-ink">{org.name}</span>
-                            <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${org.status === "active" ? "bg-green-100 text-green-700" : "bg-beige-dark text-ink/50"}`}>
+                            <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${STATUS_COLORS[org.status] ?? "bg-beige-dark text-ink/50"}`}>
                               {STATUS_LABELS[org.status]}
                             </span>
+                            {org.donor_category && org.donor_category !== "donation" && (
+                              <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${DONOR_CATEGORY_COLORS[org.donor_category] ?? "bg-beige-dark text-ink/60"}`}>
+                                {DONOR_CATEGORY_LABELS[org.donor_category]}
+                              </span>
+                            )}
                           </div>
                           <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-ink/50">
                             {org.phone && <span className="flex items-center gap-1"><Icon name="Phone" size={11} />{org.phone}</span>}
@@ -357,9 +365,14 @@ export default function AdminFundraisingTab({ adminUsers }: { adminUsers: string
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-semibold text-ink">{p.full_name}</span>
-                            <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${p.status === "active" ? "bg-green-100 text-green-700" : "bg-beige-dark text-ink/50"}`}>
+                            <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${STATUS_COLORS[p.status] ?? "bg-beige-dark text-ink/50"}`}>
                               {STATUS_LABELS[p.status]}
                             </span>
+                            {p.donor_category && p.donor_category !== "donation" && (
+                              <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${DONOR_CATEGORY_COLORS[p.donor_category] ?? "bg-beige-dark text-ink/60"}`}>
+                                {DONOR_CATEGORY_LABELS[p.donor_category]}
+                              </span>
+                            )}
                             {p.source && (
                               <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 font-medium">
                                 {p.source}
@@ -396,6 +409,9 @@ export default function AdminFundraisingTab({ adminUsers }: { adminUsers: string
           )}
         </div>
       )}
+
+      {/* ── ЦЕЛИ СБОРА ── */}
+      {section === "goals" && <FundraisingGoalsTab />}
 
       {/* ── QR-КОД ── */}
       {section === "qr" && <DonateQR />}

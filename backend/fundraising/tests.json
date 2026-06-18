@@ -1,22 +1,9 @@
 {
   "tests": [
-    {
-      "name": "GET stats",
-      "method": "GET",
-      "path": "/?type=stats",
-      "expectedStatus": 200
-    },
-    {
-      "name": "GET orgs",
-      "method": "GET",
-      "path": "/?type=orgs",
-      "expectedStatus": 200
-    },
-    {
-      "name": "GET persons",
-      "method": "GET",
-      "path": "/?type=persons",
-      "expectedStatus": 200
-    }
+    {"name": "GET stats", "method": "GET", "path": "/?type=stats", "expectedStatus": 200},
+    {"name": "GET orgs", "method": "GET", "path": "/?type=orgs", "expectedStatus": 200},
+    {"name": "GET persons", "method": "GET", "path": "/?type=persons", "expectedStatus": 200},
+    {"name": "GET goals active", "method": "GET", "path": "/?type=goals", "expectedStatus": 200},
+    {"name": "GET goals all", "method": "GET", "path": "/?type=goals&all=1", "expectedStatus": 200}
   ]
 }
