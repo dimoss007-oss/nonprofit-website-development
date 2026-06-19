@@ -107,6 +107,15 @@ export default function AdminFinance() {
     setCategories((prev) => prev.filter((c) => c.id !== id));
   }
 
+  async function handleRenameCategory(id: number, name: string, type: "income" | "expense") {
+    await fetch(FINANCE_CAT_URL, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, name, type }),
+    });
+    setCategories((prev) => prev.map((c) => c.id === id ? { ...c, name, type } : c));
+  }
+
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
     if (!addAmount || isNaN(Number(addAmount))) { setAddError("Введите корректную сумму"); return; }
@@ -256,6 +265,7 @@ export default function AdminFinance() {
             catLoading={catLoading}
             onAdd={handleAddCategory}
             onDelete={handleDeleteCategory}
+            onRename={handleRenameCategory}
           />
         )}
       </div>

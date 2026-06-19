@@ -8,7 +8,7 @@ def handler(event: dict, context) -> dict:
     """CRUD для категорий доходов и расходов. GET — список, POST — создать, DELETE — удалить."""
     cors = {
         'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type',
     }
 
@@ -47,6 +47,23 @@ def handler(event: dict, context) -> dict:
         cur.close()
         conn.close()
         return {'statusCode': 200, 'headers': cors, 'body': json.dumps({'ok': True, 'id': new_id})}
+
+    if method == 'PUT':
+        body = json.loads(event.get('body') or '{}')
+        cat_id = body.get('id')
+        name = (body.get('name') or '').strip()
+        tx_type = body.get('type', '')
+        if not cat_id or not name:
+            cur.close(); conn.close()
+            return {'statusCode': 400, 'headers': cors, 'body': json.dumps({'ok': False, 'error': 'id и name обязательны'})}
+        name_safe = name.replace("'", "''")
+        if tx_type in ('income', 'expense'):
+            cur.execute(f"UPDATE {SCHEMA}.finance_categories SET name='{name_safe}', type='{tx_type}' WHERE id={int(cat_id)}")
+        else:
+            cur.execute(f"UPDATE {SCHEMA}.finance_categories SET name='{name_safe}' WHERE id={int(cat_id)}")
+        cur.close()
+        conn.close()
+        return {'statusCode': 200, 'headers': cors, 'body': json.dumps({'ok': True})}
 
     if method == 'DELETE':
         body = json.loads(event.get('body') or '{}')
