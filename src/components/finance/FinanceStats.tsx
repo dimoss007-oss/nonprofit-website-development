@@ -16,11 +16,12 @@ interface Props {
   onChangeDescription: (id: number, month: string, description: string) => Promise<void>;
 }
 
-function CategoryCell({ tx, month, categories, onChangeCategory }: {
+function CategoryCell({ tx, month, categories, onChangeCategory, isLast }: {
   tx: Transaction;
   month: string;
   categories: Category[];
   onChangeCategory: (id: number, month: string, category: string) => Promise<void>;
+  isLast: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -33,6 +34,9 @@ function CategoryCell({ tx, month, categories, onChangeCategory }: {
     setSaving(false);
     setOpen(false);
   };
+
+  // Открываем вверх для последних строк, чтобы не уходить за край таблицы
+  const dropDir = isLast ? "bottom-full mb-1" : "top-full mt-1";
 
   return (
     <div className="relative">
@@ -55,10 +59,8 @@ function CategoryCell({ tx, month, categories, onChangeCategory }: {
 
       {open && (
         <>
-          {/* оверлей для закрытия */}
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute left-0 top-full mt-1 z-20 bg-white border border-beige-dark rounded-xl shadow-xl py-1 min-w-40 max-h-52 overflow-y-auto">
-            {/* Сбросить категорию */}
+          <div className={`absolute left-0 ${dropDir} z-20 bg-white border border-beige-dark rounded-xl shadow-xl py-1 min-w-40 max-h-52 overflow-y-auto`}>
             <button
               onClick={() => select("")}
               className="w-full text-left px-3 py-1.5 text-xs text-ink/40 hover:bg-beige-mid hover:text-ink transition-colors flex items-center gap-2"
@@ -183,7 +185,7 @@ export default function FinanceStats({
             const isLoadingTx = txLoading === m.month;
 
             return (
-              <div key={m.month} className="bg-white rounded-lg shadow-sm border border-beige-dark overflow-hidden">
+              <div key={m.month} className="bg-white rounded-lg shadow-sm border border-beige-dark overflow-visible">
                 <button onClick={() => onToggleMonth(m.month)}
                   className="w-full flex items-center justify-between px-5 py-4 hover:bg-beige/30 transition-colors">
                   <div className="flex items-center gap-4">
@@ -201,7 +203,7 @@ export default function FinanceStats({
                 </button>
 
                 {isOpen && (
-                  <div className="border-t border-beige-dark">
+                  <div className="border-t border-beige-dark overflow-visible">
                     {isLoadingTx ? (
                       <div className="text-center py-6 text-muted-foreground text-sm">Загрузка...</div>
                     ) : txList.length === 0 ? (
@@ -227,6 +229,7 @@ export default function FinanceStats({
                                   month={m.month}
                                   categories={categories}
                                   onChangeCategory={onChangeCategory}
+                                  isLast={i >= txList.length - 3}
                                 />
                               </td>
                               <td className="px-5 py-2 text-ink">
