@@ -119,6 +119,18 @@ export default function AdminFinance() {
     }));
   }
 
+  async function handleChangeTransactionDescription(id: number, month: string, description: string) {
+    await fetch(FINANCE_ADD_URL, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, description }),
+    });
+    setTransactions((prev) => ({
+      ...prev,
+      [month]: (prev[month] || []).map((tx) => tx.id === id ? { ...tx, description: description || null } : tx),
+    }));
+  }
+
   async function handleRenameCategory(id: number, name: string, type: "income" | "expense") {
     await fetch(FINANCE_CAT_URL, {
       method: "PUT",
@@ -270,6 +282,7 @@ export default function AdminFinance() {
             onToggleMonth={toggleMonth}
             onDeleteTransaction={deleteTransaction}
             onChangeCategory={handleChangeTransactionCategory}
+            onChangeDescription={handleChangeTransactionDescription}
           />
         )}
 

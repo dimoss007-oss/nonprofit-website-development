@@ -26,12 +26,20 @@ def handler(event: dict, context) -> dict:
     # PUT — обновить категорию существующей транзакции
     if method == 'PUT':
         tx_id = body.get('id')
-        category = (body.get('category') or '').strip()
         if not tx_id:
             cur.close(); conn.close()
             return {'statusCode': 400, 'headers': cors, 'body': json.dumps({'ok': False, 'error': 'id обязателен'})}
-        cat_val = f"'{category.replace(chr(39), chr(39)*2)}'" if category else 'NULL'
-        cur.execute(f"UPDATE {SCHEMA}.finance_transactions SET category={cat_val} WHERE id={int(tx_id)}")
+        sets = []
+        if 'category' in body:
+            cat = (body.get('category') or '').strip()
+            sets.append(f"category={'NULL' if not cat else chr(39) + cat.replace(chr(39), chr(39)*2) + chr(39)}")
+        if 'description' in body:
+            desc = (body.get('description') or '').strip()
+            sets.append(f"description={'NULL' if not desc else chr(39) + desc.replace(chr(39), chr(39)*2) + chr(39)}")
+        if not sets:
+            cur.close(); conn.close()
+            return {'statusCode': 400, 'headers': cors, 'body': json.dumps({'ok': False, 'error': 'нечего обновлять'})}
+        cur.execute(f"UPDATE {SCHEMA}.finance_transactions SET {', '.join(sets)} WHERE id={int(tx_id)}")
         cur.close(); conn.close()
         return {'statusCode': 200, 'headers': cors, 'body': json.dumps({'ok': True})}
 

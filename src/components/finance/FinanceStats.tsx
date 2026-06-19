@@ -13,6 +13,7 @@ interface Props {
   onToggleMonth: (month: string) => void;
   onDeleteTransaction: (id: number, month: string) => void;
   onChangeCategory: (id: number, month: string, category: string) => Promise<void>;
+  onChangeDescription: (id: number, month: string, description: string) => Promise<void>;
 }
 
 function CategoryCell({ tx, month, categories, onChangeCategory }: {
@@ -85,9 +86,71 @@ function CategoryCell({ tx, month, categories, onChangeCategory }: {
   );
 }
 
+function DescriptionCell({ tx, month, onChangeDescription }: {
+  tx: Transaction;
+  month: string;
+  onChangeDescription: (id: number, month: string, description: string) => Promise<void>;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [value, setValue] = useState(tx.description || "");
+  const [saving, setSaving] = useState(false);
+
+  const save = async () => {
+    setSaving(true);
+    await onChangeDescription(tx.id, month, value);
+    setSaving(false);
+    setEditing(false);
+  };
+
+  const cancel = () => {
+    setValue(tx.description || "");
+    setEditing(false);
+  };
+
+  const onKey = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") save();
+    if (e.key === "Escape") cancel();
+  };
+
+  if (editing) {
+    return (
+      <div className="flex items-center gap-1.5">
+        <input
+          autoFocus
+          value={value}
+          onChange={e => setValue(e.target.value)}
+          onKeyDown={onKey}
+          disabled={saving}
+          placeholder="Описание..."
+          className="border border-sage rounded px-2 py-0.5 text-sm text-ink focus:outline-none focus:ring-1 focus:ring-sage w-full min-w-32 bg-white"
+        />
+        <button onClick={save} disabled={saving} className="p-1 text-sage hover:text-sage-dark disabled:opacity-40" title="Сохранить (Enter)">
+          <Icon name="Check" size={14} />
+        </button>
+        <button onClick={cancel} className="p-1 text-ink/30 hover:text-ink" title="Отмена (Esc)">
+          <Icon name="X" size={14} />
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <button
+      onClick={() => { setValue(tx.description || ""); setEditing(true); }}
+      className="group/desc text-left w-full"
+      title="Нажмите, чтобы изменить"
+    >
+      {tx.description
+        ? <span className="text-ink group-hover/desc:underline decoration-dashed underline-offset-2">{tx.description}</span>
+        : <span className="text-muted-foreground italic group-hover/desc:text-ink/60 transition-colors">без описания</span>
+      }
+    </button>
+  );
+}
+
 export default function FinanceStats({
   loading, months, totals, expandedMonth, transactions, txLoading,
-  categories, onToggleMonth, onDeleteTransaction, onChangeCategory,
+  categories, onToggleMonth, onDeleteTransaction, onChangeCategory, onChangeDescription,
 }: Props) {
   return (
     <>
@@ -166,7 +229,9 @@ export default function FinanceStats({
                                   onChangeCategory={onChangeCategory}
                                 />
                               </td>
-                              <td className="px-5 py-2 text-ink">{tx.description || <span className="text-muted-foreground italic">без описания</span>}</td>
+                              <td className="px-5 py-2 text-ink">
+                                <DescriptionCell tx={tx} month={m.month} onChangeDescription={onChangeDescription} />
+                              </td>
                               <td className={`px-5 py-2 text-right font-medium ${tx.type === "income" ? "text-green-600" : "text-red-500"}`}>
                                 {tx.type === "income" ? "+" : "−"}{fmt(tx.amount)} ₽
                               </td>
