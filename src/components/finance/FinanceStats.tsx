@@ -208,47 +208,83 @@ export default function FinanceStats({
                       <div className="text-center py-6 text-muted-foreground text-sm">Загрузка...</div>
                     ) : txList.length === 0 ? (
                       <div className="text-center py-6 text-muted-foreground text-sm">Нет операций</div>
-                    ) : (
-                      <table className="w-full text-sm">
-                        <thead>
-                          <tr className="bg-beige/40 border-b border-beige-dark">
-                            <th className="text-left px-5 py-2 font-medium text-muted-foreground">Дата</th>
-                            <th className="text-left px-5 py-2 font-medium text-muted-foreground">Категория</th>
-                            <th className="text-left px-5 py-2 font-medium text-muted-foreground">Описание</th>
-                            <th className="text-right px-5 py-2 font-medium text-muted-foreground">Сумма</th>
-                            <th className="w-10"></th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {txList.map((tx, i) => (
-                            <tr key={tx.id} className={`border-b border-beige-dark/30 group ${i % 2 === 0 ? "" : "bg-beige/10"}`}>
-                              <td className="px-5 py-2 text-muted-foreground whitespace-nowrap">{tx.created_at}</td>
-                              <td className="px-5 py-2">
-                                <CategoryCell
-                                  tx={tx}
-                                  month={m.month}
-                                  categories={categories}
-                                  onChangeCategory={onChangeCategory}
-                                  isLast={i >= txList.length - 3}
-                                />
-                              </td>
-                              <td className="px-5 py-2 text-ink">
-                                <DescriptionCell tx={tx} month={m.month} onChangeDescription={onChangeDescription} />
-                              </td>
-                              <td className={`px-5 py-2 text-right font-medium ${tx.type === "income" ? "text-green-600" : "text-red-500"}`}>
-                                {tx.type === "income" ? "+" : "−"}{fmt(tx.amount)} ₽
-                              </td>
-                              <td className="pr-3 py-2 text-right">
-                                <button onClick={() => onDeleteTransaction(tx.id, m.month)}
-                                  className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-red-500 transition-all" title="Удалить">
-                                  <Icon name="Trash2" size={14} />
-                                </button>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    )}
+                    ) : (() => {
+                      const expenseTx = txList.filter(t => t.type === "expense");
+                      const catMap: Record<string, number> = {};
+                      expenseTx.forEach(t => {
+                        const key = t.category || "Без категории";
+                        catMap[key] = (catMap[key] || 0) + t.amount;
+                      });
+                      const catEntries = Object.entries(catMap).sort((a, b) => b[1] - a[1]);
+                      const totalExpense = expenseTx.reduce((s, t) => s + t.amount, 0);
+
+                      return (
+                        <>
+                          {catEntries.length > 0 && (
+                            <div className="px-5 py-4 border-b border-beige-dark/50">
+                              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">Расходы по категориям</p>
+                              <div className="space-y-2">
+                                {catEntries.map(([cat, sum]) => {
+                                  const pct = totalExpense > 0 ? Math.round((sum / totalExpense) * 100) : 0;
+                                  return (
+                                    <div key={cat}>
+                                      <div className="flex items-center justify-between text-xs mb-1">
+                                        <span className="text-ink/70">{cat}</span>
+                                        <span className="text-red-500 font-medium">
+                                          {fmt(sum)} ₽ <span className="text-ink/30 font-normal">· {pct}%</span>
+                                        </span>
+                                      </div>
+                                      <div className="h-1.5 bg-beige-mid rounded-full overflow-hidden">
+                                        <div className="h-full bg-red-400 rounded-full transition-all" style={{ width: `${pct}%` }} />
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+                          <table className="w-full text-sm">
+                            <thead>
+                              <tr className="bg-beige/40 border-b border-beige-dark">
+                                <th className="text-left px-5 py-2 font-medium text-muted-foreground">Дата</th>
+                                <th className="text-left px-5 py-2 font-medium text-muted-foreground">Категория</th>
+                                <th className="text-left px-5 py-2 font-medium text-muted-foreground">Описание</th>
+                                <th className="text-right px-5 py-2 font-medium text-muted-foreground">Сумма</th>
+                                <th className="w-10"></th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {txList.map((tx, i) => (
+                                <tr key={tx.id} className={`border-b border-beige-dark/30 group ${i % 2 === 0 ? "" : "bg-beige/10"}`}>
+                                  <td className="px-5 py-2 text-muted-foreground whitespace-nowrap">{tx.created_at}</td>
+                                  <td className="px-5 py-2">
+                                    <CategoryCell
+                                      tx={tx}
+                                      month={m.month}
+                                      categories={categories}
+                                      onChangeCategory={onChangeCategory}
+                                      isLast={i >= txList.length - 3}
+                                    />
+                                  </td>
+                                  <td className="px-5 py-2 text-ink">
+                                    <DescriptionCell tx={tx} month={m.month} onChangeDescription={onChangeDescription} />
+                                  </td>
+                                  <td className={`px-5 py-2 text-right font-medium ${tx.type === "income" ? "text-green-600" : "text-red-500"}`}>
+                                    {tx.type === "income" ? "+" : "−"}{fmt(tx.amount)} ₽
+                                  </td>
+                                  <td className="pr-3 py-2 text-right">
+                                    <button onClick={() => onDeleteTransaction(tx.id, m.month)}
+                                      className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-red-500 transition-all" title="Удалить">
+                                      <Icon name="Trash2" size={14} />
+                                    </button>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </>
+                      );
+                    })()}
                   </div>
                 )}
               </div>
