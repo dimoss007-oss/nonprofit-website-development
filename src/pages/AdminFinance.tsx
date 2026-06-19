@@ -107,6 +107,18 @@ export default function AdminFinance() {
     setCategories((prev) => prev.filter((c) => c.id !== id));
   }
 
+  async function handleChangeTransactionCategory(id: number, month: string, category: string) {
+    await fetch(FINANCE_ADD_URL, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, category }),
+    });
+    setTransactions((prev) => ({
+      ...prev,
+      [month]: (prev[month] || []).map((tx) => tx.id === id ? { ...tx, category: category || null } : tx),
+    }));
+  }
+
   async function handleRenameCategory(id: number, name: string, type: "income" | "expense") {
     await fetch(FINANCE_CAT_URL, {
       method: "PUT",
@@ -254,8 +266,10 @@ export default function AdminFinance() {
             expandedMonth={expandedMonth}
             transactions={transactions}
             txLoading={txLoading}
+            categories={categories}
             onToggleMonth={toggleMonth}
             onDeleteTransaction={deleteTransaction}
+            onChangeCategory={handleChangeTransactionCategory}
           />
         )}
 

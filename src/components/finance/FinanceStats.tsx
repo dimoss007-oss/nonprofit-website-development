@@ -1,5 +1,6 @@
+import { useState } from "react";
 import Icon from "@/components/ui/icon";
-import { MonthStats, Transaction, fmt } from "./financeTypes";
+import { MonthStats, Transaction, Category, fmt } from "./financeTypes";
 
 interface Props {
   loading: boolean;
@@ -8,11 +9,86 @@ interface Props {
   expandedMonth: string | null;
   transactions: Record<string, Transaction[]>;
   txLoading: string | null;
+  categories: Category[];
   onToggleMonth: (month: string) => void;
   onDeleteTransaction: (id: number, month: string) => void;
+  onChangeCategory: (id: number, month: string, category: string) => Promise<void>;
 }
 
-export default function FinanceStats({ loading, months, totals, expandedMonth, transactions, txLoading, onToggleMonth, onDeleteTransaction }: Props) {
+function CategoryCell({ tx, month, categories, onChangeCategory }: {
+  tx: Transaction;
+  month: string;
+  categories: Category[];
+  onChangeCategory: (id: number, month: string, category: string) => Promise<void>;
+}) {
+  const [open, setOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const relevant = categories.filter(c => c.type === tx.type);
+
+  const select = async (name: string) => {
+    setSaving(true);
+    await onChangeCategory(tx.id, month, name);
+    setSaving(false);
+    setOpen(false);
+  };
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen(o => !o)}
+        disabled={saving}
+        title="Изменить категорию"
+        className="group/cat flex items-center gap-1"
+      >
+        {tx.category
+          ? <span className={`text-xs px-2 py-0.5 rounded-full font-medium transition-opacity ${tx.type === "income" ? "bg-green-100 text-green-700" : "bg-red-50 text-red-600"} group-hover/cat:opacity-70`}>
+              {saving ? "..." : tx.category}
+            </span>
+          : <span className="text-muted-foreground text-xs hover:text-ink transition-colors">
+              {saving ? "..." : "— добавить"}
+            </span>
+        }
+        <Icon name="ChevronDown" size={11} className="opacity-0 group-hover/cat:opacity-40 transition-opacity text-ink/50 flex-shrink-0" />
+      </button>
+
+      {open && (
+        <>
+          {/* оверлей для закрытия */}
+          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
+          <div className="absolute left-0 top-full mt-1 z-20 bg-white border border-beige-dark rounded-xl shadow-xl py-1 min-w-40 max-h-52 overflow-y-auto">
+            {/* Сбросить категорию */}
+            <button
+              onClick={() => select("")}
+              className="w-full text-left px-3 py-1.5 text-xs text-ink/40 hover:bg-beige-mid hover:text-ink transition-colors flex items-center gap-2"
+            >
+              <Icon name="X" size={11} /> Без категории
+            </button>
+            {relevant.length > 0 && <div className="border-t border-beige-dark/40 my-1" />}
+            {relevant.map(c => (
+              <button
+                key={c.id}
+                onClick={() => select(c.name)}
+                className={`w-full text-left px-3 py-1.5 text-xs transition-colors flex items-center gap-2 ${c.name === tx.category ? "font-semibold text-ink bg-beige-mid" : "text-ink/70 hover:bg-beige-mid hover:text-ink"}`}
+              >
+                {c.name === tx.category && <Icon name="Check" size={11} className="text-sage flex-shrink-0" />}
+                {c.name}
+              </button>
+            ))}
+            {relevant.length === 0 && (
+              <p className="px-3 py-2 text-xs text-ink/30 italic">Нет категорий</p>
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+export default function FinanceStats({
+  loading, months, totals, expandedMonth, transactions, txLoading,
+  categories, onToggleMonth, onDeleteTransaction, onChangeCategory,
+}: Props) {
   return (
     <>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
@@ -83,9 +159,12 @@ export default function FinanceStats({ loading, months, totals, expandedMonth, t
                             <tr key={tx.id} className={`border-b border-beige-dark/30 group ${i % 2 === 0 ? "" : "bg-beige/10"}`}>
                               <td className="px-5 py-2 text-muted-foreground whitespace-nowrap">{tx.created_at}</td>
                               <td className="px-5 py-2">
-                                {tx.category
-                                  ? <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${tx.type === "income" ? "bg-green-100 text-green-700" : "bg-red-50 text-red-600"}`}>{tx.category}</span>
-                                  : <span className="text-muted-foreground text-xs">—</span>}
+                                <CategoryCell
+                                  tx={tx}
+                                  month={m.month}
+                                  categories={categories}
+                                  onChangeCategory={onChangeCategory}
+                                />
                               </td>
                               <td className="px-5 py-2 text-ink">{tx.description || <span className="text-muted-foreground italic">без описания</span>}</td>
                               <td className={`px-5 py-2 text-right font-medium ${tx.type === "income" ? "text-green-600" : "text-red-500"}`}>
