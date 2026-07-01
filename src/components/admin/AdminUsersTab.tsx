@@ -16,6 +16,7 @@ export const ALL_TABS = [
   { id: "users",       label: "Сотрудники",    icon: "UserCog" },
   { id: "gallery",     label: "Галерея",       icon: "Images" },
   { id: "fundraising", label: "Фандрайзинг",   icon: "HandCoins" },
+  { id: "gov",         label: "Госорганы",     icon: "Landmark" },
 ] as const;
 
 export type TabId = typeof ALL_TABS[number]["id"];

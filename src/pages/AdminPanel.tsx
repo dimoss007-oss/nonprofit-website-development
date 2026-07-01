@@ -7,6 +7,7 @@ import AdminTasksTab from "@/components/admin/AdminTasksTab";
 import AdminRequestsTab from "@/components/admin/AdminRequestsTab";
 import AdminGalleryTab from "@/components/admin/AdminGalleryTab";
 import AdminFundraisingTab from "@/components/admin/AdminFundraisingTab";
+import AdminGovTab from "@/components/admin/AdminGovTab";
 
 const AUTH_URL = "https://functions.poehali.dev/e6567f16-b3db-4b0d-9c1f-abed808c2ac8";
 const LOGO_IMG = "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/4ca974da-fec3-4fd3-834d-c7dccc97fca9.jpg";
@@ -119,6 +120,7 @@ export default function AdminPanel() {
     { id: "users",       label: "Сотрудники",    icon: "UserCog",       active: "bg-sage-pale text-sage-dark shadow-sm",   inactive: "text-sage hover:bg-sage-pale/50 hover:text-sage-dark" },
     { id: "gallery",     label: "Галерея",       icon: "Images",        active: "bg-orange-100 text-orange-700 shadow-sm", inactive: "text-orange-400 hover:bg-orange-50 hover:text-orange-600" },
     { id: "fundraising", label: "Фандрайзинг",   icon: "HandCoins",     active: "bg-green-100 text-green-700 shadow-sm",   inactive: "text-green-500 hover:bg-green-50 hover:text-green-700" },
+    { id: "gov",         label: "Госорганы",     icon: "Landmark",      active: "bg-slate-100 text-slate-700 shadow-sm",   inactive: "text-slate-400 hover:bg-slate-50 hover:text-slate-600" },
   ];
 
   const visibleTabs = isAdmin
@@ -177,6 +179,7 @@ export default function AdminPanel() {
         {tab === "users" && <AdminUsersTab authLogin={session.login} authPassword={session.password} isAdmin={isAdmin} />}
         {tab === "gallery" && <AdminGalleryTab />}
         {tab === "fundraising" && <AdminFundraisingTab adminUsers={adminUsers.map(u => u.full_name || u.login)} />}
+        {tab === "gov" && <AdminGovTab />}
       </main>
     </div>
   );
