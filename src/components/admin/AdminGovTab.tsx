@@ -164,7 +164,14 @@ function AgencyCard({ agency, onEdit, onArchive }: {
               <Icon name="Landmark" size={16} className="text-slate-500" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-semibold text-ink text-sm leading-tight">{agency.name}</p>
+              <div className="flex items-center gap-2 flex-wrap">
+                <p className="font-semibold text-ink text-sm leading-tight">{agency.name}</p>
+                {(agency.contact_person || agency.contact_phone) && (
+                  <span className="flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">
+                    <Icon name="UserCheck" size={10} /> Есть контакт
+                  </span>
+                )}
+              </div>
               <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-ink/50">
                 {agency.phone && <span className="flex items-center gap-1"><Icon name="Phone" size={11} />{agency.phone}</span>}
                 {agency.service_phone && <span className="flex items-center gap-1"><Icon name="PhoneCall" size={11} />{agency.service_phone}</span>}
