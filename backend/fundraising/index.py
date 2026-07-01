@@ -85,7 +85,7 @@ def handler(event: dict, context) -> dict:
                 cur.execute("""
                     SELECT o.id, o.name, o.phone, o.email, o.website, o.manager,
                            o.status, o.donor_category, o.inn, o.contact_person,
-                           o.notes, o.created_at,
+                           o.address, o.notes, o.created_at,
                            COALESCE(SUM(d.amount),0) AS total_donated,
                            COUNT(d.id) AS donations_count
                     FROM donors_orgs o
@@ -94,7 +94,7 @@ def handler(event: dict, context) -> dict:
                     ORDER BY o.created_at DESC
                 """)
                 cols = ["id","name","phone","email","website","manager","status",
-                        "donor_category","inn","contact_person","notes","created_at",
+                        "donor_category","inn","contact_person","address","notes","created_at",
                         "total_donated","donations_count"]
                 rows = [dict(zip(cols, r)) for r in cur.fetchall()]
                 for r in rows:
@@ -104,7 +104,7 @@ def handler(event: dict, context) -> dict:
             if qtype == "persons":
                 cur.execute("""
                     SELECT p.id, p.full_name, p.phone, p.email, p.source,
-                           p.status, p.donor_category, p.notes, p.created_at,
+                           p.status, p.donor_category, p.address, p.notes, p.created_at,
                            COALESCE(SUM(d.amount),0) AS total_donated,
                            COUNT(d.id) AS donations_count
                     FROM donors_persons p
@@ -113,7 +113,7 @@ def handler(event: dict, context) -> dict:
                     ORDER BY p.created_at DESC
                 """)
                 cols = ["id","full_name","phone","email","source","status",
-                        "donor_category","notes","created_at","total_donated","donations_count"]
+                        "donor_category","address","notes","created_at","total_donated","donations_count"]
                 rows = [dict(zip(cols, r)) for r in cur.fetchall()]
                 for r in rows:
                     r["total_donated"] = float(r["total_donated"])
@@ -171,22 +171,23 @@ def handler(event: dict, context) -> dict:
                     cur.execute("""
                         UPDATE donors_orgs SET name=%s, phone=%s, email=%s, website=%s,
                                manager=%s, status=%s, donor_category=%s, inn=%s,
-                               contact_person=%s, notes=%s
+                               contact_person=%s, address=%s, notes=%s
                         WHERE id=%s RETURNING id
                     """, (body.get("name"), body.get("phone"), body.get("email"),
                           body.get("website"), body.get("manager"),
                           body.get("status","active"), body.get("donor_category","donation"),
                           body.get("inn"), body.get("contact_person"),
-                          body.get("notes"), oid))
+                          body.get("address"), body.get("notes"), oid))
                 else:
                     cur.execute("""
                         INSERT INTO donors_orgs
-                            (name,phone,email,website,manager,status,donor_category,inn,contact_person,notes)
-                        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id
+                            (name,phone,email,website,manager,status,donor_category,inn,contact_person,address,notes)
+                        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id
                     """, (body.get("name"), body.get("phone"), body.get("email"),
                           body.get("website"), body.get("manager"),
                           body.get("status","active"), body.get("donor_category","donation"),
-                          body.get("inn"), body.get("contact_person"), body.get("notes")))
+                          body.get("inn"), body.get("contact_person"),
+                          body.get("address"), body.get("notes")))
                 new_id = cur.fetchone()[0]
                 conn.commit()
                 return ok({"id": new_id})
@@ -196,19 +197,20 @@ def handler(event: dict, context) -> dict:
                 if pid:
                     cur.execute("""
                         UPDATE donors_persons SET full_name=%s, phone=%s, email=%s,
-                               source=%s, status=%s, donor_category=%s, notes=%s
+                               source=%s, status=%s, donor_category=%s, address=%s, notes=%s
                         WHERE id=%s RETURNING id
                     """, (body.get("full_name"), body.get("phone"), body.get("email"),
                           body.get("source"), body.get("status","active"),
                           body.get("donor_category","donation"),
-                          body.get("notes"), pid))
+                          body.get("address"), body.get("notes"), pid))
                 else:
                     cur.execute("""
-                        INSERT INTO donors_persons (full_name,phone,email,source,status,donor_category,notes)
-                        VALUES (%s,%s,%s,%s,%s,%s,%s) RETURNING id
+                        INSERT INTO donors_persons (full_name,phone,email,source,status,donor_category,address,notes)
+                        VALUES (%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id
                     """, (body.get("full_name"), body.get("phone"), body.get("email"),
                           body.get("source"), body.get("status","active"),
-                          body.get("donor_category","donation"), body.get("notes")))
+                          body.get("donor_category","donation"),
+                          body.get("address"), body.get("notes")))
                 new_id = cur.fetchone()[0]
                 conn.commit()
                 return ok({"id": new_id})

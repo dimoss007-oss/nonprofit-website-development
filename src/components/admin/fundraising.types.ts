@@ -16,6 +16,7 @@ export interface Org {
   website: string; manager: string; status: Status;
   donor_category: DonorCategory;
   inn: string; contact_person: string;
+  address: string;
   notes: string; created_at: string;
   total_donated: number; donations_count: number;
 }
@@ -24,6 +25,7 @@ export interface Person {
   id: number; full_name: string; phone: string; email: string;
   source: string; status: Status;
   donor_category: DonorCategory;
+  address: string;
   notes: string; created_at: string;
   total_donated: number; donations_count: number;
 }

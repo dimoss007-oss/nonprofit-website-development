@@ -13,7 +13,7 @@ export function OrgForm({ initial, adminUsers, onSave, onCancel }: {
   const [form, setForm] = useState<Partial<Org>>({
     name: "", phone: "", email: "", website: "",
     manager: "", status: "active", donor_category: "donation",
-    inn: "", contact_person: "", notes: "", ...initial,
+    inn: "", contact_person: "", address: "", notes: "", ...initial,
   });
   const [saving, setSaving] = useState(false);
   const set = (k: keyof Org, v: string) => setForm(f => ({ ...f, [k]: v }));
@@ -85,6 +85,11 @@ export function OrgForm({ initial, adminUsers, onSave, onCancel }: {
         </div>
 
         <div className="sm:col-span-2">
+          <label className={lbl}>Адрес</label>
+          <input value={form.address || ""} onChange={e => set("address", e.target.value)} placeholder="г. Москва, ул. Примерная, д. 1" className={inp} />
+        </div>
+
+        <div className="sm:col-span-2">
           <label className={lbl}>Заметки</label>
           <textarea value={form.notes || ""} onChange={e => set("notes", e.target.value)} rows={3} className={`${inp} resize-none`} />
         </div>
@@ -108,7 +113,7 @@ export function PersonForm({ initial, onSave, onCancel }: {
 }) {
   const [form, setForm] = useState<Partial<Person>>({
     full_name: "", phone: "", email: "", source: "",
-    status: "active", donor_category: "donation", notes: "", ...initial,
+    status: "active", donor_category: "donation", address: "", notes: "", ...initial,
   });
   const [saving, setSaving] = useState(false);
   const set = (k: keyof Person, v: string) => setForm(f => ({ ...f, [k]: v }));
@@ -162,6 +167,11 @@ export function PersonForm({ initial, onSave, onCancel }: {
             <option value="">— не указан —</option>
             {SOURCE_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
           </select>
+        </div>
+
+        <div className="sm:col-span-2">
+          <label className={lbl}>Адрес</label>
+          <input value={form.address || ""} onChange={e => set("address", e.target.value)} placeholder="г. Москва, ул. Примерная, д. 1" className={inp} />
         </div>
 
         <div className="sm:col-span-2">
