@@ -296,6 +296,7 @@ export default function AdminFundraisingTab({ adminUsers }: { adminUsers: string
                           <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-ink/50">
                             {org.phone && <span className="flex items-center gap-1"><Icon name="Phone" size={11} />{org.phone}</span>}
                             {org.email && <span className="flex items-center gap-1"><Icon name="Mail" size={11} />{org.email}</span>}
+                            {org.address && <span className="flex items-center gap-1"><Icon name="MapPin" size={11} />{org.address}</span>}
                             {org.website && <a href={org.website} target="_blank" rel="noreferrer" className="flex items-center gap-1 hover:text-ink transition-colors"><Icon name="Globe" size={11} />Сайт</a>}
                             {org.manager && <span className="flex items-center gap-1"><Icon name="User" size={11} />{org.manager}</span>}
                           </div>
@@ -396,6 +397,7 @@ export default function AdminFundraisingTab({ adminUsers }: { adminUsers: string
                           <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-ink/50">
                             {p.phone && <span className="flex items-center gap-1"><Icon name="Phone" size={11} />{p.phone}</span>}
                             {p.email && <span className="flex items-center gap-1"><Icon name="Mail" size={11} />{p.email}</span>}
+                            {p.address && <span className="flex items-center gap-1"><Icon name="MapPin" size={11} />{p.address}</span>}
                           </div>
                           {p.notes && <div className="mt-2 text-xs text-ink/40 italic">{p.notes}</div>}
                         </div>
