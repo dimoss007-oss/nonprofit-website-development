@@ -24,10 +24,10 @@ export function AgencyContacts({ agency }: { agency: Agency }) {
     e.preventDefault();
     if (!form.name.trim()) return;
     setSaving(true);
-    await fetch(GOV_API, {
+    await fetch(`${GOV_API}?type=contact`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...form, agency_id: agency.id, type: "contact" }),
+      body: JSON.stringify({ ...form, agency_id: agency.id }),
     });
     setSaving(false);
     setOpen(false);
@@ -36,10 +36,10 @@ export function AgencyContacts({ agency }: { agency: Agency }) {
   };
 
   const archive = async (id: number) => {
-    await fetch(GOV_API, {
+    await fetch(`${GOV_API}?type=archive_contact`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, type: "archive_contact" }),
+      body: JSON.stringify({ id }),
     });
     setContacts(prev => prev.filter(c => c.id !== id));
   };
@@ -127,10 +127,10 @@ export function AgencyDocs({ agency }: { agency: Agency }) {
     e.preventDefault();
     if (!form.title.trim()) return;
     setSaving(true);
-    await fetch(GOV_API, {
+    await fetch(`${GOV_API}?type=document`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...form, agency_id: agency.id, type: "document" }),
+      body: JSON.stringify({ ...form, agency_id: agency.id }),
     });
     setSaving(false);
     setOpen(false);
@@ -140,10 +140,10 @@ export function AgencyDocs({ agency }: { agency: Agency }) {
 
   const archive = async (id: number) => {
     if (!confirm("Удалить документ?")) return;
-    await fetch(GOV_API, {
+    await fetch(`${GOV_API}?type=archive_document`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, type: "archive_document" }),
+      body: JSON.stringify({ id }),
     });
     load();
   };

@@ -21,10 +21,10 @@ export default function AdminGovTab() {
   useEffect(() => { load(); }, []);
 
   const save = async (data: Partial<Agency>) => {
-    await fetch(GOV_API, {
+    await fetch(`${GOV_API}?type=agency`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...data, type: "agency" }),
+      body: JSON.stringify(data),
     });
     setShowForm(false);
     setEditAgency(null);
@@ -32,20 +32,20 @@ export default function AdminGovTab() {
   };
 
   const toggleContact = async (id: number, value: boolean) => {
-    await fetch(GOV_API, {
+    await fetch(`${GOV_API}?type=toggle_contact`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, has_contact: value, type: "toggle_contact" }),
+      body: JSON.stringify({ id, has_contact: value }),
     });
     setAgencies(prev => prev.map(a => a.id === id ? { ...a, has_contact: value } : a));
   };
 
   const archive = async (id: number) => {
     if (!confirm("Удалить госорган?")) return;
-    await fetch(GOV_API, {
+    await fetch(`${GOV_API}?type=archive_agency`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, type: "archive_agency" }),
+      body: JSON.stringify({ id }),
     });
     load();
   };
