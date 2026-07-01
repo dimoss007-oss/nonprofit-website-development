@@ -181,7 +181,7 @@ export default function AdminTasksTab({
   const [saving, setSaving] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [filterStatus, setFilterStatus] = useState<Status | "all">("all");
-  const [view, setView] = useState<"list" | "calendar">("list");
+  const [view, setView] = useState<"list" | "calendar">("calendar");
 
   const load = async () => {
     setLoading(true);
