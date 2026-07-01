@@ -30,11 +30,11 @@ def handler(event: dict, context) -> dict:
         if qtype == "agencies":
             cur.execute("""
                 SELECT id, name, phone, address, service_phone,
-                       contact_person, contact_phone, notes, created_at
+                       contact_person, contact_phone, has_contact, notes, created_at
                 FROM gov_agencies WHERE archived = FALSE ORDER BY name ASC
             """)
             cols = ["id","name","phone","address","service_phone",
-                    "contact_person","contact_phone","notes","created_at"]
+                    "contact_person","contact_phone","has_contact","notes","created_at"]
             rows = [dict(zip(cols, r)) for r in cur.fetchall()]
             cur.close(); conn.close()
             return ok({"agencies": rows})
@@ -55,21 +55,23 @@ def handler(event: dict, context) -> dict:
     if method == "POST":
         if qtype == "agency":
             aid = body.get("id")
+            has_contact = bool(body.get("has_contact", False))
             if aid:
                 cur.execute("""
                     UPDATE gov_agencies SET name=%s, phone=%s, address=%s,
-                           service_phone=%s, contact_person=%s, contact_phone=%s, notes=%s
+                           service_phone=%s, contact_person=%s, contact_phone=%s,
+                           has_contact=%s, notes=%s
                     WHERE id=%s RETURNING id
                 """, (body.get("name"), body.get("phone"), body.get("address"),
                       body.get("service_phone"), body.get("contact_person"),
-                      body.get("contact_phone"), body.get("notes"), aid))
+                      body.get("contact_phone"), has_contact, body.get("notes"), aid))
             else:
                 cur.execute("""
-                    INSERT INTO gov_agencies (name, phone, address, service_phone, contact_person, contact_phone, notes)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id
+                    INSERT INTO gov_agencies (name, phone, address, service_phone, contact_person, contact_phone, has_contact, notes)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s) RETURNING id
                 """, (body.get("name"), body.get("phone"), body.get("address"),
                       body.get("service_phone"), body.get("contact_person"),
-                      body.get("contact_phone"), body.get("notes")))
+                      body.get("contact_phone"), has_contact, body.get("notes")))
             new_id = cur.fetchone()[0]
             conn.commit(); cur.close(); conn.close()
             return ok({"id": new_id})
@@ -83,6 +85,13 @@ def handler(event: dict, context) -> dict:
             new_id = cur.fetchone()[0]
             conn.commit(); cur.close(); conn.close()
             return ok({"id": new_id})
+
+        if qtype == "toggle_contact":
+            aid = int(body.get("id", 0))
+            value = bool(body.get("has_contact", False))
+            cur.execute("UPDATE gov_agencies SET has_contact = %s WHERE id = %s", (value, aid))
+            conn.commit(); cur.close(); conn.close()
+            return ok({"ok": True})
 
         if qtype == "archive_agency":
             aid = int(body.get("id", 0))

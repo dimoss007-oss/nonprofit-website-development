@@ -14,6 +14,7 @@ interface Agency {
   service_phone: string | null;
   contact_person: string | null;
   contact_phone: string | null;
+  has_contact: boolean;
   notes: string | null;
   created_at: string;
 }
@@ -30,7 +31,7 @@ interface GovDocument {
 
 const emptyForm = (): Partial<Agency> => ({
   name: "", phone: "", address: "", service_phone: "",
-  contact_person: "", contact_phone: "", notes: "",
+  contact_person: "", contact_phone: "", has_contact: false, notes: "",
 });
 
 // ─── Документы конкретного органа ──────────────────────────────────────────
@@ -148,12 +149,20 @@ function AgencyDocs({ agency }: { agency: Agency }) {
 }
 
 // ─── Карточка госоргана ────────────────────────────────────────────────────
-function AgencyCard({ agency, onEdit, onArchive }: {
+function AgencyCard({ agency, onEdit, onArchive, onToggleContact }: {
   agency: Agency;
   onEdit: (a: Agency) => void;
   onArchive: (id: number) => void;
+  onToggleContact: (id: number, value: boolean) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const [toggling, setToggling] = useState(false);
+
+  const handleToggle = async () => {
+    setToggling(true);
+    await onToggleContact(agency.id, !agency.has_contact);
+    setToggling(false);
+  };
 
   return (
     <div className="bg-white rounded-2xl border border-beige-dark shadow-sm overflow-hidden">
@@ -166,11 +175,19 @@ function AgencyCard({ agency, onEdit, onArchive }: {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <p className="font-semibold text-ink text-sm leading-tight">{agency.name}</p>
-                {(agency.contact_person || agency.contact_phone) && (
-                  <span className="flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">
-                    <Icon name="UserCheck" size={10} /> Есть контакт
-                  </span>
-                )}
+                <button
+                  onClick={handleToggle}
+                  disabled={toggling}
+                  title={agency.has_contact ? "Снять пометку" : "Отметить как «Есть контакт»"}
+                  className={`flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-medium transition-all disabled:opacity-50 ${
+                    agency.has_contact
+                      ? "bg-green-100 text-green-700 hover:bg-green-200"
+                      : "bg-beige-dark text-ink/30 hover:bg-beige-dark hover:text-ink/60"
+                  }`}
+                >
+                  <Icon name={agency.has_contact ? "UserCheck" : "UserX"} size={10} />
+                  {agency.has_contact ? "Есть контакт" : "Нет контакта"}
+                </button>
               </div>
               <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-ink/50">
                 {agency.phone && <span className="flex items-center gap-1"><Icon name="Phone" size={11} />{agency.phone}</span>}
@@ -301,6 +318,15 @@ export default function AdminGovTab() {
     load();
   };
 
+  const toggleContact = async (id: number, value: boolean) => {
+    await fetch(API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, has_contact: value, type: "toggle_contact" }),
+    });
+    setAgencies(prev => prev.map(a => a.id === id ? { ...a, has_contact: value } : a));
+  };
+
   const archive = async (id: number) => {
     if (!confirm("Удалить госорган?")) return;
     await fetch(API, {
@@ -373,6 +399,7 @@ export default function AdminGovTab() {
               agency={a}
               onEdit={ag => { setEditAgency(ag); setShowForm(false); }}
               onArchive={archive}
+              onToggleContact={toggleContact}
             />
           ))}
         </div>
