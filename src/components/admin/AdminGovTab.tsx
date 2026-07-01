@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import Icon from "@/components/ui/icon";
 import { GOV_API, Agency } from "./govAgency.types";
-import { AgencyCard, AgencyForm } from "./GovAgencyCard";
+import { AgencyCard, AgencyForm, ContactDraft } from "./GovAgencyCard";
 
 export default function AdminGovTab() {
   const [agencies, setAgencies] = useState<Agency[]>([]);
@@ -20,12 +20,20 @@ export default function AdminGovTab() {
 
   useEffect(() => { load(); }, []);
 
-  const save = async (data: Partial<Agency>) => {
-    await fetch(`${GOV_API}?type=agency`, {
+  const save = async (data: Partial<Agency>, contact: ContactDraft) => {
+    const res = await fetch(`${GOV_API}?type=agency`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
+    if (!editAgency && contact.name.trim()) {
+      const { id } = await res.json();
+      await fetch(`${GOV_API}?type=contact`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ agency_id: id, name: contact.name, phone: contact.phone, role: contact.role }),
+      });
+    }
     setShowForm(false);
     setEditAgency(null);
     load();
@@ -78,6 +86,7 @@ export default function AdminGovTab() {
             initial={editAgency || undefined}
             onSave={save}
             onCancel={() => { setShowForm(false); setEditAgency(null); }}
+            isEdit={!!editAgency}
           />
         </div>
       )}

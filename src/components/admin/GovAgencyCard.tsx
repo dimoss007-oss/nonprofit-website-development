@@ -80,20 +80,25 @@ export function AgencyCard({ agency, onEdit, onArchive, onToggleContact }: {
   );
 }
 
+export interface ContactDraft { name: string; phone: string; role: string; }
+
 // ─── Форма создания / редактирования ──────────────────────────────────────
-export function AgencyForm({ initial, onSave, onCancel }: {
+export function AgencyForm({ initial, onSave, onCancel, isEdit }: {
   initial?: Partial<Agency>;
-  onSave: (data: Partial<Agency>) => Promise<void>;
+  onSave: (data: Partial<Agency>, contact: ContactDraft) => Promise<void>;
   onCancel: () => void;
+  isEdit?: boolean;
 }) {
   const [form, setForm] = useState<Partial<Agency>>({ ...emptyForm(), ...initial });
+  const [contact, setContact] = useState<ContactDraft>({ name: "", phone: "", role: "" });
   const [saving, setSaving] = useState(false);
   const set = (k: keyof Agency, v: string) => setForm(f => ({ ...f, [k]: v }));
+  const setC = (k: keyof ContactDraft, v: string) => setContact(c => ({ ...c, [k]: v }));
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    await onSave(form);
+    await onSave(form, contact);
     setSaving(false);
   };
 
@@ -129,6 +134,27 @@ export function AgencyForm({ initial, onSave, onCancel }: {
           <textarea value={form.notes || ""} onChange={e => set("notes", e.target.value)} rows={3} className={`${inp} resize-none`} />
         </div>
       </div>
+
+      {!isEdit && (
+        <div className="border-t border-beige-dark pt-4">
+          <p className="text-xs font-medium text-ink/50 uppercase tracking-wider mb-3">Контактное лицо</p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="sm:col-span-1">
+              <label className={lbl}>ФИО</label>
+              <input value={contact.name} onChange={e => setC("name", e.target.value)} placeholder="Иванов Иван Иванович" className={inp} />
+            </div>
+            <div>
+              <label className={lbl}>Должность</label>
+              <input value={contact.role} onChange={e => setC("role", e.target.value)} placeholder="Начальник отдела" className={inp} />
+            </div>
+            <div>
+              <label className={lbl}>Телефон</label>
+              <input value={contact.phone} onChange={e => setC("phone", e.target.value)} placeholder="+7 (000) 000-00-00" className={inp} />
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex gap-3 pt-1">
         <button type="submit" disabled={saving} className="bg-ink text-beige px-6 py-2.5 rounded-xl text-sm font-semibold hover:bg-ink/90 transition-colors disabled:opacity-50">
           {saving ? "Сохраняем..." : "Сохранить"}
