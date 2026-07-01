@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import Icon from "@/components/ui/icon";
+import AdminTasksCalendar from "./AdminTasksCalendar";
 
 const API = "https://functions.poehali.dev/6036e39a-3369-4ec5-a7b3-a4393528188a";
 
@@ -180,6 +181,7 @@ export default function AdminTasksTab({
   const [saving, setSaving] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [filterStatus, setFilterStatus] = useState<Status | "all">("all");
+  const [view, setView] = useState<"list" | "calendar">("list");
 
   const load = async () => {
     setLoading(true);
@@ -235,21 +237,25 @@ export default function AdminTasksTab({
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <h2 className="font-cormorant text-ink text-2xl font-semibold">Задачи</h2>
-        <button onClick={() => { setAdding(true); setEditingTask(null); }} className="flex items-center gap-2 bg-ink text-beige px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-ink/90 transition-colors">
-          <Icon name="Plus" size={16} /> Добавить задачу
-        </button>
-      </div>
-
-      {/* Фильтры */}
-      <div className="flex items-center gap-1 bg-beige-mid rounded-xl p-1 w-fit flex-wrap">
-        {([["all", "Все", "Layers"], ["new", "Новые", "Sparkles"], ["in_progress", "В работе", "Clock"], ["done", "Выполнены", "CheckCircle2"]] as [Status | "all", string, string][]).map(([s, label, icon]) => (
-          <button key={s} onClick={() => setFilterStatus(s)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${filterStatus === s ? "bg-white text-ink shadow-sm" : "text-ink/50 hover:text-ink"}`}>
-            <Icon name={icon} size={14} />
-            {label}
-            {counts[s] > 0 && <span className="text-xs opacity-60">{counts[s]}</span>}
+        <div className="flex items-center gap-2">
+          <div className="flex items-center bg-beige-mid rounded-xl p-1">
+            <button
+              onClick={() => setView("list")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${view === "list" ? "bg-white text-ink shadow-sm" : "text-ink/50 hover:text-ink"}`}
+            >
+              <Icon name="List" size={14} /> Список
+            </button>
+            <button
+              onClick={() => setView("calendar")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${view === "calendar" ? "bg-white text-ink shadow-sm" : "text-ink/50 hover:text-ink"}`}
+            >
+              <Icon name="CalendarDays" size={14} /> Календарь
+            </button>
+          </div>
+          <button onClick={() => { setAdding(true); setEditingTask(null); }} className="flex items-center gap-2 bg-ink text-beige px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-ink/90 transition-colors">
+            <Icon name="Plus" size={16} /> Добавить задачу
           </button>
-        ))}
+        </div>
       </div>
 
       {/* Форма создания */}
@@ -274,27 +280,55 @@ export default function AdminTasksTab({
         </div>
       )}
 
-      {/* Список */}
-      {loading ? (
-        <div className="flex justify-center py-16"><div className="w-6 h-6 border-2 border-ink border-t-transparent rounded-full animate-spin" /></div>
-      ) : filtered.length === 0 ? (
-        <div className="text-center py-16 text-ink/40">
-          <Icon name="ClipboardList" size={40} className="mx-auto mb-3 opacity-30" />
-          <p>{filterStatus === "all" ? "Задач пока нет" : "Нет задач с таким статусом"}</p>
-        </div>
+      {view === "calendar" ? (
+        loading ? (
+          <div className="flex justify-center py-16"><div className="w-6 h-6 border-2 border-ink border-t-transparent rounded-full animate-spin" /></div>
+        ) : (
+          <AdminTasksCalendar
+            tasks={tasks}
+            onStatusChange={changeStatus}
+            onEdit={setEditingTask}
+            onDelete={deleteTask}
+            isAdmin={isAdmin}
+          />
+        )
       ) : (
-        <div className="space-y-3">
-          {filtered.map(task => (
-            <TaskCard
-              key={task.id}
-              task={task}
-              onStatusChange={changeStatus}
-              onEdit={setEditingTask}
-              onDelete={deleteTask}
-              isAdmin={isAdmin}
-            />
-          ))}
-        </div>
+        <>
+          {/* Фильтры */}
+          <div className="flex items-center gap-1 bg-beige-mid rounded-xl p-1 w-fit flex-wrap">
+            {([["all", "Все", "Layers"], ["new", "Новые", "Sparkles"], ["in_progress", "В работе", "Clock"], ["done", "Выполнены", "CheckCircle2"]] as [Status | "all", string, string][]).map(([s, label, icon]) => (
+              <button key={s} onClick={() => setFilterStatus(s)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${filterStatus === s ? "bg-white text-ink shadow-sm" : "text-ink/50 hover:text-ink"}`}>
+                <Icon name={icon} size={14} />
+                {label}
+                {counts[s] > 0 && <span className="text-xs opacity-60">{counts[s]}</span>}
+              </button>
+            ))}
+          </div>
+
+          {/* Список */}
+          {loading ? (
+            <div className="flex justify-center py-16"><div className="w-6 h-6 border-2 border-ink border-t-transparent rounded-full animate-spin" /></div>
+          ) : filtered.length === 0 ? (
+            <div className="text-center py-16 text-ink/40">
+              <Icon name="ClipboardList" size={40} className="mx-auto mb-3 opacity-30" />
+              <p>{filterStatus === "all" ? "Задач пока нет" : "Нет задач с таким статусом"}</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {filtered.map(task => (
+                <TaskCard
+                  key={task.id}
+                  task={task}
+                  onStatusChange={changeStatus}
+                  onEdit={setEditingTask}
+                  onDelete={deleteTask}
+                  isAdmin={isAdmin}
+                />
+              ))}
+            </div>
+          )}
+        </>
       )}
     </div>
   );
