@@ -109,5 +109,39 @@ def handler(event: dict, context) -> dict:
             conn.commit(); cur.close(); conn.close()
             return ok({"ok": True})
 
+        if qtype == "contact":
+            cid = body.get("id")
+            if cid:
+                cur.execute("""
+                    UPDATE gov_agency_contacts SET name=%s, phone=%s, role=%s WHERE id=%s RETURNING id
+                """, (body.get("name"), body.get("phone"), body.get("role"), cid))
+            else:
+                cur.execute("""
+                    INSERT INTO gov_agency_contacts (agency_id, name, phone, role)
+                    VALUES (%s, %s, %s, %s) RETURNING id
+                """, (body.get("agency_id"), body.get("name"), body.get("phone"), body.get("role")))
+            new_id = cur.fetchone()[0]
+            conn.commit(); cur.close(); conn.close()
+            return ok({"id": new_id})
+
+        if qtype == "archive_contact":
+            cid = int(body.get("id", 0))
+            cur.execute("UPDATE gov_agency_contacts SET archived = TRUE WHERE id = %s", (cid,))
+            conn.commit(); cur.close(); conn.close()
+            return ok({"ok": True})
+
+    if method == "GET":
+        if qtype == "contacts":
+            agency_id = int(params.get("agency_id", 0))
+            cur.execute("""
+                SELECT id, agency_id, name, phone, role, created_at
+                FROM gov_agency_contacts
+                WHERE agency_id = %s AND archived = FALSE ORDER BY created_at ASC
+            """, (agency_id,))
+            cols = ["id","agency_id","name","phone","role","created_at"]
+            rows = [dict(zip(cols, r)) for r in cur.fetchall()]
+            cur.close(); conn.close()
+            return ok({"contacts": rows})
+
     cur.close(); conn.close()
     return err("Unknown request", 404)
