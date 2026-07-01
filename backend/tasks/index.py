@@ -47,6 +47,18 @@ def send_max_notification(chat_id: int, text: str):
     except Exception as e:
         print(f"Max notify error: {e}")
 
+def notify_assignee_status(task: dict, status_label: str):
+    assignee_login = task.get("assignee_login")
+    if not assignee_login:
+        return
+    chat_id = get_max_chat_id(assignee_login)
+    if not chat_id:
+        return
+    title = task.get("title", "")
+    icon = {"Новая": "🔄", "В работе": "⚙️", "Выполнена": "✅"}.get(status_label, "📋")
+    text = f"{icon} Статус задачи изменён\n\n«{title}»\nНовый статус: {status_label}"
+    send_max_notification(chat_id, text)
+
 def notify_assignee(task: dict, event_type: str = "assigned"):
     assignee_login = task.get("assignee_login")
     if not assignee_login:
@@ -139,6 +151,8 @@ def handler(event: dict, context) -> dict:
             task = dict(cur.fetchone())
             conn.commit()
             conn.close()
+            status_label = {"new": "Новая", "in_progress": "В работе", "done": "Выполнена"}.get(status, status)
+            notify_assignee_status(task, status_label)
             return ok({"task": task})
 
         # Обновить задачу

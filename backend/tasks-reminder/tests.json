@@ -1,0 +1,12 @@
+{
+  "tests": [
+    {
+      "name": "Reminder cron run",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": {"sent": 0},
+      "bodyMatcher": "partial"
+    }
+  ]
+}

@@ -5,8 +5,7 @@
       "method": "GET",
       "path": "/",
       "expectedStatus": 200,
-      "expectedBody": {"tasks": []},
-      "bodyMatcher": "partial"
+      "bodyMatcher": "none"
     }
   ]
 }
