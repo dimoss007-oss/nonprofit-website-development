@@ -31,18 +31,83 @@ const STATUS_COLOR: Record<Status, string> = {
 
 const MONTHS_RU = ["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
 const DAYS_RU = ["Пн","Вт","Ср","Чт","Пт","Сб","Вс"];
+const STATUS_NEXT: Record<Status, { status: Status; label: string; icon: string }> = {
+  new: { status: "in_progress", label: "Взять в работу", icon: "Play" },
+  in_progress: { status: "done", label: "Выполнена", icon: "Check" },
+  done: { status: "new", label: "Вернуть", icon: "RotateCcw" },
+};
+const STATUS_LABEL: Record<Status, string> = { new: "Новая", in_progress: "В работе", done: "Выполнена" };
 
 function getDaysInMonth(year: number, month: number) {
   return new Date(year, month + 1, 0).getDate();
 }
-
 function getFirstDayOfWeek(year: number, month: number) {
   const d = new Date(year, month, 1).getDay();
   return d === 0 ? 6 : d - 1;
 }
-
 function toYMD(date: Date) {
   return date.toISOString().slice(0, 10);
+}
+
+const inp = "w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink bg-white";
+
+function QuickAddForm({
+  date,
+  users,
+  onSave,
+  onCancel,
+}: {
+  date: string;
+  users: { login: string; full_name?: string }[];
+  onSave: (data: { title: string; priority: Priority; assignee_login: string; assignee_name: string; deadline: string }) => Promise<void>;
+  onCancel: () => void;
+}) {
+  const [title, setTitle] = useState("");
+  const [priority, setPriority] = useState<Priority>("medium");
+  const [assignee, setAssignee] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const handleAssignee = (e: React.ChangeEvent<HTMLSelectElement>) => setAssignee(e.target.value);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!title.trim()) return;
+    setSaving(true);
+    const user = users.find(u => u.login === assignee);
+    await onSave({ title, priority, assignee_login: assignee, assignee_name: user?.full_name || assignee, deadline: date });
+    setSaving(false);
+  };
+
+  return (
+    <form onSubmit={submit} className="bg-beige/50 rounded-xl border border-beige-dark p-3 space-y-2 mt-3">
+      <p className="text-xs font-medium text-ink/50 uppercase tracking-wider mb-2">Новая задача</p>
+      <input
+        required
+        autoFocus
+        value={title}
+        onChange={e => setTitle(e.target.value)}
+        placeholder="Что нужно сделать?"
+        className={inp}
+      />
+      <div className="grid grid-cols-2 gap-2">
+        <select value={priority} onChange={e => setPriority(e.target.value as Priority)} className={inp}>
+          <option value="low">Низкий</option>
+          <option value="medium">Средний</option>
+          <option value="high">Высокий</option>
+        </select>
+        <select value={assignee} onChange={handleAssignee} className={inp}>
+          <option value="">Не назначен</option>
+          {users.map(u => <option key={u.login} value={u.login}>{u.full_name || u.login}</option>)}
+        </select>
+      </div>
+      <div className="flex gap-2 justify-end">
+        <button type="button" onClick={onCancel} className="px-3 py-1.5 text-xs rounded-lg border border-beige-dark hover:border-ink transition-colors">Отмена</button>
+        <button type="submit" disabled={saving || !title.trim()} className="px-3 py-1.5 text-xs rounded-lg bg-ink text-beige hover:bg-ink/90 transition-colors disabled:opacity-60">
+          {saving ? "..." : "Сохранить"}
+        </button>
+      </div>
+    </form>
+  );
 }
 
 export default function AdminTasksCalendar({
@@ -50,18 +115,23 @@ export default function AdminTasksCalendar({
   onStatusChange,
   onEdit,
   onDelete,
+  onCreateOnDate,
   isAdmin,
+  users,
 }: {
   tasks: Task[];
   onStatusChange: (id: number, status: Status) => void;
   onEdit: (task: Task) => void;
   onDelete: (id: number) => void;
+  onCreateOnDate: (data: { title: string; priority: Priority; assignee_login: string; assignee_name: string; deadline: string }) => Promise<void>;
   isAdmin: boolean;
+  users: { login: string; full_name?: string }[];
 }) {
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth());
   const [selected, setSelected] = useState<string | null>(null);
+  const [addingOn, setAddingOn] = useState<string | null>(null);
 
   const prevMonth = () => {
     if (month === 0) { setMonth(11); setYear(y => y - 1); }
@@ -76,7 +146,6 @@ export default function AdminTasksCalendar({
   const firstDow = getFirstDayOfWeek(year, month);
   const todayYMD = toYMD(today);
 
-  // map: "YYYY-MM-DD" → Task[]
   const tasksByDay: Record<string, Task[]> = {};
   for (const t of tasks) {
     if (!t.deadline) continue;
@@ -86,17 +155,22 @@ export default function AdminTasksCalendar({
   }
 
   const selectedTasks = selected ? (tasksByDay[selected] || []) : [];
+  const noDeadline = tasks.filter(t => !t.deadline && t.status !== "done");
 
-  const STATUS_NEXT: Record<Status, { status: Status; label: string; icon: string }> = {
-    new: { status: "in_progress", label: "Взять в работу", icon: "Play" },
-    in_progress: { status: "done", label: "Выполнена", icon: "Check" },
-    done: { status: "new", label: "Вернуть", icon: "RotateCcw" },
+  const handleDayClick = (ymd: string) => {
+    if (selected === ymd) {
+      setSelected(null);
+      setAddingOn(null);
+    } else {
+      setSelected(ymd);
+      setAddingOn(null);
+    }
   };
 
-  const STATUS_LABEL: Record<Status, string> = { new: "Новая", in_progress: "В работе", done: "Выполнена" };
-
-  // tasks without deadline
-  const noDeadline = tasks.filter(t => !t.deadline && t.status !== "done");
+  const handleSaveOnDate = async (data: Parameters<typeof onCreateOnDate>[0]) => {
+    await onCreateOnDate(data);
+    setAddingOn(null);
+  };
 
   return (
     <div className="space-y-4">
@@ -105,9 +179,7 @@ export default function AdminTasksCalendar({
         <button onClick={prevMonth} className="p-2 rounded-lg text-ink/40 hover:text-ink hover:bg-beige-mid transition-colors">
           <Icon name="ChevronLeft" size={18} />
         </button>
-        <h3 className="font-semibold text-ink text-base">
-          {MONTHS_RU[month]} {year}
-        </h3>
+        <h3 className="font-semibold text-ink text-base">{MONTHS_RU[month]} {year}</h3>
         <button onClick={nextMonth} className="p-2 rounded-lg text-ink/40 hover:text-ink hover:bg-beige-mid transition-colors">
           <Icon name="ChevronRight" size={18} />
         </button>
@@ -115,14 +187,12 @@ export default function AdminTasksCalendar({
 
       {/* Сетка */}
       <div className="bg-white rounded-2xl border border-beige-dark overflow-hidden">
-        {/* Дни недели */}
         <div className="grid grid-cols-7 border-b border-beige-dark">
           {DAYS_RU.map(d => (
             <div key={d} className={`text-center text-xs font-medium py-2 ${d === "Сб" || d === "Вс" ? "text-ink/30" : "text-ink/50"}`}>{d}</div>
           ))}
         </div>
 
-        {/* Ячейки */}
         <div className="grid grid-cols-7">
           {Array.from({ length: firstDow }).map((_, i) => (
             <div key={`empty-${i}`} className="min-h-[72px] border-b border-r border-beige-dark/50 bg-beige/20" />
@@ -141,7 +211,7 @@ export default function AdminTasksCalendar({
             return (
               <div
                 key={ymd}
-                onClick={() => setSelected(isSelected ? null : ymd)}
+                onClick={() => handleDayClick(ymd)}
                 className={`min-h-[72px] border-b border-r border-beige-dark/50 p-1.5 cursor-pointer transition-colors
                   ${isSelected ? "bg-ink/5 ring-1 ring-inset ring-ink/20" : "hover:bg-beige/40"}
                   ${isWeekend ? "bg-beige/10" : ""}
@@ -155,7 +225,6 @@ export default function AdminTasksCalendar({
                   </span>
                   {hasOverdue && <span className="w-1.5 h-1.5 rounded-full bg-red-400 flex-shrink-0" />}
                 </div>
-
                 <div className="space-y-0.5">
                   {dayTasks.slice(0, 3).map(t => (
                     <div key={t.id} className={`flex items-center gap-1 border-l-2 pl-1 rounded-r ${STATUS_COLOR[t.status]} ${t.status === "done" ? "opacity-50" : ""}`}>
@@ -180,14 +249,24 @@ export default function AdminTasksCalendar({
             <p className="text-sm font-semibold text-ink">
               {new Date(selected + "T00:00:00").toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" })}
             </p>
-            <button onClick={() => setSelected(null)} className="text-ink/30 hover:text-ink transition-colors">
-              <Icon name="X" size={14} />
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setAddingOn(addingOn === selected ? null : selected)}
+                className="flex items-center gap-1 text-xs bg-ink text-beige px-2.5 py-1.5 rounded-lg hover:bg-ink/90 transition-colors"
+              >
+                <Icon name="Plus" size={12} /> Добавить
+              </button>
+              <button onClick={() => { setSelected(null); setAddingOn(null); }} className="text-ink/30 hover:text-ink transition-colors">
+                <Icon name="X" size={14} />
+              </button>
+            </div>
           </div>
 
-          {selectedTasks.length === 0 ? (
-            <p className="text-sm text-ink/40 py-2">Задач на этот день нет</p>
-          ) : (
+          {selectedTasks.length === 0 && !addingOn && (
+            <p className="text-sm text-ink/40 py-1">Задач на этот день нет</p>
+          )}
+
+          {selectedTasks.length > 0 && (
             <div className="space-y-2">
               {selectedTasks.map(t => (
                 <div key={t.id} className={`border-l-2 pl-3 py-2 rounded-r-xl bg-beige/30 ${STATUS_COLOR[t.status]}`}>
@@ -219,6 +298,15 @@ export default function AdminTasksCalendar({
                 </div>
               ))}
             </div>
+          )}
+
+          {addingOn === selected && (
+            <QuickAddForm
+              date={selected}
+              users={users}
+              onSave={handleSaveOnDate}
+              onCancel={() => setAddingOn(null)}
+            />
           )}
         </div>
       )}

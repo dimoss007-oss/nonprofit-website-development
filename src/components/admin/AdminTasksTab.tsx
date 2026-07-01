@@ -289,7 +289,9 @@ export default function AdminTasksTab({
             onStatusChange={changeStatus}
             onEdit={setEditingTask}
             onDelete={deleteTask}
+            onCreateOnDate={(data) => createTask({ ...EMPTY_FORM, ...data })}
             isAdmin={isAdmin}
+            users={users}
           />
         )
       ) : (
