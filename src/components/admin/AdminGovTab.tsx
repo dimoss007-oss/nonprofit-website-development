@@ -15,6 +15,8 @@ interface Agency {
   contact_person: string | null;
   contact_phone: string | null;
   has_contact: boolean;
+  email: string | null;
+  working_hours: string | null;
   notes: string | null;
   created_at: string;
 }
@@ -31,7 +33,8 @@ interface GovDocument {
 
 const emptyForm = (): Partial<Agency> => ({
   name: "", phone: "", address: "", service_phone: "",
-  contact_person: "", contact_phone: "", has_contact: false, notes: "",
+  contact_person: "", contact_phone: "", has_contact: false,
+  email: "", working_hours: "", notes: "",
 });
 
 // ─── Документы конкретного органа ──────────────────────────────────────────
@@ -192,7 +195,9 @@ function AgencyCard({ agency, onEdit, onArchive, onToggleContact }: {
               <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-ink/50">
                 {agency.phone && <span className="flex items-center gap-1"><Icon name="Phone" size={11} />{agency.phone}</span>}
                 {agency.service_phone && <span className="flex items-center gap-1"><Icon name="PhoneCall" size={11} />{agency.service_phone}</span>}
+                {agency.email && <a href={`mailto:${agency.email}`} className="flex items-center gap-1 hover:text-ink transition-colors"><Icon name="Mail" size={11} />{agency.email}</a>}
                 {agency.address && <span className="flex items-center gap-1"><Icon name="MapPin" size={11} />{agency.address}</span>}
+                {agency.working_hours && <span className="flex items-center gap-1"><Icon name="Clock" size={11} />{agency.working_hours}</span>}
               </div>
               {(agency.contact_person || agency.contact_phone) && (
                 <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1.5 text-xs text-ink/50">
@@ -263,6 +268,14 @@ function AgencyForm({ initial, onSave, onCancel }: {
         <div className="sm:col-span-2">
           <label className={lbl}>Адрес</label>
           <input value={form.address || ""} onChange={e => set("address", e.target.value)} placeholder="г. Москва, ул. Примерная, д. 1" className={inp} />
+        </div>
+        <div>
+          <label className={lbl}>Email</label>
+          <input type="email" value={form.email || ""} onChange={e => set("email", e.target.value)} placeholder="info@example.gov.ru" className={inp} />
+        </div>
+        <div>
+          <label className={lbl}>Время работы</label>
+          <input value={form.working_hours || ""} onChange={e => set("working_hours", e.target.value)} placeholder="Пн–Пт 9:00–18:00" className={inp} />
         </div>
         <div>
           <label className={lbl}>Контактное лицо</label>
