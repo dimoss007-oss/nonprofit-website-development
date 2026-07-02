@@ -92,7 +92,7 @@ def notify_assignee(task: dict, event_type: str = "assigned"):
     send_max_notification(chat_id, text)
 
 def handler(event: dict, context) -> dict:
-    """CRUD задач для админ-панели с уведомлениями в Max."""
+    """CRUD задач: соисполнитель, дата начала, фильтр видимости по роли."""
     if event.get("httpMethod") == "OPTIONS":
         return {"statusCode": 200, "headers": CORS, "body": ""}
 
@@ -107,12 +107,27 @@ def handler(event: dict, context) -> dict:
     if method == "GET":
         status_filter = params.get("status")
         assignee_filter = params.get("assignee")
-        if status_filter:
-            cur.execute(f"SELECT * FROM {SCHEMA}.tasks WHERE status = %s ORDER BY CASE priority WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END, deadline ASC NULLS LAST, created_at DESC", (status_filter,))
+        login_filter = params.get("login")
+        is_admin = params.get("is_admin", "0") == "1"
+
+        ORDER = "ORDER BY CASE priority WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END, deadline ASC NULLS LAST, created_at DESC"
+        ORDER_ALL = "ORDER BY CASE status WHEN 'new' THEN 1 WHEN 'in_progress' THEN 2 ELSE 3 END, CASE priority WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END, deadline ASC NULLS LAST, created_at DESC"
+
+        if login_filter and not is_admin:
+            cur.execute(
+                f"SELECT * FROM {SCHEMA}.tasks WHERE (assignee_login = %s OR co_assignee_login = %s) {ORDER_ALL}",
+                (login_filter, login_filter)
+            )
+        elif status_filter:
+            cur.execute(f"SELECT * FROM {SCHEMA}.tasks WHERE status = %s {ORDER}", (status_filter,))
         elif assignee_filter:
-            cur.execute(f"SELECT * FROM {SCHEMA}.tasks WHERE assignee_login = %s ORDER BY CASE priority WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END, deadline ASC NULLS LAST, created_at DESC", (assignee_filter,))
+            cur.execute(
+                f"SELECT * FROM {SCHEMA}.tasks WHERE assignee_login = %s OR co_assignee_login = %s {ORDER}",
+                (assignee_filter, assignee_filter)
+            )
         else:
-            cur.execute(f"SELECT * FROM {SCHEMA}.tasks ORDER BY CASE status WHEN 'new' THEN 1 WHEN 'in_progress' THEN 2 ELSE 3 END, CASE priority WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END, deadline ASC NULLS LAST, created_at DESC")
+            cur.execute(f"SELECT * FROM {SCHEMA}.tasks {ORDER_ALL}")
+
         tasks = [dict(t) for t in cur.fetchall()]
         conn.close()
         return ok({"tasks": tasks})
@@ -120,19 +135,28 @@ def handler(event: dict, context) -> dict:
     if method == "POST":
         action = body.get("action", "create")
 
-        # Создать задачу
         if action == "create":
             title = body.get("title", "").strip()
             if not title:
                 conn.close()
                 return err("Название обязательно")
             cur.execute(
-                f"""INSERT INTO {SCHEMA}.tasks (title, description, assignee_login, assignee_name, priority, status, deadline, created_by)
-                    VALUES (%s,%s,%s,%s,%s,'new',%s,%s)
+                f"""INSERT INTO {SCHEMA}.tasks
+                    (title, description, assignee_login, assignee_name,
+                     co_assignee_login, co_assignee_name,
+                     priority, status, start_date, deadline, created_by)
+                    VALUES (%s,%s,%s,%s,%s,%s,%s,'new',%s,%s,%s)
                     RETURNING *""",
-                (title, body.get("description") or None, body.get("assignee_login") or None,
-                 body.get("assignee_name") or None, body.get("priority", "medium"),
-                 body.get("deadline") or None, body.get("created_by") or None)
+                (title,
+                 body.get("description") or None,
+                 body.get("assignee_login") or None,
+                 body.get("assignee_name") or None,
+                 body.get("co_assignee_login") or None,
+                 body.get("co_assignee_name") or None,
+                 body.get("priority", "medium"),
+                 body.get("start_date") or None,
+                 body.get("deadline") or None,
+                 body.get("created_by") or None)
             )
             task = dict(cur.fetchone())
             conn.commit()
@@ -140,7 +164,6 @@ def handler(event: dict, context) -> dict:
             notify_assignee(task, "assigned")
             return ok({"task": task}, 201)
 
-        # Обновить статус
         if action == "update_status":
             task_id = body.get("task_id")
             status = body.get("status")
@@ -155,7 +178,6 @@ def handler(event: dict, context) -> dict:
             notify_assignee_status(task, status_label)
             return ok({"task": task})
 
-        # Обновить задачу
         if action == "update":
             task_id = body.get("task_id")
             cur.execute(f"SELECT assignee_login FROM {SCHEMA}.tasks WHERE id=%s", (task_id,))
@@ -163,11 +185,23 @@ def handler(event: dict, context) -> dict:
             old_assignee = old["assignee_login"] if old else None
 
             cur.execute(
-                f"""UPDATE {SCHEMA}.tasks SET title=%s, description=%s, assignee_login=%s, assignee_name=%s,
-                    priority=%s, deadline=%s, updated_at=NOW() WHERE id=%s RETURNING *""",
-                (body.get("title"), body.get("description") or None,
-                 body.get("assignee_login") or None, body.get("assignee_name") or None,
-                 body.get("priority", "medium"), body.get("deadline") or None, task_id)
+                f"""UPDATE {SCHEMA}.tasks SET
+                    title=%s, description=%s,
+                    assignee_login=%s, assignee_name=%s,
+                    co_assignee_login=%s, co_assignee_name=%s,
+                    priority=%s, start_date=%s, deadline=%s,
+                    updated_at=NOW()
+                    WHERE id=%s RETURNING *""",
+                (body.get("title"),
+                 body.get("description") or None,
+                 body.get("assignee_login") or None,
+                 body.get("assignee_name") or None,
+                 body.get("co_assignee_login") or None,
+                 body.get("co_assignee_name") or None,
+                 body.get("priority", "medium"),
+                 body.get("start_date") or None,
+                 body.get("deadline") or None,
+                 task_id)
             )
             task = dict(cur.fetchone())
             conn.commit()
@@ -181,7 +215,6 @@ def handler(event: dict, context) -> dict:
 
             return ok({"task": task})
 
-        # Удалить задачу
         if action == "delete":
             task_id = body.get("task_id")
             cur.execute(f"DELETE FROM {SCHEMA}.tasks WHERE id=%s", (task_id,))

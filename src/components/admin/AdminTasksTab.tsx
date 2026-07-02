@@ -13,8 +13,11 @@ type Task = {
   description?: string;
   assignee_login?: string;
   assignee_name?: string;
+  co_assignee_login?: string;
+  co_assignee_name?: string;
   priority: Priority;
   status: Status;
+  start_date?: string;
   deadline?: string;
   created_by?: string;
   created_at: string;
@@ -48,7 +51,13 @@ function isOverdue(deadline?: string, status?: Status) {
   return new Date(deadline) < new Date(new Date().toDateString());
 }
 
-const EMPTY_FORM = { title: "", description: "", assignee_login: "", assignee_name: "", priority: "medium" as Priority, deadline: "" };
+const EMPTY_FORM = {
+  title: "", description: "",
+  assignee_login: "", assignee_name: "",
+  co_assignee_login: "", co_assignee_name: "",
+  priority: "medium" as Priority,
+  start_date: "", deadline: "",
+};
 
 function TaskForm({
   initial, onSave, onCancel, loading, users,
@@ -69,6 +78,12 @@ function TaskForm({
     setForm(f => ({ ...f, assignee_login: val, assignee_name: user?.full_name || val }));
   };
 
+  const handleCoAssignee = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const val = e.target.value;
+    const user = users.find(u => u.login === val);
+    setForm(f => ({ ...f, co_assignee_login: val, co_assignee_name: user?.full_name || val }));
+  };
+
   return (
     <div className="space-y-4">
       <div>
@@ -79,10 +94,19 @@ function TaskForm({
         <label className="text-xs text-ink/50 mb-1 block">Описание</label>
         <textarea value={form.description} onChange={set("description")} rows={3} className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink resize-none" />
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className="text-xs text-ink/50 mb-1 block">Исполнитель</label>
           <select value={form.assignee_login} onChange={handleAssignee} className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink bg-white">
+            <option value="">Не назначен</option>
+            {users.map(u => (
+              <option key={u.login} value={u.login}>{u.full_name || u.login}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="text-xs text-ink/50 mb-1 block">Соисполнитель</label>
+          <select value={form.co_assignee_login} onChange={handleCoAssignee} className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink bg-white">
             <option value="">Не назначен</option>
             {users.map(u => (
               <option key={u.login} value={u.login}>{u.full_name || u.login}</option>
@@ -98,6 +122,10 @@ function TaskForm({
           </select>
         </div>
         <div>
+          <label className="text-xs text-ink/50 mb-1 block">Дата начала</label>
+          <input type="date" value={form.start_date} onChange={set("start_date")} className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" />
+        </div>
+        <div className="sm:col-span-2">
           <label className="text-xs text-ink/50 mb-1 block">Дедлайн</label>
           <input type="date" value={form.deadline} onChange={set("deadline")} className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" />
         </div>
@@ -147,9 +175,18 @@ function TaskCard({ task, onStatusChange, onEdit, onDelete, isAdmin }: {
             <Icon name="User" size={11} />{task.assignee_name}
           </span>
         )}
-        {task.deadline && (
+        {task.co_assignee_name && (
+          <span className="text-xs text-ink/40 flex items-center gap-1">
+            <Icon name="Users" size={11} />{task.co_assignee_name}
+          </span>
+        )}
+        {(task.start_date || task.deadline) && (
           <span className={`text-xs flex items-center gap-1 ${overdue ? "text-red-500 font-medium" : "text-ink/40"}`}>
-            <Icon name="Calendar" size={11} />{fmt(task.deadline)}{overdue && " — просрочена"}
+            <Icon name="CalendarRange" size={11} />
+            {task.start_date ? fmt(task.start_date) : "—"}
+            {" → "}
+            {task.deadline ? fmt(task.deadline) : "—"}
+            {overdue && " · просрочена"}
           </span>
         )}
       </div>
@@ -185,7 +222,8 @@ export default function AdminTasksTab({
 
   const load = async () => {
     setLoading(true);
-    const r = await fetch(API);
+    const loginParam = !isAdmin ? `&login=${session.login}&is_admin=0` : "&is_admin=1";
+    const r = await fetch(`${API}?${loginParam}`);
     const d = await r.json();
     setTasks(d.tasks || []);
     setLoading(false);
@@ -231,12 +269,20 @@ export default function AdminTasksTab({
   };
 
   const filtered = filterStatus === "all" ? tasks : tasks.filter(t => t.status === filterStatus);
-  const counts = { all: tasks.length, new: tasks.filter(t => t.status === "new").length, in_progress: tasks.filter(t => t.status === "in_progress").length, done: tasks.filter(t => t.status === "done").length };
+  const counts = {
+    all: tasks.length,
+    new: tasks.filter(t => t.status === "new").length,
+    in_progress: tasks.filter(t => t.status === "in_progress").length,
+    done: tasks.filter(t => t.status === "done").length,
+  };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <h2 className="font-cormorant text-ink text-2xl font-semibold">Задачи</h2>
+        <div>
+          <h2 className="font-cormorant text-ink text-2xl font-semibold">Задачи</h2>
+          {!isAdmin && <p className="text-xs text-ink/40 mt-0.5">Показаны только ваши задачи</p>}
+        </div>
         <div className="flex items-center gap-2">
           <div className="flex items-center bg-beige-mid rounded-xl p-1">
             <button
@@ -252,13 +298,14 @@ export default function AdminTasksTab({
               <Icon name="CalendarDays" size={14} /> Календарь
             </button>
           </div>
-          <button onClick={() => { setAdding(true); setEditingTask(null); }} className="flex items-center gap-2 bg-ink text-beige px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-ink/90 transition-colors">
-            <Icon name="Plus" size={16} /> Добавить задачу
-          </button>
+          {isAdmin && (
+            <button onClick={() => { setAdding(true); setEditingTask(null); }} className="flex items-center gap-2 bg-ink text-beige px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-ink/90 transition-colors">
+              <Icon name="Plus" size={16} /> Добавить задачу
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Форма создания */}
       {adding && (
         <div className="bg-white border border-beige-dark rounded-2xl p-6">
           <h3 className="font-semibold text-ink mb-4">Новая задача</h3>
@@ -266,13 +313,22 @@ export default function AdminTasksTab({
         </div>
       )}
 
-      {/* Форма редактирования */}
       {editingTask && (
         <div className="bg-white border border-ink/20 rounded-2xl p-6">
           <h3 className="font-semibold text-ink mb-4">Редактирование задачи</h3>
           <TaskForm
             users={users}
-            initial={{ title: editingTask.title, description: editingTask.description || "", assignee_login: editingTask.assignee_login || "", assignee_name: editingTask.assignee_name || "", priority: editingTask.priority, deadline: editingTask.deadline?.slice(0, 10) || "" }}
+            initial={{
+              title: editingTask.title,
+              description: editingTask.description || "",
+              assignee_login: editingTask.assignee_login || "",
+              assignee_name: editingTask.assignee_name || "",
+              co_assignee_login: editingTask.co_assignee_login || "",
+              co_assignee_name: editingTask.co_assignee_name || "",
+              priority: editingTask.priority,
+              start_date: editingTask.start_date?.slice(0, 10) || "",
+              deadline: editingTask.deadline?.slice(0, 10) || "",
+            }}
             onSave={updateTask}
             onCancel={() => setEditingTask(null)}
             loading={saving}
@@ -296,7 +352,6 @@ export default function AdminTasksTab({
         )
       ) : (
         <>
-          {/* Фильтры */}
           <div className="flex items-center gap-1 bg-beige-mid rounded-xl p-1 w-fit flex-wrap">
             {([["all", "Все", "Layers"], ["new", "Новые", "Sparkles"], ["in_progress", "В работе", "Clock"], ["done", "Выполнены", "CheckCircle2"]] as [Status | "all", string, string][]).map(([s, label, icon]) => (
               <button key={s} onClick={() => setFilterStatus(s)}
@@ -308,7 +363,6 @@ export default function AdminTasksTab({
             ))}
           </div>
 
-          {/* Список */}
           {loading ? (
             <div className="flex justify-center py-16"><div className="w-6 h-6 border-2 border-ink border-t-transparent rounded-full animate-spin" /></div>
           ) : filtered.length === 0 ? (

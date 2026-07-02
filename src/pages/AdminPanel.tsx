@@ -8,6 +8,7 @@ import AdminRequestsTab from "@/components/admin/AdminRequestsTab";
 import AdminGalleryTab from "@/components/admin/AdminGalleryTab";
 import AdminFundraisingTab from "@/components/admin/AdminFundraisingTab";
 import AdminGovTab from "@/components/admin/AdminGovTab";
+import AdminTasksWidget from "@/components/admin/AdminTasksWidget";
 
 const AUTH_URL = "https://functions.poehali.dev/e6567f16-b3db-4b0d-9c1f-abed808c2ac8";
 const LOGO_IMG = "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/4ca974da-fec3-4fd3-834d-c7dccc97fca9.jpg";
@@ -166,7 +167,17 @@ export default function AdminPanel() {
       </header>
 
       <main className="pt-28 pb-16 max-w-6xl mx-auto px-4">
-        {tab === "crm" && <AdminCrmTab isAdmin={isAdmin} />}
+        {tab === "crm" && (
+          <div className="space-y-6">
+            <AdminCrmTab isAdmin={isAdmin} />
+            {isAdmin && (
+              <AdminTasksWidget
+                onGoToTasks={() => setTab("tasks")}
+                users={adminUsers}
+              />
+            )}
+          </div>
+        )}
         {tab === "news" && <AdminNewsTab isAdmin={isAdmin} />}
         {tab === "tasks" && (
           <AdminTasksTab
