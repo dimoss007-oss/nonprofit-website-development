@@ -47,23 +47,26 @@ def send_max_notification(chat_id: int, text: str):
     except Exception as e:
         print(f"Max notify error: {e}")
 
-def notify_assignee_status(task: dict, status_label: str):
-    assignee_login = task.get("assignee_login")
-    if not assignee_login:
-        return
-    chat_id = get_max_chat_id(assignee_login)
+def notify_user_status(login: str, task: dict, status_label: str, is_co: bool = False):
+    chat_id = get_max_chat_id(login)
     if not chat_id:
         return
     title = task.get("title", "")
     icon = {"Новая": "🔄", "В работе": "⚙️", "Выполнена": "✅"}.get(status_label, "📋")
-    text = f"{icon} Статус задачи изменён\n\n«{title}»\nНовый статус: {status_label}"
+    role = " (соисполнитель)" if is_co else ""
+    text = f"{icon} Статус задачи изменён{role}\n\n«{title}»\nНовый статус: {status_label}"
     send_max_notification(chat_id, text)
 
-def notify_assignee(task: dict, event_type: str = "assigned"):
+def notify_assignee_status(task: dict, status_label: str):
     assignee_login = task.get("assignee_login")
-    if not assignee_login:
-        return
-    chat_id = get_max_chat_id(assignee_login)
+    co_assignee_login = task.get("co_assignee_login")
+    if assignee_login:
+        notify_user_status(assignee_login, task, status_label, is_co=False)
+    if co_assignee_login and co_assignee_login != assignee_login:
+        notify_user_status(co_assignee_login, task, status_label, is_co=True)
+
+def notify_user(login: str, task: dict, event_type: str, is_co: bool = False):
+    chat_id = get_max_chat_id(login)
     if not chat_id:
         return
 
@@ -72,17 +75,18 @@ def notify_assignee(task: dict, event_type: str = "assigned"):
     deadline = task.get("deadline")
     created_by = task.get("created_by") or "Администратор"
     deadline_str = f"\n📅 Дедлайн: {deadline}" if deadline else ""
+    role = " (соисполнитель)" if is_co else ""
 
     if event_type == "assigned":
         text = (
-            f"📋 Вам назначена новая задача\n\n"
+            f"📋 Вам назначена новая задача{role}\n\n"
             f"«{title}»\n"
             f"🔺 Приоритет: {priority}{deadline_str}\n"
             f"👤 Назначил: {created_by}"
         )
     elif event_type == "updated":
         text = (
-            f"✏️ Задача обновлена\n\n"
+            f"✏️ Задача обновлена{role}\n\n"
             f"«{title}»\n"
             f"🔺 Приоритет: {priority}{deadline_str}"
         )
@@ -90,6 +94,14 @@ def notify_assignee(task: dict, event_type: str = "assigned"):
         return
 
     send_max_notification(chat_id, text)
+
+def notify_assignee(task: dict, event_type: str = "assigned"):
+    assignee_login = task.get("assignee_login")
+    co_assignee_login = task.get("co_assignee_login")
+    if assignee_login:
+        notify_user(assignee_login, task, event_type, is_co=False)
+    if co_assignee_login and co_assignee_login != assignee_login:
+        notify_user(co_assignee_login, task, event_type, is_co=True)
 
 def handler(event: dict, context) -> dict:
     """CRUD задач: соисполнитель, дата начала, фильтр видимости по роли."""
@@ -180,9 +192,10 @@ def handler(event: dict, context) -> dict:
 
         if action == "update":
             task_id = body.get("task_id")
-            cur.execute(f"SELECT assignee_login FROM {SCHEMA}.tasks WHERE id=%s", (task_id,))
+            cur.execute(f"SELECT assignee_login, co_assignee_login FROM {SCHEMA}.tasks WHERE id=%s", (task_id,))
             old = cur.fetchone()
             old_assignee = old["assignee_login"] if old else None
+            old_co_assignee = old["co_assignee_login"] if old else None
 
             cur.execute(
                 f"""UPDATE {SCHEMA}.tasks SET
@@ -208,10 +221,15 @@ def handler(event: dict, context) -> dict:
             conn.close()
 
             new_assignee = task.get("assignee_login")
-            if new_assignee and new_assignee != old_assignee:
-                notify_assignee(task, "assigned")
-            elif new_assignee and new_assignee == old_assignee:
-                notify_assignee(task, "updated")
+            new_co_assignee = task.get("co_assignee_login")
+
+            if new_assignee:
+                event = "assigned" if new_assignee != old_assignee else "updated"
+                notify_user(new_assignee, task, event, is_co=False)
+
+            if new_co_assignee and new_co_assignee != new_assignee:
+                event = "assigned" if new_co_assignee != old_co_assignee else "updated"
+                notify_user(new_co_assignee, task, event, is_co=True)
 
             return ok({"task": task})
 
