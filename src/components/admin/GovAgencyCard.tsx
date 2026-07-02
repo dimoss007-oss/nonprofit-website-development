@@ -135,6 +135,12 @@ export function AgencyCard({ agency, onEdit, onArchive, onToggleContact, onAgree
 
       {expanded && (
         <div className="px-5 pb-5">
+          {agency.notes && (
+            <div className="border-t border-beige-dark/50 pt-4 mt-4">
+              <p className="text-xs font-medium text-ink/50 uppercase tracking-wider mb-2">Примечание</p>
+              <p className="text-sm text-ink/70 whitespace-pre-wrap">{agency.notes}</p>
+            </div>
+          )}
           <AgencyContacts agency={agency} />
           <AgencyDocs agency={agency} />
         </div>
