@@ -61,6 +61,65 @@ function AgreementBadge({ agency, onChange }: { agency: Agency; onChange: (statu
   );
 }
 
+// ─── Инлайн-редактор примечания ───────────────────────────────────────────
+function NotesEditor({ agency }: { agency: Agency }) {
+  const [editing, setEditing] = useState(false);
+  const [value, setValue] = useState(agency.notes || "");
+  const [saving, setSaving] = useState(false);
+
+  const save = async () => {
+    setSaving(true);
+    await fetch(`${GOV_API}?type=agency`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...agency, notes: value }),
+    });
+    setSaving(false);
+    setEditing(false);
+    agency.notes = value;
+  };
+
+  return (
+    <div className="border-t border-beige-dark/50 pt-4 mt-4">
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-xs font-medium text-ink/50 uppercase tracking-wider">Примечание</p>
+        {!editing && (
+          <button onClick={() => setEditing(true)} className="text-xs text-ink/30 hover:text-ink flex items-center gap-1 transition-colors">
+            <Icon name="Pencil" size={11} /> Изменить
+          </button>
+        )}
+      </div>
+      {editing ? (
+        <div className="space-y-2">
+          <textarea
+            autoFocus
+            value={value}
+            onChange={e => setValue(e.target.value)}
+            rows={3}
+            placeholder="Добавьте примечание..."
+            className={`${inp} resize-none`}
+          />
+          <div className="flex gap-2">
+            <button onClick={save} disabled={saving} className="bg-ink text-beige px-4 py-1.5 rounded-lg text-xs font-semibold disabled:opacity-50">
+              {saving ? "..." : "Сохранить"}
+            </button>
+            <button onClick={() => { setEditing(false); setValue(agency.notes || ""); }} className="text-xs text-ink/50 hover:text-ink">
+              Отмена
+            </button>
+          </div>
+        </div>
+      ) : (
+        <p
+          onClick={() => setEditing(true)}
+          className={`text-sm whitespace-pre-wrap cursor-text rounded-lg px-1 -mx-1 hover:bg-beige/60 transition-colors ${value ? "text-ink/70" : "text-ink/25 italic"}`}
+        >
+          {value || "Нажмите чтобы добавить примечание..."}
+        </p>
+      )}
+    </div>
+  );
+}
+
 // ─── Карточка госоргана ────────────────────────────────────────────────────
 export function AgencyCard({ agency, onEdit, onArchive, onToggleContact, onAgreementChange }: {
   agency: Agency;
@@ -135,12 +194,7 @@ export function AgencyCard({ agency, onEdit, onArchive, onToggleContact, onAgree
 
       {expanded && (
         <div className="px-5 pb-5">
-          {agency.notes && (
-            <div className="border-t border-beige-dark/50 pt-4 mt-4">
-              <p className="text-xs font-medium text-ink/50 uppercase tracking-wider mb-2">Примечание</p>
-              <p className="text-sm text-ink/70 whitespace-pre-wrap">{agency.notes}</p>
-            </div>
-          )}
+          <NotesEditor agency={agency} />
           <AgencyContacts agency={agency} />
           <AgencyDocs agency={agency} />
         </div>
