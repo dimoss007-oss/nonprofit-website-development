@@ -9,6 +9,7 @@ const TASKS_API = "https://functions.poehali.dev/6036e39a-3369-4ec5-a7b3-a439352
 function CallbackButton({ agency }: { agency: Agency }) {
   const [open, setOpen] = useState(false);
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [time, setTime] = useState("10:00");
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -28,6 +29,7 @@ function CallbackButton({ agency }: { agency: Agency }) {
         action: "create",
         title: `Перезвонить: ${agency.name}`,
         description: [
+          time ? `Время звонка: ${time}` : "",
           agency.phone ? `Телефон: ${agency.phone}` : "",
           agency.service_phone ? `Служебный: ${agency.service_phone}` : "",
           agency.contact_person ? `Контакт: ${agency.contact_person}` : "",
@@ -62,13 +64,21 @@ function CallbackButton({ agency }: { agency: Agency }) {
 
       {open && (
         <div className="absolute left-0 top-full mt-1 z-20 bg-white rounded-xl shadow-lg border border-beige-dark p-3 min-w-[210px]">
-          <p className="text-xs font-medium text-ink mb-2">Дата звонка</p>
-          <input
-            type="date"
-            value={date}
-            onChange={e => setDate(e.target.value)}
-            className="w-full border border-beige-dark rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-ink mb-2"
-          />
+          <p className="text-xs font-medium text-ink mb-2">Запланировать звонок</p>
+          <div className="flex gap-2 mb-2">
+            <input
+              type="date"
+              value={date}
+              onChange={e => setDate(e.target.value)}
+              className="flex-1 border border-beige-dark rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-ink"
+            />
+            <input
+              type="time"
+              value={time}
+              onChange={e => setTime(e.target.value)}
+              className="w-24 border border-beige-dark rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-ink"
+            />
+          </div>
           <button
             onClick={create}
             disabled={saving || !date}
