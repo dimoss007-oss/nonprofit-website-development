@@ -34,7 +34,9 @@ function CallbackButton({ agency }: { agency: Agency }) {
         ].filter(Boolean).join("\n") || undefined,
         priority: "medium",
         deadline: date,
-        created_by: "admin",
+        assignee_login: "Dmitry",
+        assignee_name: "Администратор",
+        created_by: "Dmitry",
       }),
     });
     setSaving(false);
