@@ -3,6 +3,83 @@ import Icon from "@/components/ui/icon";
 import { Agency, AgreementStatus, inp, lbl, emptyForm, GOV_API } from "./govAgency.types";
 import { AgencyContacts, AgencyDocs } from "./GovAgencySubsections";
 
+const TASKS_API = "https://functions.poehali.dev/6036e39a-3369-4ec5-a7b3-a4393528188a";
+
+// ─── Кнопка «Перезвонить» ─────────────────────────────────────────────────
+function CallbackButton({ agency }: { agency: Agency }) {
+  const [open, setOpen] = useState(false);
+  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [saving, setSaving] = useState(false);
+  const [done, setDone] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const create = async () => {
+    setSaving(true);
+    await fetch(TASKS_API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "create",
+        title: `Перезвонить: ${agency.name}`,
+        description: [
+          agency.phone ? `Телефон: ${agency.phone}` : "",
+          agency.service_phone ? `Служебный: ${agency.service_phone}` : "",
+          agency.contact_person ? `Контакт: ${agency.contact_person}` : "",
+        ].filter(Boolean).join("\n") || undefined,
+        priority: "medium",
+        deadline: date,
+        created_by: "admin",
+      }),
+    });
+    setSaving(false);
+    setDone(true);
+    setOpen(false);
+    setTimeout(() => setDone(false), 3000);
+  };
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        title="Запланировать звонок"
+        className={`flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-medium transition-all ${
+          done
+            ? "bg-violet-100 text-violet-700"
+            : "bg-beige-dark text-ink/30 hover:bg-orange-50 hover:text-orange-600"
+        }`}
+      >
+        <Icon name={done ? "CalendarCheck" : "PhoneCall"} size={10} />
+        {done ? "Добавлено!" : "Перезвонить"}
+      </button>
+
+      {open && (
+        <div className="absolute left-0 top-full mt-1 z-20 bg-white rounded-xl shadow-lg border border-beige-dark p-3 min-w-[210px]">
+          <p className="text-xs font-medium text-ink mb-2">Дата звонка</p>
+          <input
+            type="date"
+            value={date}
+            onChange={e => setDate(e.target.value)}
+            className="w-full border border-beige-dark rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-ink mb-2"
+          />
+          <button
+            onClick={create}
+            disabled={saving || !date}
+            className="w-full bg-ink text-beige text-xs font-semibold py-1.5 rounded-lg hover:bg-ink/90 transition-colors disabled:opacity-50"
+          >
+            {saving ? "Создаём..." : "Добавить в задачи"}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 const AGREEMENT_OPTIONS: { value: AgreementStatus; label: string; color: string }[] = [
   { value: "sent",     label: "Отправлено", color: "bg-blue-100 text-blue-700" },
   { value: "signed",   label: "Подписано",  color: "bg-green-100 text-green-700" },
@@ -165,6 +242,7 @@ export function AgencyCard({ agency, onEdit, onArchive, onToggleContact, onAgree
                   agency={agency}
                   onChange={(status) => onAgreementChange(agency.id, status)}
                 />
+                <CallbackButton agency={agency} />
               </div>
               <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-ink/50">
                 {agency.phone && <span className="flex items-center gap-1"><Icon name="Phone" size={11} />{agency.phone}</span>}
