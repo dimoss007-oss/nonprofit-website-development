@@ -84,7 +84,7 @@ function getSession(): Session | null {
 
 export default function AdminPanel() {
   const [session, setSession] = useState<Session | null>(() => getSession());
-  const [tab, setTab] = useState<Tab>("crm");
+  const [tab, setTab] = useState<Tab>("tasks");
   const [adminUsers, setAdminUsers] = useState<AdminUser[]>([]);
 
   useEffect(() => {
@@ -167,24 +167,22 @@ export default function AdminPanel() {
       </header>
 
       <main className="pt-28 pb-16 max-w-6xl mx-auto px-4">
-        {tab === "crm" && (
+        {tab === "crm" && <AdminCrmTab isAdmin={isAdmin} />}
+        {tab === "news" && <AdminNewsTab isAdmin={isAdmin} />}
+        {tab === "tasks" && (
           <div className="space-y-6">
-            <AdminCrmTab isAdmin={isAdmin} />
             {isAdmin && (
               <AdminTasksWidget
                 onGoToTasks={() => setTab("tasks")}
                 users={adminUsers}
               />
             )}
+            <AdminTasksTab
+              session={{ login: session.login, full_name: session.full_name }}
+              isAdmin={isAdmin}
+              users={adminUsers}
+            />
           </div>
-        )}
-        {tab === "news" && <AdminNewsTab isAdmin={isAdmin} />}
-        {tab === "tasks" && (
-          <AdminTasksTab
-            session={{ login: session.login, full_name: session.full_name }}
-            isAdmin={isAdmin}
-            users={adminUsers}
-          />
         )}
         {tab === "requests" && <AdminRequestsTab isAdmin={isAdmin} />}
         {tab === "users" && <AdminUsersTab authLogin={session.login} authPassword={session.password} isAdmin={isAdmin} />}
