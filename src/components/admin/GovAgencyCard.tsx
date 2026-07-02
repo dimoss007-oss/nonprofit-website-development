@@ -1,14 +1,73 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Icon from "@/components/ui/icon";
-import { Agency, inp, lbl, emptyForm } from "./govAgency.types";
+import { Agency, AgreementStatus, inp, lbl, emptyForm, GOV_API } from "./govAgency.types";
 import { AgencyContacts, AgencyDocs } from "./GovAgencySubsections";
 
+const AGREEMENT_OPTIONS: { value: AgreementStatus; label: string; color: string }[] = [
+  { value: "sent",     label: "Отправлено", color: "bg-blue-100 text-blue-700" },
+  { value: "signed",   label: "Подписано",  color: "bg-green-100 text-green-700" },
+  { value: "rejected", label: "Отклонено",  color: "bg-red-100 text-red-700" },
+];
+
+function AgreementBadge({ agency, onChange }: { agency: Agency; onChange: (status: AgreementStatus) => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const current = AGREEMENT_OPTIONS.find(o => o.value === agency.agreement_status);
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        className={`flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-medium transition-all ${
+          current ? current.color : "bg-beige-dark text-ink/30 hover:text-ink/60"
+        }`}
+        title="Статус соглашения"
+      >
+        <Icon name="FileText" size={10} />
+        {current ? current.label : "Соглашение"}
+        <Icon name="ChevronDown" size={9} />
+      </button>
+      {open && (
+        <div className="absolute left-0 top-full mt-1 z-20 bg-white rounded-xl shadow-lg border border-beige-dark py-1 min-w-[140px]">
+          {AGREEMENT_OPTIONS.map(opt => (
+            <button
+              key={opt.value}
+              onClick={() => { onChange(opt.value); setOpen(false); }}
+              className={`w-full text-left px-3 py-1.5 text-xs font-medium hover:bg-beige/60 transition-colors ${
+                agency.agreement_status === opt.value ? "opacity-50" : ""
+              }`}
+            >
+              <span className={`inline-block px-2 py-0.5 rounded-full ${opt.color}`}>{opt.label}</span>
+            </button>
+          ))}
+          {agency.agreement_status && (
+            <button
+              onClick={() => { onChange(null); setOpen(false); }}
+              className="w-full text-left px-3 py-1.5 text-xs text-ink/30 hover:text-ink/60 hover:bg-beige/60 transition-colors"
+            >
+              Снять пометку
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Карточка госоргана ────────────────────────────────────────────────────
-export function AgencyCard({ agency, onEdit, onArchive, onToggleContact }: {
+export function AgencyCard({ agency, onEdit, onArchive, onToggleContact, onAgreementChange }: {
   agency: Agency;
   onEdit: (a: Agency) => void;
   onArchive: (id: number) => void;
   onToggleContact: (id: number, value: boolean) => void;
+  onAgreementChange: (id: number, status: AgreementStatus) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [toggling, setToggling] = useState(false);
@@ -43,6 +102,10 @@ export function AgencyCard({ agency, onEdit, onArchive, onToggleContact }: {
                   <Icon name={agency.has_contact ? "UserCheck" : "UserX"} size={10} />
                   {agency.has_contact ? "Есть контакт" : "Нет контакта"}
                 </button>
+                <AgreementBadge
+                  agency={agency}
+                  onChange={(status) => onAgreementChange(agency.id, status)}
+                />
               </div>
               <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-ink/50">
                 {agency.phone && <span className="flex items-center gap-1"><Icon name="Phone" size={11} />{agency.phone}</span>}

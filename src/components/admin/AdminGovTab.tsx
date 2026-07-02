@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import Icon from "@/components/ui/icon";
-import { GOV_API, Agency } from "./govAgency.types";
+import { GOV_API, Agency, AgreementStatus } from "./govAgency.types";
 import { AgencyCard, AgencyForm, ContactDraft } from "./GovAgencyCard";
 
 export default function AdminGovTab() {
@@ -46,6 +46,15 @@ export default function AdminGovTab() {
       body: JSON.stringify({ id, has_contact: value }),
     });
     setAgencies(prev => prev.map(a => a.id === id ? { ...a, has_contact: value } : a));
+  };
+
+  const setAgreementStatus = async (id: number, status: AgreementStatus) => {
+    await fetch(`${GOV_API}?type=set_agreement_status`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, agreement_status: status }),
+    });
+    setAgencies(prev => prev.map(a => a.id === id ? { ...a, agreement_status: status } : a));
   };
 
   const archive = async (id: number) => {
@@ -118,6 +127,7 @@ export default function AdminGovTab() {
               onEdit={ag => { setEditAgency(ag); setShowForm(false); }}
               onArchive={archive}
               onToggleContact={toggleContact}
+              onAgreementChange={setAgreementStatus}
             />
           ))}
         </div>

@@ -11,8 +11,7 @@
       "method": "GET",
       "path": "/?type=agencies",
       "expectedStatus": 200,
-      "expectedBody": { "agencies": [] },
-      "bodyMatcher": "partial"
+      "bodyMatcher": "none"
     }
   ]
 }

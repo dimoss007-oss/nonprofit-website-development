@@ -31,12 +31,12 @@ def handler(event: dict, context) -> dict:
             cur.execute("""
                 SELECT id, name, phone, address, service_phone,
                        contact_person, contact_phone, has_contact,
-                       email, working_hours, notes, created_at
+                       email, working_hours, notes, created_at, agreement_status
                 FROM gov_agencies WHERE archived = FALSE ORDER BY name ASC
             """)
             cols = ["id","name","phone","address","service_phone",
                     "contact_person","contact_phone","has_contact",
-                    "email","working_hours","notes","created_at"]
+                    "email","working_hours","notes","created_at","agreement_status"]
             rows = [dict(zip(cols, r)) for r in cur.fetchall()]
             cur.close(); conn.close()
             return ok({"agencies": rows})
@@ -58,27 +58,42 @@ def handler(event: dict, context) -> dict:
         if qtype == "agency":
             aid = body.get("id")
             has_contact = bool(body.get("has_contact", False))
+            agreement_status = body.get("agreement_status") or None
+            if agreement_status not in (None, "sent", "signed", "rejected"):
+                agreement_status = None
             if aid:
                 cur.execute("""
                     UPDATE gov_agencies SET name=%s, phone=%s, address=%s,
                            service_phone=%s, contact_person=%s, contact_phone=%s,
-                           has_contact=%s, email=%s, working_hours=%s, notes=%s
+                           has_contact=%s, email=%s, working_hours=%s, notes=%s,
+                           agreement_status=%s
                     WHERE id=%s RETURNING id
                 """, (body.get("name"), body.get("phone"), body.get("address"),
                       body.get("service_phone"), body.get("contact_person"),
                       body.get("contact_phone"), has_contact,
-                      body.get("email"), body.get("working_hours"), body.get("notes"), aid))
+                      body.get("email"), body.get("working_hours"), body.get("notes"),
+                      agreement_status, aid))
             else:
                 cur.execute("""
-                    INSERT INTO gov_agencies (name, phone, address, service_phone, contact_person, contact_phone, has_contact, email, working_hours, notes)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id
+                    INSERT INTO gov_agencies (name, phone, address, service_phone, contact_person, contact_phone, has_contact, email, working_hours, notes, agreement_status)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id
                 """, (body.get("name"), body.get("phone"), body.get("address"),
                       body.get("service_phone"), body.get("contact_person"),
                       body.get("contact_phone"), has_contact,
-                      body.get("email"), body.get("working_hours"), body.get("notes")))
+                      body.get("email"), body.get("working_hours"), body.get("notes"),
+                      agreement_status))
             new_id = cur.fetchone()[0]
             conn.commit(); cur.close(); conn.close()
             return ok({"id": new_id})
+
+        if qtype == "set_agreement_status":
+            aid = int(body.get("id", 0))
+            status = body.get("agreement_status") or None
+            if status not in (None, "sent", "signed", "rejected"):
+                status = None
+            cur.execute("UPDATE gov_agencies SET agreement_status=%s WHERE id=%s", (status, aid))
+            conn.commit(); cur.close(); conn.close()
+            return ok({"ok": True})
 
         if qtype == "document":
             cur.execute("""

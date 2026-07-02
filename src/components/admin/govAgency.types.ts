@@ -3,6 +3,8 @@ export const GOV_API = "https://functions.poehali.dev/afaf030c-c06d-4ad0-a892-c4
 export const inp = "w-full border border-beige-dark rounded-xl px-4 py-2.5 text-sm text-ink focus:outline-none focus:border-ink bg-beige/40";
 export const lbl = "block text-xs uppercase tracking-widest text-ink/50 mb-1";
 
+export type AgreementStatus = "sent" | "signed" | "rejected" | null;
+
 export interface Agency {
   id: number;
   name: string;
@@ -14,6 +16,7 @@ export interface Agency {
   working_hours: string | null;
   notes: string | null;
   created_at: string;
+  agreement_status: AgreementStatus;
 }
 
 export interface AgencyContact {
@@ -37,4 +40,5 @@ export interface GovDocument {
 export const emptyForm = (): Partial<Agency> => ({
   name: "", phone: "", address: "", service_phone: "",
   has_contact: false, email: "", working_hours: "", notes: "",
+  agreement_status: null,
 });
