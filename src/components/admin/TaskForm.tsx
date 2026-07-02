@@ -16,6 +16,10 @@ export default function TaskForm({
 
   const handleAssignee = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const val = e.target.value;
+    if (val === "__all__") {
+      setForm(f => ({ ...f, assignee_login: "__all__", assignee_name: "Все сотрудники" }));
+      return;
+    }
     const user = users.find(u => u.login === val);
     setForm(f => ({ ...f, assignee_login: val, assignee_name: user?.full_name || val }));
   };
@@ -41,6 +45,7 @@ export default function TaskForm({
           <label className="text-xs text-ink/50 mb-1 block">Исполнитель</label>
           <select value={form.assignee_login} onChange={handleAssignee} className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink bg-white">
             <option value="">Не назначен</option>
+            <option value="__all__">Все сотрудники</option>
             {users.map(u => (
               <option key={u.login} value={u.login}>{u.full_name || u.login}</option>
             ))}
@@ -67,9 +72,13 @@ export default function TaskForm({
           <label className="text-xs text-ink/50 mb-1 block">Дата начала</label>
           <input type="date" value={form.start_date} onChange={set("start_date")} className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" />
         </div>
-        <div className="sm:col-span-2">
+        <div>
           <label className="text-xs text-ink/50 mb-1 block">Дедлайн</label>
           <input type="date" value={form.deadline} onChange={set("deadline")} className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" />
+        </div>
+        <div>
+          <label className="text-xs text-ink/50 mb-1 block">Время</label>
+          <input type="time" value={form.call_time} onChange={set("call_time")} className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" />
         </div>
       </div>
       <div className="flex gap-2 justify-end">

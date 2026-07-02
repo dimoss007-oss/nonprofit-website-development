@@ -16,6 +16,7 @@ export type Task = {
   status: Status;
   start_date?: string;
   deadline?: string;
+  call_time?: string;
   created_by?: string;
   created_at: string;
 };
@@ -54,7 +55,7 @@ export const EMPTY_FORM = {
   assignee_login: "", assignee_name: "",
   co_assignee_login: "", co_assignee_name: "",
   priority: "medium" as Priority,
-  start_date: "", deadline: "",
+  start_date: "", deadline: "", call_time: "",
 };
 
 export function fmt(d?: string) {
