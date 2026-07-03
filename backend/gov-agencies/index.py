@@ -30,12 +30,12 @@ def handler(event: dict, context) -> dict:
         if qtype == "agencies":
             cur.execute("""
                 SELECT id, name, phone, address, service_phone,
-                       contact_person, contact_phone, has_contact,
+                       contact_person, contact_phone, has_contact, contact_status,
                        email, working_hours, notes, created_at, agreement_status
                 FROM gov_agencies WHERE archived = FALSE ORDER BY name ASC
             """)
             cols = ["id","name","phone","address","service_phone",
-                    "contact_person","contact_phone","has_contact",
+                    "contact_person","contact_phone","has_contact","contact_status",
                     "email","working_hours","notes","created_at","agreement_status"]
             rows = [dict(zip(cols, r)) for r in cur.fetchall()]
             cur.close(); conn.close()
@@ -109,6 +109,19 @@ def handler(event: dict, context) -> dict:
             aid = int(body.get("id", 0))
             value = bool(body.get("has_contact", False))
             cur.execute("UPDATE gov_agencies SET has_contact = %s WHERE id = %s", (value, aid))
+            conn.commit(); cur.close(); conn.close()
+            return ok({"ok": True})
+
+        if qtype == "set_contact_status":
+            aid = int(body.get("id", 0))
+            status = body.get("contact_status") or None
+            if status not in (None, "has_contact", "no_contact", "no_answer"):
+                status = None
+            has_contact = status == "has_contact"
+            cur.execute(
+                "UPDATE gov_agencies SET contact_status=%s, has_contact=%s WHERE id=%s",
+                (status, has_contact, aid)
+            )
             conn.commit(); cur.close(); conn.close()
             return ok({"ok": True})
 

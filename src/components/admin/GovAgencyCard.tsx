@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import Icon from "@/components/ui/icon";
-import { Agency, AgreementStatus, inp, lbl, emptyForm, GOV_API } from "./govAgency.types";
+import { Agency, AgreementStatus, ContactStatus, inp, lbl, emptyForm, GOV_API } from "./govAgency.types";
 import { AgencyContacts, AgencyDocs } from "./GovAgencySubsections";
 
 const TASKS_API = "https://functions.poehali.dev/6036e39a-3369-4ec5-a7b3-a4393528188a";
@@ -86,6 +86,56 @@ function CallbackButton({ agency }: { agency: Agency }) {
           >
             {saving ? "Создаём..." : "Добавить в задачи"}
           </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+const CONTACT_OPTIONS: { value: ContactStatus; label: string; color: string; icon: string }[] = [
+  { value: "has_contact", label: "Есть контакт", color: "bg-green-100 text-green-700", icon: "UserCheck" },
+  { value: "no_answer",   label: "Нет ответа",   color: "bg-orange-100 text-orange-700", icon: "PhoneMissed" },
+  { value: "no_contact",  label: "Нет контакта", color: "bg-beige-dark text-ink/50", icon: "UserX" },
+];
+
+function ContactStatusBadge({ agency, onChange }: { agency: Agency; onChange: (status: ContactStatus) => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const current = CONTACT_OPTIONS.find(o => o.value === agency.contact_status) || CONTACT_OPTIONS[2];
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        className={`flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-medium transition-all ${current.color}`}
+        title="Статус контакта"
+      >
+        <Icon name={current.icon} size={10} />
+        {current.label}
+        <Icon name="ChevronDown" size={9} />
+      </button>
+      {open && (
+        <div className="absolute left-0 top-full mt-1 z-20 bg-white rounded-xl shadow-lg border border-beige-dark py-1 min-w-[150px]">
+          {CONTACT_OPTIONS.map(opt => (
+            <button
+              key={opt.value}
+              onClick={() => { onChange(opt.value); setOpen(false); }}
+              className={`w-full text-left px-3 py-1.5 text-xs font-medium hover:bg-beige/60 transition-colors ${
+                agency.contact_status === opt.value ? "opacity-50" : ""
+              }`}
+            >
+              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full ${opt.color}`}>
+                <Icon name={opt.icon} size={10} />{opt.label}
+              </span>
+            </button>
+          ))}
         </div>
       )}
     </div>
@@ -210,21 +260,14 @@ function NotesEditor({ agency }: { agency: Agency }) {
 }
 
 // ─── Карточка госоргана ────────────────────────────────────────────────────
-export function AgencyCard({ agency, onEdit, onArchive, onToggleContact, onAgreementChange }: {
+export function AgencyCard({ agency, onEdit, onArchive, onContactStatusChange, onAgreementChange }: {
   agency: Agency;
   onEdit: (a: Agency) => void;
   onArchive: (id: number) => void;
-  onToggleContact: (id: number, value: boolean) => void;
+  onContactStatusChange: (id: number, status: ContactStatus) => void;
   onAgreementChange: (id: number, status: AgreementStatus) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
-  const [toggling, setToggling] = useState(false);
-
-  const handleToggle = async () => {
-    setToggling(true);
-    await onToggleContact(agency.id, !agency.has_contact);
-    setToggling(false);
-  };
 
   return (
     <div className="bg-white rounded-2xl border border-beige-dark shadow-sm overflow-hidden">
@@ -237,19 +280,10 @@ export function AgencyCard({ agency, onEdit, onArchive, onToggleContact, onAgree
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <p className="font-semibold text-ink text-sm leading-tight">{agency.name}</p>
-                <button
-                  onClick={handleToggle}
-                  disabled={toggling}
-                  title={agency.has_contact ? "Снять пометку" : "Отметить как «Есть контакт»"}
-                  className={`flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-medium transition-all disabled:opacity-50 ${
-                    agency.has_contact
-                      ? "bg-green-100 text-green-700 hover:bg-green-200"
-                      : "bg-beige-dark text-ink/30 hover:bg-beige-dark hover:text-ink/60"
-                  }`}
-                >
-                  <Icon name={agency.has_contact ? "UserCheck" : "UserX"} size={10} />
-                  {agency.has_contact ? "Есть контакт" : "Нет контакта"}
-                </button>
+                <ContactStatusBadge
+                  agency={agency}
+                  onChange={(status) => onContactStatusChange(agency.id, status)}
+                />
                 <AgreementBadge
                   agency={agency}
                   onChange={(status) => onAgreementChange(agency.id, status)}

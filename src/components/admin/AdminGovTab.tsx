@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import Icon from "@/components/ui/icon";
-import { GOV_API, Agency, AgreementStatus } from "./govAgency.types";
+import { GOV_API, Agency, AgreementStatus, ContactStatus } from "./govAgency.types";
 import { AgencyCard, AgencyForm, ContactDraft } from "./GovAgencyCard";
 
 export default function AdminGovTab() {
@@ -39,13 +39,13 @@ export default function AdminGovTab() {
     load();
   };
 
-  const toggleContact = async (id: number, value: boolean) => {
-    await fetch(`${GOV_API}?type=toggle_contact`, {
+  const setContactStatus = async (id: number, status: ContactStatus) => {
+    await fetch(`${GOV_API}?type=set_contact_status`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, has_contact: value }),
+      body: JSON.stringify({ id, contact_status: status }),
     });
-    setAgencies(prev => prev.map(a => a.id === id ? { ...a, has_contact: value } : a));
+    setAgencies(prev => prev.map(a => a.id === id ? { ...a, contact_status: status, has_contact: status === "has_contact" } : a));
   };
 
   const setAgreementStatus = async (id: number, status: AgreementStatus) => {
@@ -75,8 +75,9 @@ export default function AdminGovTab() {
 
   const stats = {
     total: agencies.length,
-    hasContact: agencies.filter(a => a.has_contact).length,
-    noContact: agencies.filter(a => !a.has_contact).length,
+    hasContact: agencies.filter(a => a.contact_status === "has_contact").length,
+    noAnswer: agencies.filter(a => a.contact_status === "no_answer").length,
+    noContact: agencies.filter(a => a.contact_status !== "has_contact" && a.contact_status !== "no_answer").length,
     sent: agencies.filter(a => a.agreement_status === "sent").length,
     signed: agencies.filter(a => a.agreement_status === "signed").length,
     rejected: agencies.filter(a => a.agreement_status === "rejected").length,
@@ -99,11 +100,16 @@ export default function AdminGovTab() {
       </div>
 
       {agencies.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           <div className="bg-green-50 border border-green-100 rounded-2xl p-4">
             <p className="text-xs text-green-600 font-medium uppercase tracking-wider mb-1">Есть контакт</p>
             <p className="text-2xl font-bold text-green-700">{stats.hasContact}</p>
             <p className="text-xs text-green-500 mt-0.5">из {stats.total}</p>
+          </div>
+          <div className="bg-orange-50 border border-orange-100 rounded-2xl p-4">
+            <p className="text-xs text-orange-600 font-medium uppercase tracking-wider mb-1">Нет ответа</p>
+            <p className="text-2xl font-bold text-orange-700">{stats.noAnswer}</p>
+            <p className="text-xs text-orange-500 mt-0.5">органов</p>
           </div>
           <div className="bg-beige border border-beige-dark rounded-2xl p-4">
             <p className="text-xs text-ink/50 font-medium uppercase tracking-wider mb-1">Нет контакта</p>
@@ -172,7 +178,7 @@ export default function AdminGovTab() {
               agency={a}
               onEdit={ag => { setEditAgency(ag); setShowForm(false); }}
               onArchive={archive}
-              onToggleContact={toggleContact}
+              onContactStatusChange={setContactStatus}
               onAgreementChange={setAgreementStatus}
             />
           ))}

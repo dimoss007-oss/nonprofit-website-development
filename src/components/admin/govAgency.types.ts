@@ -4,6 +4,7 @@ export const inp = "w-full border border-beige-dark rounded-xl px-4 py-2.5 text-
 export const lbl = "block text-xs uppercase tracking-widest text-ink/50 mb-1";
 
 export type AgreementStatus = "sent" | "signed" | "rejected" | null;
+export type ContactStatus = "has_contact" | "no_contact" | "no_answer" | null;
 
 export interface Agency {
   id: number;
@@ -12,6 +13,7 @@ export interface Agency {
   address: string | null;
   service_phone: string | null;
   has_contact: boolean;
+  contact_status: ContactStatus;
   email: string | null;
   working_hours: string | null;
   notes: string | null;
@@ -39,6 +41,6 @@ export interface GovDocument {
 
 export const emptyForm = (): Partial<Agency> => ({
   name: "", phone: "", address: "", service_phone: "",
-  has_contact: false, email: "", working_hours: "", notes: "",
+  has_contact: false, contact_status: null, email: "", working_hours: "", notes: "",
   agreement_status: null,
 });
