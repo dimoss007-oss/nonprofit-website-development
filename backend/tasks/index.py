@@ -159,8 +159,9 @@ def handler(event: dict, context) -> dict:
                 f"""INSERT INTO {SCHEMA}.tasks
                     (title, description, assignee_login, assignee_name,
                      co_assignee_login, co_assignee_name,
-                     priority, status, start_date, deadline, created_by, reminder_frequency)
-                    VALUES (%s,%s,%s,%s,%s,%s,%s,'new',%s,%s,%s,%s)
+                     priority, status, start_date, deadline, created_by, reminder_frequency,
+                     link_type, link_id)
+                    VALUES (%s,%s,%s,%s,%s,%s,%s,'new',%s,%s,%s,%s,%s,%s)
                     RETURNING *""",
                 (title,
                  body.get("description") or None,
@@ -172,7 +173,9 @@ def handler(event: dict, context) -> dict:
                  body.get("start_date") or None,
                  body.get("deadline") or None,
                  body.get("created_by") or None,
-                 reminder_frequency)
+                 reminder_frequency,
+                 body.get("link_type") or None,
+                 body.get("link_id") or None)
             )
             task = dict(cur.fetchone())
             conn.commit()

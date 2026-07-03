@@ -9,10 +9,12 @@ export default function AdminTasksTab({
   session,
   isAdmin,
   users,
+  onGoToLink,
 }: {
   session: { login: string; full_name: string };
   isAdmin: boolean;
   users: { login: string; full_name?: string }[];
+  onGoToLink?: (task: Task) => void;
 }) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
@@ -149,6 +151,7 @@ export default function AdminTasksTab({
             onEdit={setEditingTask}
             onDelete={deleteTask}
             onCreateOnDate={(data) => createTask({ ...EMPTY_FORM, ...data })}
+            onGoToLink={onGoToLink}
             isAdmin={isAdmin}
             users={users}
           />
@@ -182,6 +185,7 @@ export default function AdminTasksTab({
                   onStatusChange={changeStatus}
                   onEdit={setEditingTask}
                   onDelete={deleteTask}
+                  onGoToLink={onGoToLink}
                   isAdmin={isAdmin}
                   currentLogin={session.login}
                 />

@@ -39,6 +39,8 @@ function CallbackButton({ agency }: { agency: Agency }) {
         assignee_login: "Dmitry",
         assignee_name: "Администратор",
         created_by: "Dmitry",
+        link_type: "gov_agency",
+        link_id: agency.id,
       }),
     });
     setSaving(false);
@@ -260,14 +262,15 @@ function NotesEditor({ agency }: { agency: Agency }) {
 }
 
 // ─── Карточка госоргана ────────────────────────────────────────────────────
-export function AgencyCard({ agency, onEdit, onArchive, onContactStatusChange, onAgreementChange }: {
+export function AgencyCard({ agency, onEdit, onArchive, onContactStatusChange, onAgreementChange, defaultExpanded }: {
   agency: Agency;
   onEdit: (a: Agency) => void;
   onArchive: (id: number) => void;
   onContactStatusChange: (id: number, status: ContactStatus) => void;
   onAgreementChange: (id: number, status: AgreementStatus) => void;
+  defaultExpanded?: boolean;
 }) {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(!!defaultExpanded);
 
   return (
     <div className="bg-white rounded-2xl border border-beige-dark shadow-sm overflow-hidden">

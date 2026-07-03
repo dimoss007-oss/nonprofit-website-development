@@ -9,6 +9,7 @@ import AdminGalleryTab from "@/components/admin/AdminGalleryTab";
 import AdminFundraisingTab from "@/components/admin/AdminFundraisingTab";
 import AdminGovTab from "@/components/admin/AdminGovTab";
 import AdminTasksWidget from "@/components/admin/AdminTasksWidget";
+import type { Task } from "@/components/admin/taskTypes";
 
 const AUTH_URL = "https://functions.poehali.dev/e6567f16-b3db-4b0d-9c1f-abed808c2ac8";
 const LOGO_IMG = "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/4ca974da-fec3-4fd3-834d-c7dccc97fca9.jpg";
@@ -86,6 +87,14 @@ export default function AdminPanel() {
   const [session, setSession] = useState<Session | null>(() => getSession());
   const [tab, setTab] = useState<Tab>("tasks");
   const [adminUsers, setAdminUsers] = useState<AdminUser[]>([]);
+  const [focusGovId, setFocusGovId] = useState<number | null>(null);
+
+  const goToTaskLink = (task: Task) => {
+    if (task.link_type === "gov_agency" && task.link_id) {
+      setFocusGovId(task.link_id);
+      setTab("gov");
+    }
+  };
 
   useEffect(() => {
     if (!session || session.role === "admin") return;
@@ -181,6 +190,7 @@ export default function AdminPanel() {
               session={{ login: session.login, full_name: session.full_name }}
               isAdmin={isAdmin}
               users={adminUsers}
+              onGoToLink={goToTaskLink}
             />
           </div>
         )}
@@ -188,7 +198,7 @@ export default function AdminPanel() {
         {tab === "users" && <AdminUsersTab authLogin={session.login} authPassword={session.password} isAdmin={isAdmin} />}
         {tab === "gallery" && <AdminGalleryTab />}
         {tab === "fundraising" && <AdminFundraisingTab adminUsers={adminUsers.map(u => u.full_name || u.login)} users={adminUsers} />}
-        {tab === "gov" && <AdminGovTab />}
+        {tab === "gov" && <AdminGovTab focusAgencyId={focusGovId} onFocusHandled={() => setFocusGovId(null)} />}
       </main>
     </div>
   );

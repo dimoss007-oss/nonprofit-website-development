@@ -7,16 +7,24 @@ import {
   fmt, isOverdue,
 } from "./taskTypes";
 
-export default function TaskCard({ task, onStatusChange, onEdit, onDelete, isAdmin, currentLogin }: {
+const LINK_LABELS: Record<string, { label: string; icon: string }> = {
+  gov_agency: { label: "Открыть госорган", icon: "Landmark" },
+  fundraising_org: { label: "Открыть организацию", icon: "Building2" },
+  fundraising_person: { label: "Открыть жертвователя", icon: "UserHeart" },
+};
+
+export default function TaskCard({ task, onStatusChange, onEdit, onDelete, onGoToLink, isAdmin, currentLogin }: {
   task: Task;
   onStatusChange: (id: number, status: Status) => void;
   onEdit: (task: Task) => void;
   onDelete: (id: number) => void;
+  onGoToLink?: (task: Task) => void;
   isAdmin: boolean;
   currentLogin: string;
 }) {
   const next = STATUS_NEXT[task.status];
   const overdue = isOverdue(task.deadline, task.status);
+  const link = task.link_type ? LINK_LABELS[task.link_type] : null;
 
   return (
     <div className={`bg-white border rounded-2xl px-5 py-4 space-y-3 transition-colors ${task.status === "done" ? "border-beige-dark opacity-70" : "border-beige-dark hover:border-ink/30"}`}>
@@ -59,7 +67,15 @@ export default function TaskCard({ task, onStatusChange, onEdit, onDelete, isAdm
         )}
       </div>
 
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-2">
+        {link && onGoToLink && (
+          <button
+            onClick={() => onGoToLink(task)}
+            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-beige-dark hover:border-ink text-ink/60 hover:text-ink transition-colors"
+          >
+            <Icon name={link.icon} size={12} />{link.label}
+          </button>
+        )}
         <button
           onClick={() => onStatusChange(task.id, next.status)}
           className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-beige-dark hover:border-ink text-ink/60 hover:text-ink transition-colors"

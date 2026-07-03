@@ -18,6 +18,8 @@ export type Task = {
   deadline?: string;
   call_time?: string;
   reminder_frequency?: "daily" | "weekly" | "monthly" | null;
+  link_type?: string | null;
+  link_id?: number | null;
   created_by?: string;
   created_at: string;
 };

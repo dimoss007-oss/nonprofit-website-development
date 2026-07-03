@@ -3,7 +3,7 @@ import Icon from "@/components/ui/icon";
 import { GOV_API, Agency, AgreementStatus, ContactStatus } from "./govAgency.types";
 import { AgencyCard, AgencyForm, ContactDraft } from "./GovAgencyCard";
 
-export default function AdminGovTab() {
+export default function AdminGovTab({ focusAgencyId, onFocusHandled }: { focusAgencyId?: number | null; onFocusHandled?: () => void } = {}) {
   const [agencies, setAgencies] = useState<Agency[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -20,6 +20,26 @@ export default function AdminGovTab() {
   };
 
   useEffect(() => { load(); }, []);
+
+  useEffect(() => {
+    if (!focusAgencyId) return;
+    setContactFilter("all");
+    setSearch("");
+  }, [focusAgencyId]);
+
+  useEffect(() => {
+    if (!focusAgencyId || loading) return;
+    const timer = setTimeout(() => {
+      const el = document.getElementById(`agency-${focusAgencyId}`);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        el.classList.add("ring-2", "ring-ink/40");
+        setTimeout(() => el.classList.remove("ring-2", "ring-ink/40"), 2500);
+        onFocusHandled?.();
+      }
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [focusAgencyId, loading, agencies, contactFilter, search]);
 
   const save = async (data: Partial<Agency>, contact: ContactDraft) => {
     const res = await fetch(`${GOV_API}?type=agency`, {
@@ -204,14 +224,16 @@ export default function AdminGovTab() {
       ) : (
         <div className="grid grid-cols-1 gap-3">
           {filtered.map(a => (
-            <AgencyCard
-              key={a.id}
-              agency={a}
-              onEdit={ag => { setEditAgency(ag); setShowForm(false); }}
-              onArchive={archive}
-              onContactStatusChange={setContactStatus}
-              onAgreementChange={setAgreementStatus}
-            />
+            <div key={a.id} id={`agency-${a.id}`} className="rounded-2xl transition-shadow">
+              <AgencyCard
+                agency={a}
+                onEdit={ag => { setEditAgency(ag); setShowForm(false); }}
+                onArchive={archive}
+                onContactStatusChange={setContactStatus}
+                onAgreementChange={setAgreementStatus}
+                defaultExpanded={a.id === focusAgencyId}
+              />
+            </div>
           ))}
         </div>
       )}

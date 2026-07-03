@@ -13,8 +13,16 @@ type Task = {
   priority: Priority;
   status: Status;
   deadline?: string;
+  link_type?: string | null;
+  link_id?: number | null;
   created_by?: string;
   created_at: string;
+};
+
+const LINK_LABELS: Record<string, { label: string; icon: string }> = {
+  gov_agency: { label: "Открыть госорган", icon: "Landmark" },
+  fundraising_org: { label: "Открыть организацию", icon: "Building2" },
+  fundraising_person: { label: "Открыть жертвователя", icon: "UserHeart" },
 };
 
 const PRIORITY_DOT: Record<Priority, string> = {
@@ -121,6 +129,7 @@ function DayModal({
   onEdit,
   onDelete,
   onCreateOnDate,
+  onGoToLink,
 }: {
   date: string;
   tasks: Task[];
@@ -131,6 +140,7 @@ function DayModal({
   onEdit: (task: Task) => void;
   onDelete: (id: number) => void;
   onCreateOnDate: (data: { title: string; priority: Priority; assignee_login: string; assignee_name: string; deadline: string }) => Promise<void>;
+  onGoToLink?: (task: Task) => void;
 }) {
   const [adding, setAdding] = useState(false);
   const dateLabel = new Date(date + "T00:00:00").toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" });
@@ -214,6 +224,14 @@ function DayModal({
                       </span>
                     )}
                   </div>
+                  {t.link_type && LINK_LABELS[t.link_type] && onGoToLink && (
+                    <button
+                      onClick={() => { onGoToLink(t); onClose(); }}
+                      className="mt-1.5 ml-3 flex items-center gap-1 text-[11px] px-2 py-1 rounded-lg border border-beige-dark hover:border-ink text-ink/50 hover:text-ink transition-colors"
+                    >
+                      <Icon name={LINK_LABELS[t.link_type].icon} size={11} />{LINK_LABELS[t.link_type].label}
+                    </button>
+                  )}
                 </div>
                 <div className="flex items-center gap-0.5 flex-shrink-0">
                   <button
@@ -250,6 +268,7 @@ export default function AdminTasksCalendar({
   onEdit,
   onDelete,
   onCreateOnDate,
+  onGoToLink,
   isAdmin,
   users,
 }: {
@@ -258,6 +277,7 @@ export default function AdminTasksCalendar({
   onEdit: (task: Task) => void;
   onDelete: (id: number) => void;
   onCreateOnDate: (data: { title: string; priority: Priority; assignee_login: string; assignee_name: string; deadline: string }) => Promise<void>;
+  onGoToLink?: (task: Task) => void;
   isAdmin: boolean;
   users: { login: string; full_name?: string }[];
 }) {
@@ -397,6 +417,7 @@ export default function AdminTasksCalendar({
           onEdit={onEdit}
           onDelete={onDelete}
           onCreateOnDate={handleCreateOnDate}
+          onGoToLink={onGoToLink}
         />
       )}
     </div>
