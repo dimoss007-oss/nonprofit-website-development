@@ -152,12 +152,15 @@ def handler(event: dict, context) -> dict:
             if not title:
                 conn.close()
                 return err("Название обязательно")
+            reminder_frequency = body.get("reminder_frequency") or None
+            if reminder_frequency not in (None, "daily", "weekly", "monthly"):
+                reminder_frequency = None
             cur.execute(
                 f"""INSERT INTO {SCHEMA}.tasks
                     (title, description, assignee_login, assignee_name,
                      co_assignee_login, co_assignee_name,
-                     priority, status, start_date, deadline, created_by)
-                    VALUES (%s,%s,%s,%s,%s,%s,%s,'new',%s,%s,%s)
+                     priority, status, start_date, deadline, created_by, reminder_frequency)
+                    VALUES (%s,%s,%s,%s,%s,%s,%s,'new',%s,%s,%s,%s)
                     RETURNING *""",
                 (title,
                  body.get("description") or None,
@@ -168,7 +171,8 @@ def handler(event: dict, context) -> dict:
                  body.get("priority", "medium"),
                  body.get("start_date") or None,
                  body.get("deadline") or None,
-                 body.get("created_by") or None)
+                 body.get("created_by") or None,
+                 reminder_frequency)
             )
             task = dict(cur.fetchone())
             conn.commit()

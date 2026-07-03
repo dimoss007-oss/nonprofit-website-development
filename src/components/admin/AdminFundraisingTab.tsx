@@ -7,6 +7,7 @@ import {
   fmt, exportToCsv,
 } from "./fundraising.types";
 import { OrgForm, PersonForm } from "./FundraisingForms";
+import { OrgTaskButton } from "./OrgTaskButton";
 import { FundraisingStats } from "./FundraisingStats";
 import FundraisingGoalsTab from "./FundraisingGoalsTab";
 import FundraisingFunnelTab from "./FundraisingFunnelTab";
@@ -122,7 +123,7 @@ function DonateQR() {
   );
 }
 
-export default function AdminFundraisingTab({ adminUsers }: { adminUsers: string[] }) {
+export default function AdminFundraisingTab({ adminUsers, users }: { adminUsers: string[]; users: { login: string; full_name?: string }[] }) {
   const apiUrl = FUNDRAISING_URL;
   const [section, setSection] = useState<Section>("stats");
   const [stats, setStats] = useState<Stats | null>(null);
@@ -308,6 +309,7 @@ export default function AdminFundraisingTab({ adminUsers }: { adminUsers: string
                             <Icon name="ClipboardList" size={13} />
                             CRM{org.donations_count > 0 ? ` · ${fmt(org.total_donated)}` : ""}
                           </button>
+                          <OrgTaskButton org={org} users={users} />
                           <button onClick={() => { setEditOrg(org); setShowForm(false); }}
                             className="p-1.5 text-ink/30 hover:text-ink transition-colors rounded-lg hover:bg-beige-mid">
                             <Icon name="Pencil" size={15} />

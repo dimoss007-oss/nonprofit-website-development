@@ -17,6 +17,7 @@ export type Task = {
   start_date?: string;
   deadline?: string;
   call_time?: string;
+  reminder_frequency?: "daily" | "weekly" | "monthly" | null;
   created_by?: string;
   created_at: string;
 };

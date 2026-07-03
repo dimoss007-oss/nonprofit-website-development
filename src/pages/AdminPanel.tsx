@@ -187,7 +187,7 @@ export default function AdminPanel() {
         {tab === "requests" && <AdminRequestsTab isAdmin={isAdmin} />}
         {tab === "users" && <AdminUsersTab authLogin={session.login} authPassword={session.password} isAdmin={isAdmin} />}
         {tab === "gallery" && <AdminGalleryTab />}
-        {tab === "fundraising" && <AdminFundraisingTab adminUsers={adminUsers.map(u => u.full_name || u.login)} />}
+        {tab === "fundraising" && <AdminFundraisingTab adminUsers={adminUsers.map(u => u.full_name || u.login)} users={adminUsers} />}
         {tab === "gov" && <AdminGovTab />}
       </main>
     </div>
