@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import Icon from "@/components/ui/icon";
-import { Org } from "./fundraising.types";
+import { Org, Person } from "./fundraising.types";
 
 const TASKS_API = "https://functions.poehali.dev/6036e39a-3369-4ec5-a7b3-a4393528188a";
 
@@ -13,9 +13,16 @@ const FREQ_OPTIONS: { value: Frequency; label: string }[] = [
   { value: "monthly", label: "Раз в месяц" },
 ];
 
-export function OrgTaskButton({ org, users }: { org: Org; users: { login: string; full_name?: string }[] }) {
+type Donor = {
+  name: string;
+  phone?: string;
+  email?: string;
+  contactPerson?: string;
+};
+
+function DonorTaskButton({ donor, users }: { donor: Donor; users: { login: string; full_name?: string }[] }) {
   const [open, setOpen] = useState(false);
-  const [title, setTitle] = useState(`Связаться с ${org.name}`);
+  const [title, setTitle] = useState(`Связаться с ${donor.name}`);
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [assignee, setAssignee] = useState("");
   const [frequency, setFrequency] = useState<Frequency>("");
@@ -40,9 +47,9 @@ export function OrgTaskButton({ org, users }: { org: Org; users: { login: string
         action: "create",
         title: title.trim(),
         description: [
-          org.phone ? `Телефон: ${org.phone}` : "",
-          org.email ? `Email: ${org.email}` : "",
-          org.contact_person ? `Контакт: ${org.contact_person}` : "",
+          donor.phone ? `Телефон: ${donor.phone}` : "",
+          donor.email ? `Email: ${donor.email}` : "",
+          donor.contactPerson ? `Контакт: ${donor.contactPerson}` : "",
         ].filter(Boolean).join("\n") || undefined,
         priority: "medium",
         deadline: date,
@@ -126,5 +133,23 @@ export function OrgTaskButton({ org, users }: { org: Org; users: { login: string
         </div>
       )}
     </div>
+  );
+}
+
+export function OrgTaskButton({ org, users }: { org: Org; users: { login: string; full_name?: string }[] }) {
+  return (
+    <DonorTaskButton
+      donor={{ name: org.name, phone: org.phone, email: org.email, contactPerson: org.contact_person }}
+      users={users}
+    />
+  );
+}
+
+export function PersonTaskButton({ person, users }: { person: Person; users: { login: string; full_name?: string }[] }) {
+  return (
+    <DonorTaskButton
+      donor={{ name: person.full_name, phone: person.phone, email: person.email }}
+      users={users}
+    />
   );
 }

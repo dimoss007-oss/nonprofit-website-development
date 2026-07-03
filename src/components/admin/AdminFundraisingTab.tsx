@@ -7,7 +7,7 @@ import {
   fmt, exportToCsv,
 } from "./fundraising.types";
 import { OrgForm, PersonForm } from "./FundraisingForms";
-import { OrgTaskButton } from "./OrgTaskButton";
+import { OrgTaskButton, PersonTaskButton } from "./OrgTaskButton";
 import { FundraisingStats } from "./FundraisingStats";
 import FundraisingGoalsTab from "./FundraisingGoalsTab";
 import FundraisingFunnelTab from "./FundraisingFunnelTab";
@@ -409,6 +409,7 @@ export default function AdminFundraisingTab({ adminUsers, users }: { adminUsers:
                             <Icon name="ClipboardList" size={13} />
                             CRM{p.donations_count > 0 ? ` · ${fmt(p.total_donated)}` : ""}
                           </button>
+                          <PersonTaskButton person={p} users={users} />
                           <button onClick={() => { setEditPerson(p); setShowForm(false); }}
                             className="p-1.5 text-ink/30 hover:text-ink transition-colors rounded-lg hover:bg-beige-mid">
                             <Icon name="Pencil" size={15} />
