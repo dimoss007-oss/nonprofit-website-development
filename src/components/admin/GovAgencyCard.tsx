@@ -284,14 +284,14 @@ export function AgencyCard({ agency, onEdit, onArchive, onContactStatusChange, o
   const [expanded, setExpanded] = useState(!!defaultExpanded);
 
   return (
-    <div className="bg-white rounded-2xl border border-beige-dark shadow-sm overflow-hidden">
+    <div className="bg-white rounded-2xl border border-beige-dark shadow-sm">
       <div className="p-5">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3 flex-1 min-w-0">
             <div className="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center flex-shrink-0 mt-0.5">
               <Icon name="Landmark" size={16} className="text-slate-500" />
             </div>
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 relative">
               <div className="flex items-center gap-2 flex-wrap">
                 <p className="font-semibold text-ink text-sm leading-tight">{agency.name}</p>
                 <ContactStatusBadge
