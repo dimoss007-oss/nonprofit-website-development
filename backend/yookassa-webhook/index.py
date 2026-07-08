@@ -54,9 +54,9 @@ def handler(event: dict, context) -> dict:
     cur = conn.cursor()
     cur.execute(
         f"""UPDATE {schema}.orders
-            SET status = %s, updated_at = NOW()
-            WHERE order_comment = %s AND status = 'pending'""",
-        (new_status, f"yookassa:{payment_id}")
+            SET status = %s, updated_at = NOW(), paid_at = CASE WHEN %s = 'paid' THEN NOW() ELSE paid_at END
+            WHERE order_comment LIKE %s AND status = 'pending'""",
+        (new_status, new_status, f"yookassa:{payment_id}%")
     )
     conn.commit()
     cur.close()
