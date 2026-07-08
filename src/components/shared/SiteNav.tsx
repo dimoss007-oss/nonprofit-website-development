@@ -69,6 +69,13 @@ export default function SiteNav() {
               </div>
             </a>
             <a
+              href="/case-referral"
+              className="hidden md:flex items-center gap-1.5 bg-sage text-white text-xs font-golos font-semibold uppercase tracking-wide px-3.5 py-2 rounded-full hover:bg-sage-dark transition-colors"
+            >
+              <Icon name="MessageSquarePlus" size={13} aria-hidden="true" />
+              Для обращений
+            </a>
+            <a
               href="https://президентскиегранты.рф"
               target="_blank"
               rel="noopener noreferrer"
@@ -184,6 +191,13 @@ export default function SiteNav() {
               ))}
 
               <div className="col-span-2 border-t border-beige-dark pt-3 mt-1">
+                <button
+                  onClick={() => navigateTo("/case-referral")}
+                  className="w-full flex items-center justify-center gap-1.5 bg-sage text-white text-xs font-golos font-semibold uppercase tracking-wide px-3.5 py-2.5 rounded-full hover:bg-sage-dark transition-colors mb-3"
+                >
+                  <Icon name="MessageSquarePlus" size={13} aria-hidden="true" />
+                  Для обращений
+                </button>
                 <a
                   href={VK_URL}
                   target="_blank"

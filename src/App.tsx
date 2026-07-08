@@ -19,6 +19,7 @@ import Gratitude from "./pages/Gratitude";
 import Donate from "./pages/Donate";
 import DonatePay from "./pages/DonatePay";
 import Partners from "./pages/Partners";
+import CaseReferral from "./pages/CaseReferral";
 import CrmPatients from "./pages/CrmPatients";
 import AdminPanel from "./pages/AdminPanel";
 import AccessibilityWidget from "./components/shared/AccessibilityWidget";
@@ -47,6 +48,7 @@ const App = () => (
           <Route path="/donate" element={<Donate />} />
           <Route path="/donate-pay" element={<DonatePay />} />
           <Route path="/partners" element={<Partners />} />
+          <Route path="/case-referral" element={<CaseReferral />} />
           <Route path="/crm" element={<Navigate to="/admin" replace />} />
           <Route path="/admin" element={<AdminPanel />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

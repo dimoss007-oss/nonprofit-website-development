@@ -5,6 +5,8 @@ const API = "https://functions.poehali.dev/2a909b11-72ee-48fd-9e6a-24527476dc11"
 
 type Status = "new" | "in_progress" | "done";
 
+type Attachment = { filename: string; url: string };
+
 type ContactRequest = {
   id: number;
   name: string;
@@ -14,6 +16,14 @@ type ContactRequest = {
   message: string;
   status: Status;
   created_at: string;
+  request_type?: "contact" | "case_referral";
+  organization?: string;
+  district?: string;
+  responsible_name?: string;
+  responsible_phone?: string;
+  beneficiary_name?: string;
+  beneficiary_phone?: string;
+  attachments?: Attachment[];
 };
 
 const STATUS_LABEL: Record<Status, string> = { new: "Новая", in_progress: "В работе", done: "Обработана" };
@@ -49,10 +59,25 @@ function RequestCard({ req, onStatusChange, onDelete, isAdmin, expanded, onToggl
       <button onClick={onToggle} className="w-full px-5 py-4 flex items-start gap-4 text-left hover:bg-beige/30 transition-colors">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
+            {req.request_type === "case_referral" && (
+              <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-violet-100 text-violet-700 flex items-center gap-1">
+                <Icon name="FileWarning" size={10} />Случай
+              </span>
+            )}
             <span className="font-semibold text-sm text-ink">{req.name}</span>
             <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLOR[req.status]}`}>{STATUS_LABEL[req.status]}</span>
           </div>
           <div className="flex items-center gap-3 mt-1 flex-wrap">
+            {req.organization && (
+              <span className="text-xs text-ink/50 flex items-center gap-1">
+                <Icon name="Building2" size={11} />{req.organization}
+              </span>
+            )}
+            {req.district && (
+              <span className="text-xs text-ink/50 flex items-center gap-1">
+                <Icon name="MapPin" size={11} />{req.district}
+              </span>
+            )}
             {req.phone && (
               <span className="text-xs text-ink/50 flex items-center gap-1">
                 <Icon name="Phone" size={11} />{req.phone}
@@ -76,10 +101,43 @@ function RequestCard({ req, onStatusChange, onDelete, isAdmin, expanded, onToggl
       {/* Раскрытое содержимое */}
       {expanded && (
         <div className="px-5 pb-4 space-y-4 border-t border-beige-mid pt-4">
+          {req.request_type === "case_referral" && (req.beneficiary_name || req.beneficiary_phone) && (
+            <div className="bg-violet-50 rounded-xl p-4">
+              <p className="text-xs text-violet-500 mb-1 uppercase tracking-wide">Благополучатель</p>
+              <p className="text-sm text-ink">{req.beneficiary_name || "—"}</p>
+              {req.beneficiary_phone && (
+                <a href={`tel:${req.beneficiary_phone}`} className="text-sm text-ink/60 flex items-center gap-1 mt-0.5">
+                  <Icon name="Phone" size={11} />{req.beneficiary_phone}
+                </a>
+              )}
+            </div>
+          )}
+
           <div className="bg-beige-mid rounded-xl p-4">
-            <p className="text-xs text-ink/40 mb-1 uppercase tracking-wide">Сообщение</p>
+            <p className="text-xs text-ink/40 mb-1 uppercase tracking-wide">
+              {req.request_type === "case_referral" ? "Описание случая" : "Сообщение"}
+            </p>
             <p className="text-sm text-ink whitespace-pre-wrap">{req.message}</p>
           </div>
+
+          {req.attachments && req.attachments.length > 0 && (
+            <div>
+              <p className="text-xs text-ink/40 mb-2 uppercase tracking-wide">Вложения</p>
+              <div className="flex flex-wrap gap-2">
+                {req.attachments.map((a, i) => (
+                  <a
+                    key={i}
+                    href={a.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-beige-dark hover:border-ink text-ink/60 hover:text-ink transition-colors"
+                  >
+                    <Icon name="Paperclip" size={12} />{a.filename}
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <div className="flex items-center gap-2">
