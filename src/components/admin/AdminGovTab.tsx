@@ -3,7 +3,7 @@ import Icon from "@/components/ui/icon";
 import { GOV_API, Agency, AgreementStatus, ContactStatus } from "./govAgency.types";
 import { AgencyCard, AgencyForm, ContactDraft } from "./GovAgencyCard";
 
-export default function AdminGovTab({ focusAgencyId, onFocusHandled }: { focusAgencyId?: number | null; onFocusHandled?: () => void } = {}) {
+export default function AdminGovTab({ focusAgencyId, onFocusHandled, users = [] }: { focusAgencyId?: number | null; onFocusHandled?: () => void; users?: { login: string; full_name?: string }[] } = {}) {
   const [agencies, setAgencies] = useState<Agency[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -232,6 +232,7 @@ export default function AdminGovTab({ focusAgencyId, onFocusHandled }: { focusAg
                 onContactStatusChange={setContactStatus}
                 onAgreementChange={setAgreementStatus}
                 defaultExpanded={a.id === focusAgencyId}
+                users={users}
               />
             </div>
           ))}

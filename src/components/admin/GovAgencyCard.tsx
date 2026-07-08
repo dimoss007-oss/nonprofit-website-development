@@ -6,10 +6,11 @@ import { AgencyContacts, AgencyDocs } from "./GovAgencySubsections";
 const TASKS_API = "https://functions.poehali.dev/6036e39a-3369-4ec5-a7b3-a4393528188a";
 
 // ─── Кнопка «Перезвонить» ─────────────────────────────────────────────────
-function CallbackButton({ agency }: { agency: Agency }) {
+function CallbackButton({ agency, users }: { agency: Agency; users: { login: string; full_name?: string }[] }) {
   const [open, setOpen] = useState(false);
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [time, setTime] = useState("10:00");
+  const [assignee, setAssignee] = useState("");
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -22,6 +23,7 @@ function CallbackButton({ agency }: { agency: Agency }) {
 
   const create = async () => {
     setSaving(true);
+    const user = users.find(u => u.login === assignee);
     await fetch(TASKS_API, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -36,8 +38,8 @@ function CallbackButton({ agency }: { agency: Agency }) {
         ].filter(Boolean).join("\n") || undefined,
         priority: "medium",
         deadline: date,
-        assignee_login: "Dmitry",
-        assignee_name: "Администратор",
+        assignee_login: assignee || "Dmitry",
+        assignee_name: user?.full_name || assignee || "Администратор",
         created_by: "Dmitry",
         link_type: "gov_agency",
         link_id: agency.id,
@@ -81,6 +83,14 @@ function CallbackButton({ agency }: { agency: Agency }) {
               className="w-24 border border-beige-dark rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-ink"
             />
           </div>
+          <select
+            value={assignee}
+            onChange={e => setAssignee(e.target.value)}
+            className="w-full border border-beige-dark rounded-lg px-2.5 py-1.5 text-xs mb-2 focus:outline-none focus:border-ink"
+          >
+            <option value="">Исполнитель — Администратор</option>
+            {users.map(u => <option key={u.login} value={u.login}>{u.full_name || u.login}</option>)}
+          </select>
           <button
             onClick={create}
             disabled={saving || !date}
@@ -262,13 +272,14 @@ function NotesEditor({ agency }: { agency: Agency }) {
 }
 
 // ─── Карточка госоргана ────────────────────────────────────────────────────
-export function AgencyCard({ agency, onEdit, onArchive, onContactStatusChange, onAgreementChange, defaultExpanded }: {
+export function AgencyCard({ agency, onEdit, onArchive, onContactStatusChange, onAgreementChange, defaultExpanded, users = [] }: {
   agency: Agency;
   onEdit: (a: Agency) => void;
   onArchive: (id: number) => void;
   onContactStatusChange: (id: number, status: ContactStatus) => void;
   onAgreementChange: (id: number, status: AgreementStatus) => void;
   defaultExpanded?: boolean;
+  users?: { login: string; full_name?: string }[];
 }) {
   const [expanded, setExpanded] = useState(!!defaultExpanded);
 
@@ -291,7 +302,7 @@ export function AgencyCard({ agency, onEdit, onArchive, onContactStatusChange, o
                   agency={agency}
                   onChange={(status) => onAgreementChange(agency.id, status)}
                 />
-                <CallbackButton agency={agency} />
+                <CallbackButton agency={agency} users={users} />
               </div>
               <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-ink/50">
                 {agency.phone && <span className="flex items-center gap-1"><Icon name="Phone" size={11} />{agency.phone}</span>}
