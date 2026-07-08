@@ -40,9 +40,18 @@ export default function HomeHero({ onScrollTo, activeSection, setActiveSection }
 
         <div className="relative z-10 max-w-7xl mx-auto px-6 pt-10 pb-16 grid lg:grid-cols-2 gap-12 items-center">
           <div className="animate-fade-up pt-4">
-            <div className="inline-flex items-center gap-2 bg-sage-pale text-sage px-4 py-2 rounded-full text-xs font-golos uppercase tracking-widest mb-8">
-              <Icon name="Heart" size={12} aria-hidden="true" />
-              АНО «Спасение надежды»
+            <div className="flex items-center flex-wrap gap-3 mb-8">
+              <div className="inline-flex items-center gap-2 bg-sage-pale text-sage px-4 py-2 rounded-full text-xs font-golos uppercase tracking-widest">
+                <Icon name="Heart" size={12} aria-hidden="true" />
+                АНО «Спасение надежды»
+              </div>
+              <a
+                href="/case-referral"
+                className="inline-flex items-center gap-1.5 bg-sage text-white text-xs font-golos font-semibold uppercase tracking-widest px-4 py-2 rounded-full hover:bg-sage-dark transition-colors"
+              >
+                <Icon name="MessageSquarePlus" size={12} aria-hidden="true" />
+                Для обращений
+              </a>
             </div>
             <h1 className="font-golos text-6xl md:text-7xl leading-[1.05] mb-6 font-bold" style={{ color: '#0ABAB5' }}>
               Место, где<br/>
