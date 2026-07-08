@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { QRCodeSVG as QRCode } from "qrcode.react";
 import Icon from "@/components/ui/icon";
-import { PaymentButton } from "@/components/extensions/robokassa/PaymentButton";
 
 const CONTACT_FORM_URL = "https://functions.poehali.dev/056dc0e5-de05-4ccb-9e4d-a3d8c3ebb938";
 
@@ -66,7 +65,7 @@ function ContactForm() {
   );
 }
 
-const ROBOKASSA_URL = "https://functions.poehali.dev/3317a497-ca88-4c4a-a762-5067d6219617";
+const YOOKASSA_URL = "https://functions.poehali.dev/96a24ba0-1990-499e-97df-59219cdda4af";
 
 const VK_URL = "https://vk.com/spasenienadezhdi";
 const LOGO_IMG = "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/4ca974da-fec3-4fd3-834d-c7dccc97fca9.jpg";
@@ -118,11 +117,39 @@ export default function HomeSupport({ onScrollTo }: Props) {
   const [isRecurring, setIsRecurring] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [qrUrl, setQrUrl] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const finalAmount = customAmount ? Number(customAmount) : donationAmount;
 
-  const handleDonate = (e: React.FormEvent) => {
+  const handleDonate = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!finalAmount || !donorName || !donorEmail) return;
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch(YOOKASSA_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: finalAmount,
+          user_name: donorName,
+          user_email: donorEmail,
+          monthly: isRecurring,
+          success_url: `${window.location.origin}/`,
+        }),
+      });
+      const data = await res.json();
+      if (data.payment_url) {
+        setQrUrl(data.payment_url);
+      } else {
+        setError(data.error || "Не удалось создать платёж");
+      }
+    } catch {
+      setError("Ошибка соединения. Попробуйте снова.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -253,21 +280,14 @@ export default function HomeSupport({ onScrollTo }: Props) {
                       />
                     </div>
 
-                    <PaymentButton
-                      apiUrl={ROBOKASSA_URL}
-                      amount={finalAmount}
-                      userName={donorName}
-                      userEmail={donorEmail}
-                      userPhone=""
-                      orderComment={isRecurring ? "Ежемесячное пожертвование" : "Разовое пожертвование"}
-                      cartItems={[{ id: "donation", name: "Пожертвование", price: finalAmount, quantity: 1 }]}
-                      successUrl={`${window.location.origin}/`}
-                      failUrl={`${window.location.origin}/`}
-                      buttonText={`Пожертвовать ${finalAmount ? `${finalAmount.toLocaleString()} ₽` : ""}${isRecurring ? " / мес" : ""}`}
-                      className="w-full bg-beige text-sage py-3.5 font-golos font-semibold text-sm tracking-wide uppercase rounded-xl hover:bg-beige-mid transition-all duration-300"
-                      disabled={!finalAmount || !donorName || !donorEmail}
-                      onSuccess={(_orderNumber, paymentUrl) => { if (paymentUrl) setQrUrl(paymentUrl); }}
-                    />
+                    {error && <p className="text-red-200 text-xs text-center">{error}</p>}
+                    <button
+                      type="submit"
+                      disabled={!finalAmount || !donorName || !donorEmail || loading}
+                      className="w-full bg-beige text-sage py-3.5 font-golos font-semibold text-sm tracking-wide uppercase rounded-xl hover:bg-beige-mid transition-all duration-300 disabled:opacity-60"
+                    >
+                      {loading ? "Создаём платёж..." : `Пожертвовать ${finalAmount ? `${finalAmount.toLocaleString()} ₽` : ""}${isRecurring ? " / мес" : ""}`}
+                    </button>
                     <p className="text-beige/35 text-xs text-center">
                       Ваши данные в безопасности ·{" "}
                       <a href="/donation-terms" target="_blank" rel="noopener noreferrer" className="underline hover:text-beige/60 transition-colors">
