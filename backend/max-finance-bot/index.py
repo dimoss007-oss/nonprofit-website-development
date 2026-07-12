@@ -35,9 +35,18 @@ def db_execute(db_url: str, sql: str):
 
 def get_balance(user_id: int, db_url: str) -> str:
     schema = os.environ.get('MAIN_DB_SCHEMA', 'public')
-    rows = db_query(db_url, f"SELECT COALESCE(SUM(CASE WHEN type='income' THEN amount ELSE -amount END), 0), COALESCE(SUM(CASE WHEN type='income' THEN amount ELSE 0 END), 0), COALESCE(SUM(CASE WHEN type='expense' THEN amount ELSE 0 END), 0) FROM {schema}.finance_transactions")
+    rows = db_query(
+        db_url,
+        f"""SELECT
+                COALESCE(SUM(CASE WHEN type='income' THEN amount ELSE -amount END), 0),
+                COALESCE(SUM(CASE WHEN type='income' THEN amount ELSE 0 END), 0),
+                COALESCE(SUM(CASE WHEN type='expense' THEN amount ELSE 0 END), 0)
+            FROM {schema}.finance_transactions
+            WHERE DATE_TRUNC('month', created_at) = DATE_TRUNC('month', NOW())"""
+    )
     balance, income, expense = rows[0]
     return (
+        f"Оборот за текущий месяц:\n"
         f"Баланс: {balance:,.2f} руб.\n"
         f"Доходы: {income:,.2f} руб.\n"
         f"Расходы: {expense:,.2f} руб."
