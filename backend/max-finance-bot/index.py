@@ -52,6 +52,24 @@ def get_balance(user_id: int, db_url: str) -> str:
         f"Расходы: {expense:,.2f} руб."
     )
 
+def get_total_balance(user_id: int, db_url: str) -> str:
+    schema = os.environ.get('MAIN_DB_SCHEMA', 'public')
+    rows = db_query(
+        db_url,
+        f"""SELECT
+                COALESCE(SUM(CASE WHEN type='income' THEN amount ELSE -amount END), 0),
+                COALESCE(SUM(CASE WHEN type='income' THEN amount ELSE 0 END), 0),
+                COALESCE(SUM(CASE WHEN type='expense' THEN amount ELSE 0 END), 0)
+            FROM {schema}.finance_transactions"""
+    )
+    balance, income, expense = rows[0]
+    return (
+        f"Общий баланс за всё время:\n"
+        f"Баланс: {balance:,.2f} руб.\n"
+        f"Доходы: {income:,.2f} руб.\n"
+        f"Расходы: {expense:,.2f} руб."
+    )
+
 def get_history(user_id: int, db_url: str) -> str:
     schema = os.environ.get('MAIN_DB_SCHEMA', 'public')
     rows = db_query(db_url, f"SELECT type, amount, description, created_at FROM {schema}.finance_transactions ORDER BY created_at DESC LIMIT 10")
@@ -156,7 +174,12 @@ def handler(event: dict, context) -> dict:
             db_execute(db_url, f"INSERT INTO {schema}.finance_transactions (user_id, amount, type, description) VALUES ({uid}, {amount}, '{t}', {desc_sql})")
             label = "Доход" if t == "income" else "Расход"
             desc_str = f" — {description}" if description else ""
-            reply = f"{label} {amount:,.2f} руб.{desc_str} записан!\n\n" + get_balance(uid, db_url)
+            reply = (
+                f"{label} {amount:,.2f} руб.{desc_str} записан!\n\n"
+                + get_balance(uid, db_url)
+                + "\n\n"
+                + get_total_balance(uid, db_url)
+            )
         else:
             reply = (
                 "Не понял запись. Используй формат:\n"
