@@ -123,7 +123,8 @@ def handler(event: dict, context) -> dict:
                 "+5000 зарплата — доход\n"
                 "-1200 продукты — расход\n\n"
                 "Команды:\n"
-                "/balance — текущий баланс\n"
+                "/balance — баланс за текущий месяц\n"
+                "/total — общий баланс за всё время\n"
                 "/history — последние 10 операций\n"
                 "/clear — удалить все записи"
             )
@@ -153,12 +154,15 @@ def handler(event: dict, context) -> dict:
             "+5000 зарплата — доход\n"
             "-1200 продукты — расход\n\n"
             "Команды:\n"
-            "/balance — текущий баланс\n"
+            "/balance — баланс за текущий месяц\n"
+            "/total — общий баланс за всё время\n"
             "/history — последние 10 операций\n"
             "/clear — удалить все записи"
         )
     elif text in ('/balance', 'баланс', 'balance'):
         reply = get_balance(uid, db_url)
+    elif text in ('/total', 'итого', 'total'):
+        reply = get_total_balance(uid, db_url)
     elif text in ('/history', 'история', 'history'):
         reply = get_history(uid, db_url)
     elif text in ('/clear', 'очистить', 'clear'):
@@ -185,7 +189,7 @@ def handler(event: dict, context) -> dict:
                 "Не понял запись. Используй формат:\n"
                 "+5000 зарплата — доход\n"
                 "-800 кафе — расход\n\n"
-                "Или /balance для проверки баланса."
+                "Или /balance для баланса за месяц, /total — за всё время."
             )
 
     send_message(chat_id, reply, token)
