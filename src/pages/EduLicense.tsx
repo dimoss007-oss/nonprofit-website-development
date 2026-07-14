@@ -28,6 +28,27 @@ const DOCUMENTS = [
     title: "Отчёт о результатах самообследования организации дополнительного образования",
     file: "/documents/otchet-samoobsledovanie.pdf",
   },
+  {
+    title: "Положение о дополнительном образовании образовательной организации",
+    description: "Дополнительное образование детей и взрослых",
+    file: "/documents/polozhenie-dop-obrazovanie.pdf",
+  },
+  {
+    title: "Положение о порядке и основаниях перевода, отчисления и восстановления обучающихся",
+    file: "/documents/polozhenie-perevod-otchislenie.pdf",
+  },
+  {
+    title: "Правила внутреннего распорядка обучающихся",
+    file: "/documents/pravila-vnutr-rasporyadka-obuch.pdf",
+  },
+  {
+    title: "Правила внутреннего трудового распорядка",
+    file: "/documents/pravila-vnutr-trudovogo-rasporyadka.pdf",
+  },
+  {
+    title: "Правила приёма обучающихся по дополнительным образовательным программам",
+    file: "/documents/pravila-priema-obuchayushchihsya.pdf",
+  },
 ];
 
 export default function EduLicense() {
