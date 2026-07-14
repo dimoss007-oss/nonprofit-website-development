@@ -10,6 +10,7 @@ const navLinks = [
   { label: "новости", href: "/news" },
   { label: "поддержать нас", href: "/#podderzhka" },
   { label: "контакты", href: "/#kontakty" },
+  { label: "сведения об образовании", href: "/edu-license" },
 ];
 
 export default function SiteFooter() {

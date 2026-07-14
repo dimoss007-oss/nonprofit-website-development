@@ -10,6 +10,7 @@ import News from "./pages/News";
 import AdminNews from "./pages/AdminNews";
 import Program from "./pages/Program";
 import DonationTerms from "./pages/DonationTerms";
+import EduLicense from "./pages/EduLicense";
 import NotFound from "./pages/NotFound";
 import Gallery from "./pages/Gallery";
 import AdminGallery from "./pages/AdminGallery";
@@ -40,6 +41,7 @@ const App = () => (
           <Route path="/admin/gallery" element={<AdminGallery />} />
           <Route path="/program" element={<Program />} />
           <Route path="/donation-terms" element={<DonationTerms />} />
+          <Route path="/edu-license" element={<EduLicense />} />
           <Route path="/gallery" element={<Gallery />} />
           {/* Скрытая страница — не в навигации */}
           <Route path="/our-families" element={<OurFamilies />} />
