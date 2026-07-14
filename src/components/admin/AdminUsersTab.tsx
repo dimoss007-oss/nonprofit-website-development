@@ -10,6 +10,7 @@ const ROLE_COLORS = { admin: "bg-ink text-beige", user: "bg-beige-dark text-ink"
 
 export const ALL_TABS = [
   { id: "crm",         label: "Пациенты",     icon: "Users" },
+  { id: "sop",         label: "СОП",           icon: "ShieldAlert" },
   { id: "news",        label: "Новости",       icon: "Newspaper" },
   { id: "tasks",       label: "Задачи",        icon: "ClipboardList" },
   { id: "requests",    label: "Заявки",        icon: "Inbox" },

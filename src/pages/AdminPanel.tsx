@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import Icon from "@/components/ui/icon";
 import AdminNewsTab from "@/components/admin/AdminNewsTab";
 import AdminCrmTab from "@/components/admin/AdminCrmTab";
+import AdminSopTab from "@/components/admin/AdminSopTab";
 import AdminUsersTab, { parsePermissions, ALL_TABS, type TabId } from "@/components/admin/AdminUsersTab";
 import AdminTasksTab from "@/components/admin/AdminTasksTab";
 import AdminRequestsTab from "@/components/admin/AdminRequestsTab";
@@ -124,6 +125,7 @@ export default function AdminPanel() {
 
   const TABS: { id: Tab; label: string; icon: string; active: string; inactive: string }[] = [
     { id: "crm",         label: "Пациенты",     icon: "Users",         active: "bg-blue-100 text-blue-700 shadow-sm",     inactive: "text-blue-400 hover:bg-blue-50 hover:text-blue-600" },
+    { id: "sop",         label: "СОП",           icon: "ShieldAlert",   active: "bg-red-100 text-red-700 shadow-sm",       inactive: "text-red-400 hover:bg-red-50 hover:text-red-600" },
     { id: "news",        label: "Новости",       icon: "Newspaper",     active: "bg-amber-100 text-amber-700 shadow-sm",   inactive: "text-amber-400 hover:bg-amber-50 hover:text-amber-600" },
     { id: "tasks",       label: "Задачи",        icon: "ClipboardList", active: "bg-violet-100 text-violet-700 shadow-sm", inactive: "text-violet-400 hover:bg-violet-50 hover:text-violet-600" },
     { id: "requests",    label: "Заявки",        icon: "Inbox",         active: "bg-rose-100 text-rose-700 shadow-sm",     inactive: "text-rose-400 hover:bg-rose-50 hover:text-rose-600" },
@@ -177,6 +179,7 @@ export default function AdminPanel() {
 
       <main className="pt-28 pb-16 max-w-6xl mx-auto px-4">
         {tab === "crm" && <AdminCrmTab isAdmin={isAdmin} />}
+        {tab === "sop" && <AdminSopTab isAdmin={isAdmin} />}
         {tab === "news" && <AdminNewsTab isAdmin={isAdmin} />}
         {tab === "tasks" && (
           <div className="space-y-6">
