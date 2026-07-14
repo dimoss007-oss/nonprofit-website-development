@@ -53,10 +53,6 @@ const DOCUMENTS = [
     title: "Режим занятий обучающихся",
     file: "/documents/rezhim-zanyatiy-obuchayushchihsya.pdf",
   },
-  {
-    title: "Соглашение о сотрудничестве с ИП Конецким А.А.",
-    file: "/documents/soglashenie-sotrudnichestvo-konetskiy.pdf",
-  },
 ];
 
 export default function EduLicense() {
