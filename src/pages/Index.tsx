@@ -4,6 +4,7 @@ import HomeHero from "@/components/home/HomeHero";
 import HomeAbout from "@/components/home/HomeAbout";
 import HomeNews from "@/components/home/HomeNews";
 import HomeSupport from "@/components/home/HomeSupport";
+import SiteFooter from "@/components/shared/SiteFooter";
 
 export default function Index() {
   const [activeSection, setActiveSection] = useState("главная");
@@ -31,6 +32,8 @@ export default function Index() {
         <HomeAbout />
         <HomeSupport onScrollTo={scrollTo} />
       </main>
+
+      <SiteFooter />
 
     </div>
   );
