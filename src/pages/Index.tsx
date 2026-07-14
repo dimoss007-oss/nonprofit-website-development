@@ -30,7 +30,7 @@ export default function Index() {
       <main id="main-content" tabIndex={-1} aria-label="Основное содержимое">
         <HomeNews />
         <HomeAbout />
-        <HomeSupport onScrollTo={scrollTo} />
+        <HomeSupport />
       </main>
 
       <SiteFooter />
