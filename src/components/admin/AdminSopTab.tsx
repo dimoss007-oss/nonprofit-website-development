@@ -158,6 +158,7 @@ export default function AdminSopTab({ isAdmin = true }: { isAdmin?: boolean }) {
   const [allFamilies, setAllFamilies] = useState<Family[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
+  const [districtFilter, setDistrictFilter] = useState("");
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [adding, setAdding] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -172,10 +173,12 @@ export default function AdminSopTab({ isAdmin = true }: { isAdmin?: boolean }) {
 
   useEffect(() => { loadFamilies(); }, []);
 
+  const districts = Array.from(new Set(allFamilies.map(f => f.district).filter((d): d is string => !!d))).sort((a, b) => a.localeCompare(b, "ru"));
+
   const q = search.toLowerCase();
-  const families = search
-    ? allFamilies.filter(f => `${f.last_name} ${f.first_name} ${f.middle_name ?? ""} ${f.district ?? ""}`.toLowerCase().includes(q))
-    : allFamilies;
+  const families = allFamilies
+    .filter(f => !districtFilter || f.district === districtFilter)
+    .filter(f => !search || `${f.last_name} ${f.first_name} ${f.middle_name ?? ""} ${f.district ?? ""}`.toLowerCase().includes(q));
 
   const active = allFamilies.filter(f => f.status === "active");
 
@@ -224,9 +227,20 @@ export default function AdminSopTab({ isAdmin = true }: { isAdmin?: boolean }) {
         </div>
       )}
 
-      <div className="relative">
-        <Icon name="Search" size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink/30" />
-        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Поиск по ФИО или району..." className="w-full bg-white border border-beige-dark rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-ink" />
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <Icon name="Search" size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink/30" />
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Поиск по ФИО или району..." className="w-full bg-white border border-beige-dark rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-ink" />
+        </div>
+        {districts.length > 0 && (
+          <div className="relative sm:w-56">
+            <Icon name="MapPin" size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink/30 pointer-events-none" />
+            <select value={districtFilter} onChange={e => setDistrictFilter(e.target.value)} className="w-full bg-white border border-beige-dark rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-ink appearance-none">
+              <option value="">Все районы</option>
+              {districts.map(d => <option key={d} value={d}>{d}</option>)}
+            </select>
+          </div>
+        )}
       </div>
 
       {loading ? (
@@ -234,7 +248,7 @@ export default function AdminSopTab({ isAdmin = true }: { isAdmin?: boolean }) {
       ) : families.length === 0 ? (
         <div className="text-center py-16 text-ink/40">
           <Icon name="ShieldAlert" size={40} className="mx-auto mb-3 opacity-30" />
-          <p>{search ? "Ничего не найдено" : "Записей пока нет"}</p>
+          <p>{search || districtFilter ? "Ничего не найдено" : "Записей пока нет"}</p>
         </div>
       ) : (
         <div className="space-y-2">
