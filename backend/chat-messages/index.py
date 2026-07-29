@@ -6,7 +6,7 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 
 SCHEMA = os.environ.get("MAIN_DB_SCHEMA", "public")
-DEEPSEEK_URL = "https://api.deepseek.com/chat/completions"
+GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
 
 CORS = {
     "Access-Control-Allow-Origin": "*",
@@ -27,46 +27,44 @@ def err(msg, status=400):
     return {"statusCode": status, "headers": {**CORS, "Content-Type": "application/json"}, "body": json.dumps({"error": msg})}
 
 
-def ask_deepseek(prompt: str) -> str:
-    api_key = (os.environ.get("DEEPSEEK_API_KEY") or "").strip()
+def ask_gemini(prompt: str) -> str:
+    api_key = (os.environ.get("GEMINI_API_KEY") or "").strip()
     if not api_key:
-        return "ИИ временно недоступен: не настроен ключ DeepSeek."
+        return "ИИ временно недоступен: не настроен ключ Gemini."
+    system_prompt = "Ты — ассистент кризисного центра «Спасение надежды». Помогаешь составлять отчёты и отвечаешь на вопросы сотрудников о резидентах кратко и по делу, на русском языке."
     payload = json.dumps({
-        "model": "deepseek-chat",
-        "messages": [
-            {"role": "system", "content": "Ты — ассистент кризисного центра «Спасение надежды». Помогаешь составлять отчёты и отвечаешь на вопросы сотрудников о резидентах кратко и по делу, на русском языке."},
-            {"role": "user", "content": prompt},
-        ],
+        "system_instruction": {"parts": [{"text": system_prompt}]},
+        "contents": [{"role": "user", "parts": [{"text": prompt}]}],
     }).encode("utf-8")
     req = urllib.request.Request(
-        DEEPSEEK_URL,
+        f"{GEMINI_URL}?key={api_key}",
         data=payload,
-        headers={"Content-Type": "application/json", "Authorization": f"Bearer {api_key}"},
+        headers={"Content-Type": "application/json"},
         method="POST",
     )
     try:
         with urllib.request.urlopen(req, timeout=25) as resp:
             data = json.loads(resp.read().decode("utf-8"))
-            return data["choices"][0]["message"]["content"]
+            return data["candidates"][0]["content"]["parts"][0]["text"]
     except urllib.error.HTTPError as e:
         body_text = ""
         try:
             body_text = e.read().decode("utf-8")[:300]
         except Exception:
             pass
-        print(f"DeepSeek HTTPError {e.code}: {body_text}")
-        if e.code == 402:
-            return f"ИИ недоступен: DeepSeek вернул ошибку оплаты (402). Ответ сервиса: {body_text or 'нет деталей'}"
-        if e.code == 401:
-            return f"ИИ недоступен: неверный API-ключ DeepSeek (401). Ответ сервиса: {body_text or 'нет деталей'}"
+        print(f"Gemini HTTPError {e.code}: {body_text}")
+        if e.code == 429:
+            return f"ИИ недоступен: превышен лимит запросов Gemini (429). Ответ сервиса: {body_text or 'нет деталей'}"
+        if e.code in (401, 403):
+            return f"ИИ недоступен: неверный API-ключ Gemini ({e.code}). Ответ сервиса: {body_text or 'нет деталей'}"
         return f"Ошибка обращения к ИИ: {e.code}. {body_text}"
     except Exception as e:
-        print(f"DeepSeek error: {e}")
+        print(f"Gemini error: {e}")
         return f"Ошибка обращения к ИИ: {e}"
 
 
 def handler(event: dict, context) -> dict:
-    """Чат отчётов/задач с привязкой к пациенту (тег) и AI-ответами DeepSeek. GET /?tag=&type=&limit=&offset= — лента, POST / — новое сообщение (опционально use_ai=true для ответа ИИ)."""
+    """Чат отчётов/задач с привязкой к пациенту (тег) и AI-ответами Gemini. GET /?tag=&type=&limit=&offset= — лента, POST / — новое сообщение (опционально use_ai=true для ответа ИИ)."""
     if event.get("httpMethod") == "OPTIONS":
         return {"statusCode": 200, "headers": CORS, "body": ""}
 
@@ -129,10 +127,10 @@ def handler(event: dict, context) -> dict:
 
         ai_message = None
         if use_ai:
-            answer = ask_deepseek(content)
+            answer = ask_gemini(content)
             cur.execute(
                 f"""INSERT INTO {SCHEMA}.chat_messages (type, author, author_id, content, media, tags, mentions)
-                    VALUES ('ai','DeepSeek AI',NULL,%s,%s,%s,%s) RETURNING *""",
+                    VALUES ('ai','Gemini AI',NULL,%s,%s,%s,%s) RETURNING *""",
                 (answer, json.dumps([]), json.dumps(tags), json.dumps([])),
             )
             ai_message = dict(cur.fetchone())

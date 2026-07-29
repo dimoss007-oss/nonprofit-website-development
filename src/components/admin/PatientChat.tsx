@@ -22,7 +22,7 @@ const TYPE_META: Record<MessageType, { label: string; badge: string }> = {
   task: { label: "Задача", badge: "bg-violet-100 text-violet-700" },
   note: { label: "Заметка", badge: "bg-amber-100 text-amber-700" },
   post: { label: "Сообщение", badge: "bg-blue-100 text-blue-700" },
-  ai: { label: "DeepSeek AI", badge: "bg-sage-pale text-sage-dark" },
+  ai: { label: "Gemini AI", badge: "bg-sage-pale text-sage-dark" },
 };
 
 function fmtDate(d: string) {
@@ -124,12 +124,16 @@ export default function PatientChat({ patientId, authorName }: { patientId: numb
             <option value="note">Заметка</option>
             <option value="post">Сообщение</option>
           </select>
+          <label className="flex items-center gap-1.5 text-xs text-ink/60 cursor-pointer select-none">
+            <input type="checkbox" checked={askAi} onChange={(e) => setAskAi(e.target.checked)} className="accent-sage" />
+            Спросить ИИ (Gemini)
+          </label>
         </div>
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Напишите отчёт или сообщение..."
+          placeholder={askAi ? "Напишите промпт для ИИ..." : "Напишите отчёт или сообщение..."}
           rows={3}
           className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink resize-none"
         />
