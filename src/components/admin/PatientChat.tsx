@@ -124,16 +124,12 @@ export default function PatientChat({ patientId, authorName }: { patientId: numb
             <option value="note">Заметка</option>
             <option value="post">Сообщение</option>
           </select>
-          <label className="flex items-center gap-1.5 text-xs text-ink/60 cursor-pointer select-none">
-            <input type="checkbox" checked={askAi} onChange={(e) => setAskAi(e.target.checked)} className="accent-sage" />
-            Спросить ИИ (DeepSeek)
-          </label>
         </div>
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={askAi ? "Напишите промпт для ИИ..." : "Напишите отчёт или сообщение..."}
+          placeholder="Напишите отчёт или сообщение..."
           rows={3}
           className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink resize-none"
         />
