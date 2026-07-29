@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import Icon from "@/components/ui/icon";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import PatientChat from "@/components/admin/PatientChat";
 
 const API = "https://functions.poehali.dev/c30060e8-222e-48b5-823a-3f1a5b44fbd5";
 const UPLOAD_API = "https://functions.poehali.dev/8a6d9ba2-3c66-4604-bccf-68b50295e021";
@@ -138,7 +140,7 @@ function Row({ label, value }: { label: string; value: string }) {
   );
 }
 
-function PatientCard({ patientId, onBack, onDeleted, isAdmin }: { patientId: number; onBack: () => void; onDeleted: () => void; isAdmin: boolean }) {
+function PatientCard({ patientId, onBack, onDeleted, isAdmin, authorName }: { patientId: number; onBack: () => void; onDeleted: () => void; isAdmin: boolean; authorName: string }) {
   const [data, setData] = useState<PatientFull | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
@@ -269,77 +271,90 @@ function PatientCard({ patientId, onBack, onDeleted, isAdmin }: { patientId: num
         </div>
       )}
 
-      {duration && (
-        <div className={`rounded-2xl p-5 flex items-center gap-4 ${isActive ? "bg-green-50 border border-green-200" : "bg-beige border border-beige-dark"}`}>
-          <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${isActive ? "bg-green-100" : "bg-beige-dark"}`}>
-            <Icon name="Timer" size={18} className={isActive ? "text-green-600" : "text-ink/40"} />
-          </div>
-          <div>
-            <p className="text-xs text-ink/40 uppercase tracking-wide mb-0.5">{isActive ? "Находится в центре" : "Находилась в центре"}</p>
-            <p className="font-semibold text-ink text-lg leading-tight">{duration}</p>
-          </div>
-        </div>
-      )}
+      <Tabs defaultValue="data" className="w-full">
+        <TabsList>
+          <TabsTrigger value="data">Данные</TabsTrigger>
+          <TabsTrigger value="chat">Отчёты / AI-чат</TabsTrigger>
+        </TabsList>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="bg-white border border-beige-dark rounded-2xl p-5 space-y-3">
-          <h3 className="font-semibold text-ink text-sm uppercase tracking-wide">Личные данные</h3>
-          <Row label="Дата рождения" value={fmt(patient.birth_date)} />
-          <Row label="Прописка" value={patient.address || "—"} />
-          <Row label="Дата поступления" value={fmt(patient.admission_date)} />
-          <Row label="Дата выписки" value={fmt(patient.discharge_date)} />
-        </div>
-        <div className="bg-white border border-beige-dark rounded-2xl p-5 space-y-3">
-          <h3 className="font-semibold text-ink text-sm uppercase tracking-wide">Паспорт</h3>
-          <Row label="Серия и номер" value={[patient.passport_series, patient.passport_number].filter(Boolean).join(" ") || "—"} />
-          <Row label="Дата выдачи" value={fmt(patient.passport_issued_date)} />
-          <Row label="Кем выдан" value={patient.passport_issued_by || "—"} />
-        </div>
-      </div>
-
-      <div className="bg-white border border-beige-dark rounded-2xl p-5">
-        <h3 className="font-semibold text-ink text-sm uppercase tracking-wide mb-3">Описание случая</h3>
-        <p className="text-sm text-ink/70 whitespace-pre-wrap">{patient.case_description || "Не заполнено"}</p>
-      </div>
-
-      <div className="bg-white border border-beige-dark rounded-2xl p-5">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-semibold text-ink text-sm uppercase tracking-wide">Дети ({children.length})</h3>
-          <button onClick={() => setAddingChild(true)} className="text-sm flex items-center gap-1 text-ink/60 hover:text-ink transition-colors"><Icon name="Plus" size={14} /> Добавить</button>
-        </div>
-        {addingChild && <div className="mb-4"><ChildForm onAdd={addChild} onCancel={() => setAddingChild(false)} /></div>}
-        {children.length === 0 && !addingChild && <p className="text-ink/40 text-sm">Нет данных о детях</p>}
-        <div className="space-y-1">{children.map(c => <ChildRow key={c.id} child={c} onUpdate={updateChild} onDelete={deleteChild} isAdmin={isAdmin} />)}</div>
-      </div>
-
-      <div className="bg-white border border-beige-dark rounded-2xl p-5">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-semibold text-ink text-sm uppercase tracking-wide">Документы ({documents.length})</h3>
-          <button onClick={() => fileRef.current?.click()} disabled={uploading} className="text-sm flex items-center gap-1 text-ink/60 hover:text-ink transition-colors disabled:opacity-50">
-            <Icon name={uploading ? "Loader" : "Upload"} size={14} className={uploading ? "animate-spin" : ""} />
-            {uploading ? "Загрузка..." : "Прикрепить"}
-          </button>
-          <input ref={fileRef} type="file" multiple className="hidden" onChange={uploadFile} accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" />
-        </div>
-        {documents.length === 0 && <p className="text-ink/40 text-sm">Нет прикреплённых документов</p>}
-        <div className="space-y-2">
-          {documents.map(d => {
-            const isImage = d.file_type?.startsWith("image/");
-            return (
-              <div key={d.id} className="flex items-center gap-3 py-2 border-b border-beige-mid last:border-0">
-                <div className="w-8 h-8 bg-beige-mid rounded-lg flex items-center justify-center flex-shrink-0">
-                  <Icon name={isImage ? "Image" : "FileText"} size={14} className="text-ink/50" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <a href={d.file_url} target="_blank" rel="noopener noreferrer" className="text-sm text-ink hover:underline truncate block">{d.file_name}</a>
-                  <span className="text-xs text-ink/40">{fmtSize(d.file_size)} · {fmt(d.uploaded_at)}</span>
-                </div>
-                {isAdmin && <button onClick={() => deleteDoc(d.id)} className="p-1 text-ink/30 hover:text-red-400 transition-colors flex-shrink-0"><Icon name="X" size={14} /></button>}
+        <TabsContent value="data" className="space-y-6 mt-4">
+          {duration && (
+            <div className={`rounded-2xl p-5 flex items-center gap-4 ${isActive ? "bg-green-50 border border-green-200" : "bg-beige border border-beige-dark"}`}>
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${isActive ? "bg-green-100" : "bg-beige-dark"}`}>
+                <Icon name="Timer" size={18} className={isActive ? "text-green-600" : "text-ink/40"} />
               </div>
-            );
-          })}
-        </div>
-      </div>
+              <div>
+                <p className="text-xs text-ink/40 uppercase tracking-wide mb-0.5">{isActive ? "Находится в центре" : "Находилась в центре"}</p>
+                <p className="font-semibold text-ink text-lg leading-tight">{duration}</p>
+              </div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-white border border-beige-dark rounded-2xl p-5 space-y-3">
+              <h3 className="font-semibold text-ink text-sm uppercase tracking-wide">Личные данные</h3>
+              <Row label="Дата рождения" value={fmt(patient.birth_date)} />
+              <Row label="Прописка" value={patient.address || "—"} />
+              <Row label="Дата поступления" value={fmt(patient.admission_date)} />
+              <Row label="Дата выписки" value={fmt(patient.discharge_date)} />
+            </div>
+            <div className="bg-white border border-beige-dark rounded-2xl p-5 space-y-3">
+              <h3 className="font-semibold text-ink text-sm uppercase tracking-wide">Паспорт</h3>
+              <Row label="Серия и номер" value={[patient.passport_series, patient.passport_number].filter(Boolean).join(" ") || "—"} />
+              <Row label="Дата выдачи" value={fmt(patient.passport_issued_date)} />
+              <Row label="Кем выдан" value={patient.passport_issued_by || "—"} />
+            </div>
+          </div>
+
+          <div className="bg-white border border-beige-dark rounded-2xl p-5">
+            <h3 className="font-semibold text-ink text-sm uppercase tracking-wide mb-3">Описание случая</h3>
+            <p className="text-sm text-ink/70 whitespace-pre-wrap">{patient.case_description || "Не заполнено"}</p>
+          </div>
+
+          <div className="bg-white border border-beige-dark rounded-2xl p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-ink text-sm uppercase tracking-wide">Дети ({children.length})</h3>
+              <button onClick={() => setAddingChild(true)} className="text-sm flex items-center gap-1 text-ink/60 hover:text-ink transition-colors"><Icon name="Plus" size={14} /> Добавить</button>
+            </div>
+            {addingChild && <div className="mb-4"><ChildForm onAdd={addChild} onCancel={() => setAddingChild(false)} /></div>}
+            {children.length === 0 && !addingChild && <p className="text-ink/40 text-sm">Нет данных о детях</p>}
+            <div className="space-y-1">{children.map(c => <ChildRow key={c.id} child={c} onUpdate={updateChild} onDelete={deleteChild} isAdmin={isAdmin} />)}</div>
+          </div>
+
+          <div className="bg-white border border-beige-dark rounded-2xl p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-ink text-sm uppercase tracking-wide">Документы ({documents.length})</h3>
+              <button onClick={() => fileRef.current?.click()} disabled={uploading} className="text-sm flex items-center gap-1 text-ink/60 hover:text-ink transition-colors disabled:opacity-50">
+                <Icon name={uploading ? "Loader" : "Upload"} size={14} className={uploading ? "animate-spin" : ""} />
+                {uploading ? "Загрузка..." : "Прикрепить"}
+              </button>
+              <input ref={fileRef} type="file" multiple className="hidden" onChange={uploadFile} accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" />
+            </div>
+            {documents.length === 0 && <p className="text-ink/40 text-sm">Нет прикреплённых документов</p>}
+            <div className="space-y-2">
+              {documents.map(d => {
+                const isImage = d.file_type?.startsWith("image/");
+                return (
+                  <div key={d.id} className="flex items-center gap-3 py-2 border-b border-beige-mid last:border-0">
+                    <div className="w-8 h-8 bg-beige-mid rounded-lg flex items-center justify-center flex-shrink-0">
+                      <Icon name={isImage ? "Image" : "FileText"} size={14} className="text-ink/50" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <a href={d.file_url} target="_blank" rel="noopener noreferrer" className="text-sm text-ink hover:underline truncate block">{d.file_name}</a>
+                      <span className="text-xs text-ink/40">{fmtSize(d.file_size)} · {fmt(d.uploaded_at)}</span>
+                    </div>
+                    {isAdmin && <button onClick={() => deleteDoc(d.id)} className="p-1 text-ink/30 hover:text-red-400 transition-colors flex-shrink-0"><Icon name="X" size={14} /></button>}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="chat" className="mt-4">
+          <PatientChat patientId={patientId} authorName={authorName} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
@@ -352,7 +367,7 @@ function plural(n: number, one: string, few: string, many: string) {
   return many;
 }
 
-export default function AdminCrmTab({ isAdmin = true }: { isAdmin?: boolean }) {
+export default function AdminCrmTab({ isAdmin = true, authorName = "Сотрудник" }: { isAdmin?: boolean; authorName?: string }) {
   const [allPatients, setAllPatients] = useState<Patient[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
@@ -388,7 +403,7 @@ export default function AdminCrmTab({ isAdmin = true }: { isAdmin?: boolean }) {
   };
 
   if (selectedId) return (
-    <PatientCard patientId={selectedId} onBack={() => setSelectedId(null)} onDeleted={() => { setSelectedId(null); loadPatients(); }} isAdmin={isAdmin} />
+    <PatientCard patientId={selectedId} onBack={() => setSelectedId(null)} onDeleted={() => { setSelectedId(null); loadPatients(); }} isAdmin={isAdmin} authorName={authorName} />
   );
 
   return (

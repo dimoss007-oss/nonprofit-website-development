@@ -178,7 +178,7 @@ export default function AdminPanel() {
       </header>
 
       <main className="pt-28 pb-16 max-w-6xl mx-auto px-4">
-        {tab === "crm" && <AdminCrmTab isAdmin={isAdmin} />}
+        {tab === "crm" && <AdminCrmTab isAdmin={isAdmin} authorName={session.full_name || session.login} />}
         {tab === "sop" && <AdminSopTab isAdmin={isAdmin} />}
         {tab === "news" && <AdminNewsTab isAdmin={isAdmin} />}
         {tab === "tasks" && (

@@ -1,0 +1,11 @@
+{
+  "tests": [
+    {
+      "name": "Лента сообщений",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "bodyMatcher": "none"
+    }
+  ]
+}
