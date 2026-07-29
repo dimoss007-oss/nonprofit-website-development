@@ -28,7 +28,7 @@ def err(msg, status=400):
 
 
 def ask_deepseek(prompt: str) -> str:
-    api_key = os.environ.get("DEEPSEEK_API_KEY", "")
+    api_key = (os.environ.get("DEEPSEEK_API_KEY") or "").strip()
     if not api_key:
         return "ИИ временно недоступен: не настроен ключ DeepSeek."
     payload = json.dumps({
@@ -49,12 +49,19 @@ def ask_deepseek(prompt: str) -> str:
             data = json.loads(resp.read().decode("utf-8"))
             return data["choices"][0]["message"]["content"]
     except urllib.error.HTTPError as e:
+        body_text = ""
+        try:
+            body_text = e.read().decode("utf-8")[:300]
+        except Exception:
+            pass
+        print(f"DeepSeek HTTPError {e.code}: {body_text}")
         if e.code == 402:
-            return "ИИ недоступен: на балансе DeepSeek закончились средства. Пополните баланс в личном кабинете platform.deepseek.com."
+            return f"ИИ недоступен: DeepSeek вернул ошибку оплаты (402). Ответ сервиса: {body_text or 'нет деталей'}"
         if e.code == 401:
-            return "ИИ недоступен: неверный API-ключ DeepSeek. Проверьте ключ в настройках проекта."
-        return f"Ошибка обращения к ИИ: {e.code}"
+            return f"ИИ недоступен: неверный API-ключ DeepSeek (401). Ответ сервиса: {body_text or 'нет деталей'}"
+        return f"Ошибка обращения к ИИ: {e.code}. {body_text}"
     except Exception as e:
+        print(f"DeepSeek error: {e}")
         return f"Ошибка обращения к ИИ: {e}"
 
 
