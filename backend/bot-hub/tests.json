@@ -1,0 +1,25 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Missing required fields",
+      "method": "POST",
+      "path": "/",
+      "body": { "author": "Тест" },
+      "expectedStatus": 400,
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "History without resident_id",
+      "method": "GET",
+      "path": "/?route=history",
+      "expectedStatus": 400,
+      "bodyMatcher": "partial"
+    }
+  ]
+}
