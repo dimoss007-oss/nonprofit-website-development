@@ -49,6 +49,10 @@ def ask_deepseek(prompt: str) -> str:
             data = json.loads(resp.read().decode("utf-8"))
             return data["choices"][0]["message"]["content"]
     except urllib.error.HTTPError as e:
+        if e.code == 402:
+            return "ИИ недоступен: на балансе DeepSeek закончились средства. Пополните баланс в личном кабинете platform.deepseek.com."
+        if e.code == 401:
+            return "ИИ недоступен: неверный API-ключ DeepSeek. Проверьте ключ в настройках проекта."
         return f"Ошибка обращения к ИИ: {e.code}"
     except Exception as e:
         return f"Ошибка обращения к ИИ: {e}"
