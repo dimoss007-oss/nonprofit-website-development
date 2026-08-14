@@ -48,11 +48,14 @@ def handler(event: dict, context) -> dict:
                 (patient_id,)
             )
             latest_dynamics = cur.fetchone()
+            cur.execute(f"SELECT * FROM {SCHEMA}.patient_tasks WHERE patient_id = %s ORDER BY created_at DESC", (patient_id,))
+            tasks = cur.fetchall()
             return ok({
                 "patient": dict(patient),
                 "children": [dict(c) for c in children],
                 "documents": [dict(d) for d in documents],
                 "latest_risk_level": latest_dynamics["risk_level"] if latest_dynamics else None,
+                "tasks": [dict(t) for t in tasks],
             })
         else:
             search = params.get("search", "")
@@ -133,6 +136,31 @@ def handler(event: dict, context) -> dict:
             child = cur.fetchone()
             conn.commit()
             return ok({"child": dict(child)})
+
+        if action == "add_task":
+            pid = body.get("patient_id")
+            description = (body.get("description") or "").strip()
+            if not pid or not description:
+                return err("Поля patient_id и description обязательны")
+            cur.execute(
+                f"INSERT INTO {SCHEMA}.patient_tasks (patient_id, description, deadline, status) VALUES (%s,%s,%s,'active') RETURNING *",
+                (pid, description, body.get("deadline") or None)
+            )
+            task = cur.fetchone()
+            conn.commit()
+            return ok({"task": dict(task)}, 201)
+
+        if action == "complete_task":
+            task_id = body.get("task_id")
+            cur.execute(
+                f"UPDATE {SCHEMA}.patient_tasks SET status='completed', completed_at=NOW() WHERE id=%s RETURNING *",
+                (task_id,)
+            )
+            task = cur.fetchone()
+            if not task:
+                return err("Задание не найдено", 404)
+            conn.commit()
+            return ok({"task": dict(task)})
 
         if action == "set_care_stage":
             pid = body.get("patient_id")

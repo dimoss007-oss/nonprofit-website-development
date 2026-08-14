@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import Icon from "@/components/ui/icon";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import PatientDynamics from "@/components/admin/PatientDynamics";
+import PatientTasks from "@/components/admin/crm/PatientTasks";
 import { API, UPLOAD_API, Child, PatientFull, EMPTY_FORM, RiskBadge, fmt, fmtSize, stayDuration, CARE_STAGE_META } from "@/components/admin/crm/crmShared";
 import { PatientForm, ChildForm, ChildRow, Row } from "@/components/admin/crm/PatientFormParts";
 
@@ -120,7 +121,7 @@ export default function PatientCard({ patientId, onBack, onDeleted, isAdmin, aut
   if (loading) return <div className="flex items-center justify-center h-64"><div className="w-6 h-6 border-2 border-ink border-t-transparent rounded-full animate-spin" /></div>;
   if (!data) return null;
 
-  const { patient, children, documents, latest_risk_level } = data;
+  const { patient, children, documents, latest_risk_level, tasks } = data;
   const fullName = [patient.last_name, patient.first_name, patient.middle_name].filter(Boolean).join(" ");
   const duration = stayDuration(patient.admission_date, patient.discharge_date);
   const isActive = !patient.discharge_date;
@@ -195,6 +196,7 @@ export default function PatientCard({ patientId, onBack, onDeleted, isAdmin, aut
         <TabsList>
           <TabsTrigger value="data">Данные</TabsTrigger>
           <TabsTrigger value="dynamics">Динамика</TabsTrigger>
+          <TabsTrigger value="tasks">Задания</TabsTrigger>
         </TabsList>
 
         <TabsContent value="data" className="space-y-6 mt-4">
@@ -289,6 +291,10 @@ export default function PatientCard({ patientId, onBack, onDeleted, isAdmin, aut
 
         <TabsContent value="dynamics" className="mt-4">
           <PatientDynamics patientId={patientId} authorName={authorName} />
+        </TabsContent>
+
+        <TabsContent value="tasks" className="mt-4">
+          <PatientTasks patientId={patientId} tasks={tasks ?? []} onChanged={() => load()} />
         </TabsContent>
       </Tabs>
     </div>

@@ -13,7 +13,9 @@ export type Patient = {
   passport_issued_date?: string; passport_issued_by?: string;
   photo_url?: string; risk_level?: RiskLevel; care_stage?: CareStage; care_stage_since?: string;
 };
-export type PatientFull = { patient: Patient; children: Child[]; documents: Document[]; latest_risk_level?: RiskLevel };
+export type TaskStatus = "active" | "completed";
+export type PatientTask = { id: number; patient_id: number; description: string; deadline?: string; status: TaskStatus; created_at: string; completed_at?: string };
+export type PatientFull = { patient: Patient; children: Child[]; documents: Document[]; latest_risk_level?: RiskLevel; tasks?: PatientTask[] };
 
 export const CARE_STAGE_META: Record<CareStage, { label: string }> = {
   inpatient: { label: "Стационар" },
@@ -61,6 +63,23 @@ export function stayDuration(admission?: string, discharge?: string): string | n
 }
 
 export const EMPTY_FORM = { last_name: "", first_name: "", middle_name: "", alias: "", birth_date: "", address: "", admission_date: "", discharge_date: "", case_description: "", passport_series: "", passport_number: "", passport_issued_date: "", passport_issued_by: "" };
+
+export function elapsedTime(createdAt: string, completedAt?: string | null): string {
+  const from = new Date(createdAt);
+  const to = completedAt ? new Date(completedAt) : new Date();
+  if (isNaN(from.getTime())) return "—";
+  let totalMinutes = Math.max(0, Math.floor((to.getTime() - from.getTime()) / 60000));
+  const days = Math.floor(totalMinutes / (60 * 24));
+  totalMinutes -= days * 60 * 24;
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes - hours * 60;
+
+  const parts: string[] = [];
+  if (days > 0) parts.push(`${days} ${days === 1 ? "день" : days < 5 ? "дня" : "дней"}`);
+  if (hours > 0) parts.push(`${hours} ${hours === 1 ? "час" : hours < 5 ? "часа" : "часов"}`);
+  if (parts.length === 0) parts.push(`${minutes} ${minutes === 1 ? "минута" : minutes < 5 ? "минуты" : "минут"}`);
+  return parts.join(" ");
+}
 
 export function plural(n: number, one: string, few: string, many: string) {
   const m10 = n % 10, m100 = n % 100;
