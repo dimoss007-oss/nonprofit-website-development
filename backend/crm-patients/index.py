@@ -1,5 +1,6 @@
 import json
 import os
+from datetime import date
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
@@ -138,9 +139,10 @@ def handler(event: dict, context) -> dict:
             stage = body.get("care_stage")
             if stage not in ("inpatient", "posttreatment"):
                 return err("care_stage должен быть inpatient или posttreatment")
+            stage_since = date.today().isoformat() if stage == "posttreatment" else None
             cur.execute(
-                f"UPDATE {SCHEMA}.patients SET care_stage=%s, updated_at=NOW() WHERE id=%s RETURNING *",
-                (stage, pid)
+                f"UPDATE {SCHEMA}.patients SET care_stage=%s, care_stage_since=%s, updated_at=NOW() WHERE id=%s RETURNING *",
+                (stage, stage_since, pid)
             )
             patient = cur.fetchone()
             conn.commit()

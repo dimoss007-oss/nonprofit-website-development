@@ -124,6 +124,8 @@ export default function PatientCard({ patientId, onBack, onDeleted, isAdmin, aut
   const fullName = [patient.last_name, patient.first_name, patient.middle_name].filter(Boolean).join(" ");
   const duration = stayDuration(patient.admission_date, patient.discharge_date);
   const isActive = !patient.discharge_date;
+  const isPostTreatment = (patient.care_stage ?? "inpatient") === "posttreatment";
+  const postTreatmentDuration = isPostTreatment ? stayDuration(patient.care_stage_since) : null;
 
   return (
     <div className="space-y-6">
@@ -196,15 +198,30 @@ export default function PatientCard({ patientId, onBack, onDeleted, isAdmin, aut
         </TabsList>
 
         <TabsContent value="data" className="space-y-6 mt-4">
-          {duration && (
-            <div className={`rounded-2xl p-5 flex items-center gap-4 ${isActive ? "bg-green-50 border border-green-200" : "bg-beige border border-beige-dark"}`}>
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${isActive ? "bg-green-100" : "bg-beige-dark"}`}>
-                <Icon name="Timer" size={18} className={isActive ? "text-green-600" : "text-ink/40"} />
-              </div>
-              <div>
-                <p className="text-xs text-ink/40 uppercase tracking-wide mb-0.5">{isActive ? "Находится в центре" : "Находилась в центре"}</p>
-                <p className="font-semibold text-ink text-lg leading-tight">{duration}</p>
-              </div>
+          {(duration || postTreatmentDuration) && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {duration && (
+                <div className={`rounded-2xl p-5 flex items-center gap-4 ${isActive ? "bg-green-50 border border-green-200" : "bg-beige border border-beige-dark"}`}>
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${isActive ? "bg-green-100" : "bg-beige-dark"}`}>
+                    <Icon name="Timer" size={18} className={isActive ? "text-green-600" : "text-ink/40"} />
+                  </div>
+                  <div>
+                    <p className="text-xs text-ink/40 uppercase tracking-wide mb-0.5">{isActive ? "Находится в центре" : "Находилась в центре"}</p>
+                    <p className="font-semibold text-ink text-lg leading-tight">{duration}</p>
+                  </div>
+                </div>
+              )}
+              {postTreatmentDuration && (
+                <div className="rounded-2xl p-5 flex items-center gap-4 bg-blue-50 border border-blue-200">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-blue-100">
+                    <Icon name="Timer" size={18} className="text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-ink/40 uppercase tracking-wide mb-0.5">На постлечебке</p>
+                    <p className="font-semibold text-ink text-lg leading-tight">{postTreatmentDuration}</p>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

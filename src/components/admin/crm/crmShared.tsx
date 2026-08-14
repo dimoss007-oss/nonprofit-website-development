@@ -11,7 +11,7 @@ export type Patient = {
   case_description?: string; created_at: string; children_count?: number;
   passport_series?: string; passport_number?: string;
   passport_issued_date?: string; passport_issued_by?: string;
-  photo_url?: string; risk_level?: RiskLevel; care_stage?: CareStage;
+  photo_url?: string; risk_level?: RiskLevel; care_stage?: CareStage; care_stage_since?: string;
 };
 export type PatientFull = { patient: Patient; children: Child[]; documents: Document[]; latest_risk_level?: RiskLevel };
 

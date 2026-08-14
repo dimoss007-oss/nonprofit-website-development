@@ -107,6 +107,9 @@ export default function PatientList({
                       {p.discharge_date && stayDuration(p.admission_date, p.discharge_date) && (
                         <span className="text-xs text-ink/40 flex-shrink-0">{stayDuration(p.admission_date, p.discharge_date)}</span>
                       )}
+                      {p.care_stage === "posttreatment" && stayDuration(p.care_stage_since) && (
+                        <span className="text-xs text-blue-600 flex-shrink-0">на ПЛП: {stayDuration(p.care_stage_since)}</span>
+                      )}
                     </div>
                     <div className="flex items-center gap-4 mt-1 flex-wrap">
                       {p.birth_date && <span className="text-xs text-ink/40">Р. {fmt(p.birth_date)}</span>}
