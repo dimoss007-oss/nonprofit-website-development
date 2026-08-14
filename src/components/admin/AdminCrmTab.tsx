@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import Icon from "@/components/ui/icon";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import PatientChat from "@/components/admin/PatientChat";
+import PatientDynamics from "@/components/admin/PatientDynamics";
 
 const API = "https://functions.poehali.dev/c30060e8-222e-48b5-823a-3f1a5b44fbd5";
 const UPLOAD_API = "https://functions.poehali.dev/8a6d9ba2-3c66-4604-bccf-68b50295e021";
@@ -274,6 +275,7 @@ function PatientCard({ patientId, onBack, onDeleted, isAdmin, authorName }: { pa
       <Tabs defaultValue="data" className="w-full">
         <TabsList>
           <TabsTrigger value="data">Данные</TabsTrigger>
+          <TabsTrigger value="dynamics">Динамика</TabsTrigger>
           <TabsTrigger value="chat">Отчёты / AI-чат</TabsTrigger>
         </TabsList>
 
@@ -349,6 +351,10 @@ function PatientCard({ patientId, onBack, onDeleted, isAdmin, authorName }: { pa
               })}
             </div>
           </div>
+        </TabsContent>
+
+        <TabsContent value="dynamics" className="mt-4">
+          <PatientDynamics patientId={patientId} authorName={authorName} />
         </TabsContent>
 
         <TabsContent value="chat" className="mt-4">
