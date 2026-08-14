@@ -102,6 +102,9 @@ def route_create(event: dict) -> dict:
         scale_values[scale] = v
 
     notes = (body.get("notes") or "").strip()
+    problems_identified = (body.get("problems_identified") or "").strip()
+    actions_taken = (body.get("actions_taken") or "").strip()
+    results = (body.get("results") or "").strip()
 
     conn = get_conn()
     cur = conn.cursor(cursor_factory=RealDictCursor)
@@ -119,19 +122,21 @@ def route_create(event: dict) -> dict:
 
     cur.execute(
         f"""INSERT INTO {SCHEMA}.patient_daily_reports
-            (patient_id, author, report_date, mood, anxiety, sleep, appetite, social_activity, aggression, notes, risk_markers, risk_level)
-            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+            (patient_id, author, report_date, mood, anxiety, sleep, appetite, social_activity, aggression, notes, risk_markers, risk_level, problems_identified, actions_taken, results)
+            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
             ON CONFLICT (patient_id, report_date, author) DO UPDATE SET
                 mood=EXCLUDED.mood, anxiety=EXCLUDED.anxiety, sleep=EXCLUDED.sleep,
                 appetite=EXCLUDED.appetite, social_activity=EXCLUDED.social_activity,
                 aggression=EXCLUDED.aggression, notes=EXCLUDED.notes,
-                risk_markers=EXCLUDED.risk_markers, risk_level=EXCLUDED.risk_level
+                risk_markers=EXCLUDED.risk_markers, risk_level=EXCLUDED.risk_level,
+                problems_identified=EXCLUDED.problems_identified, actions_taken=EXCLUDED.actions_taken,
+                results=EXCLUDED.results
             RETURNING *""",
         (
             patient_id, author, report_date,
             scale_values["mood"], scale_values["anxiety"], scale_values["sleep"],
             scale_values["appetite"], scale_values["social_activity"], scale_values["aggression"],
-            notes, json.dumps(markers), risk_level,
+            notes, json.dumps(markers), risk_level, problems_identified, actions_taken, results,
         ),
     )
     report = dict(cur.fetchone())

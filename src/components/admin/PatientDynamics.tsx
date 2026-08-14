@@ -16,6 +16,9 @@ type DailyReport = {
   social_activity: number;
   aggression: number;
   notes?: string;
+  problems_identified?: string;
+  actions_taken?: string;
+  results?: string;
   risk_markers: string[];
   risk_level: "none" | "attention" | "high";
   created_at: string;
@@ -68,6 +71,9 @@ export default function PatientDynamics({ patientId, authorName }: { patientId: 
   const [saving, setSaving] = useState(false);
   const [scales, setScales] = useState({ ...EMPTY_SCALES });
   const [notes, setNotes] = useState("");
+  const [problemsIdentified, setProblemsIdentified] = useState("");
+  const [actionsTaken, setActionsTaken] = useState("");
+  const [results, setResults] = useState("");
   const [lastResult, setLastResult] = useState<DailyReport | null>(null);
 
   const load = async () => {
@@ -93,6 +99,9 @@ export default function PatientDynamics({ patientId, authorName }: { patientId: 
           patient_id: patientId,
           author: authorName,
           notes,
+          problems_identified: problemsIdentified,
+          actions_taken: actionsTaken,
+          results,
           ...scales,
         }),
       });
@@ -100,6 +109,9 @@ export default function PatientDynamics({ patientId, authorName }: { patientId: 
       if (d.report) {
         setLastResult(d.report);
         setNotes("");
+        setProblemsIdentified("");
+        setActionsTaken("");
+        setResults("");
         setScales({ ...EMPTY_SCALES });
         await load();
       }
@@ -129,15 +141,47 @@ export default function PatientDynamics({ patientId, authorName }: { patientId: 
             />
           ))}
         </div>
-        <div>
-          <label className="text-xs text-ink/60 mb-1 block">Комментарий (по желанию)</label>
-          <textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            rows={2}
-            placeholder="Наблюдения за день..."
-            className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink resize-none"
-          />
+        <div className="space-y-3 pt-1 border-t border-beige-mid">
+          <div>
+            <label className="text-xs text-ink/60 mb-1 block">Выявленные проблемы</label>
+            <textarea
+              value={problemsIdentified}
+              onChange={(e) => setProblemsIdentified(e.target.value)}
+              rows={2}
+              placeholder="Проявления болезни, эмоциональный фон..."
+              className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink resize-none"
+            />
+          </div>
+          <div>
+            <label className="text-xs text-ink/60 mb-1 block">Предпринятые действия</label>
+            <textarea
+              value={actionsTaken}
+              onChange={(e) => setActionsTaken(e.target.value)}
+              rows={2}
+              placeholder="Консультация, беседа с психологом, соц. работником, применение ИП, эмоциональная группа, мотивационная беседа..."
+              className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink resize-none"
+            />
+          </div>
+          <div>
+            <label className="text-xs text-ink/60 mb-1 block">Результаты</label>
+            <textarea
+              value={results}
+              onChange={(e) => setResults(e.target.value)}
+              rows={2}
+              placeholder="Какие действия сработали, не сработали, к чему привели..."
+              className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink resize-none"
+            />
+          </div>
+          <div>
+            <label className="text-xs text-ink/60 mb-1 block">Комментарий (по желанию)</label>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={2}
+              placeholder="Дополнительные наблюдения за день..."
+              className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink resize-none"
+            />
+          </div>
         </div>
         <div className="flex justify-end">
           <button
@@ -209,6 +253,19 @@ export default function PatientDynamics({ patientId, authorName }: { patientId: 
                   <span className="text-xs text-ink/40">{r.author}</span>
                   <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${RISK_META[r.risk_level].badge}`}>{RISK_META[r.risk_level].label}</span>
                 </div>
+                {(r.problems_identified || r.actions_taken || r.results) && (
+                  <div className="space-y-1 mb-1">
+                    {r.problems_identified && (
+                      <p className="text-xs text-ink/70"><span className="font-semibold text-ink/50">Выявлены проблемы: </span>{r.problems_identified}</p>
+                    )}
+                    {r.actions_taken && (
+                      <p className="text-xs text-ink/70"><span className="font-semibold text-ink/50">Предпринятые действия: </span>{r.actions_taken}</p>
+                    )}
+                    {r.results && (
+                      <p className="text-xs text-ink/70"><span className="font-semibold text-ink/50">Результат: </span>{r.results}</p>
+                    )}
+                  </div>
+                )}
                 {r.notes && <p className="text-sm text-ink/70 mb-1">{r.notes}</p>}
                 {r.risk_markers.length > 0 && (
                   <ul className="text-xs text-ink/50 list-disc list-inside">
