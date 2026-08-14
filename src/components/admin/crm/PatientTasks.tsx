@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import Icon from "@/components/ui/icon";
-import { API, PatientTask, elapsedTime, fmt } from "@/components/admin/crm/crmShared";
+import { API, PatientTask, TaskType, elapsedTime, fmt } from "@/components/admin/crm/crmShared";
 
 function LiveTimer({ createdAt }: { createdAt: string }) {
   const [, setTick] = useState(0);
@@ -11,14 +11,19 @@ function LiveTimer({ createdAt }: { createdAt: string }) {
   return <>{elapsedTime(createdAt)}</>;
 }
 
-export default function PatientTasks({ patientId, tasks, onChanged }: { patientId: number; tasks: PatientTask[]; onChanged: () => void }) {
+export default function PatientTasks({ patientId, tasks, taskType, onChanged }: { patientId: number; tasks: PatientTask[]; taskType: TaskType; onChanged: () => void }) {
   const [description, setDescription] = useState("");
   const [deadline, setDeadline] = useState("");
   const [saving, setSaving] = useState(false);
   const [completingId, setCompletingId] = useState<number | null>(null);
 
-  const activeTask = tasks.find(t => t.status === "active");
-  const completedTasks = tasks.filter(t => t.status === "completed");
+  const typeTasks = tasks.filter(t => t.task_type === taskType);
+  const activeTask = typeTasks.find(t => t.status === "active");
+  const completedTasks = typeTasks.filter(t => t.status === "completed");
+  const isMain = taskType === "main";
+  const currentLabel = isMain ? "Текущее основное задание" : "Текущее дополнительное задание";
+  const emptyLabel = isMain ? "Активных основных заданий нет — добавьте новое" : "Активных дополнительных заданий нет — добавьте новое";
+  const historyLabel = isMain ? "История основных заданий" : "История дополнительных заданий";
 
   const addTask = async () => {
     if (!description.trim()) return;
@@ -27,7 +32,7 @@ export default function PatientTasks({ patientId, tasks, onChanged }: { patientI
       await fetch(API, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "add_task", patient_id: patientId, description, deadline: deadline || null }),
+        body: JSON.stringify({ action: "add_task", patient_id: patientId, description, deadline: deadline || null, task_type: taskType }),
       });
       setDescription("");
       setDeadline("");
@@ -54,7 +59,7 @@ export default function PatientTasks({ patientId, tasks, onChanged }: { patientI
   return (
     <div className="space-y-6">
       <div className="bg-white border border-beige-dark rounded-2xl p-5">
-        <h3 className="font-semibold text-ink text-sm uppercase tracking-wide mb-4">Текущее задание</h3>
+        <h3 className="font-semibold text-ink text-sm uppercase tracking-wide mb-4">{currentLabel}</h3>
         {activeTask ? (
           <div className="space-y-3">
             <p className="text-sm text-ink whitespace-pre-wrap">{activeTask.description}</p>
@@ -79,7 +84,7 @@ export default function PatientTasks({ patientId, tasks, onChanged }: { patientI
           </div>
         ) : (
           <div className="space-y-3">
-            <p className="text-ink/40 text-sm">Активных заданий нет — добавьте новое</p>
+            <p className="text-ink/40 text-sm">{emptyLabel}</p>
             <div>
               <label className="text-xs text-ink/60 mb-1 block">Описание задания</label>
               <textarea
@@ -114,7 +119,7 @@ export default function PatientTasks({ patientId, tasks, onChanged }: { patientI
       </div>
 
       <div className="bg-white border border-beige-dark rounded-2xl p-5">
-        <h3 className="font-semibold text-ink text-sm uppercase tracking-wide mb-3">История заданий ({completedTasks.length})</h3>
+        <h3 className="font-semibold text-ink text-sm uppercase tracking-wide mb-3">{historyLabel} ({completedTasks.length})</h3>
         {completedTasks.length === 0 && <p className="text-ink/40 text-sm">Пока нет завершённых заданий</p>}
         <div className="space-y-2 max-h-[320px] overflow-y-auto pr-1">
           {completedTasks.map(t => (

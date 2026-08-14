@@ -196,7 +196,8 @@ export default function PatientCard({ patientId, onBack, onDeleted, isAdmin, aut
         <TabsList>
           <TabsTrigger value="data">Данные</TabsTrigger>
           <TabsTrigger value="dynamics">Динамика</TabsTrigger>
-          <TabsTrigger value="tasks">Задания</TabsTrigger>
+          <TabsTrigger value="tasks">Основное задание</TabsTrigger>
+          <TabsTrigger value="additional-tasks">Доп. задание</TabsTrigger>
         </TabsList>
 
         <TabsContent value="data" className="space-y-6 mt-4">
@@ -294,7 +295,11 @@ export default function PatientCard({ patientId, onBack, onDeleted, isAdmin, aut
         </TabsContent>
 
         <TabsContent value="tasks" className="mt-4">
-          <PatientTasks patientId={patientId} tasks={tasks ?? []} onChanged={() => load()} />
+          <PatientTasks patientId={patientId} tasks={tasks ?? []} taskType="main" onChanged={() => load()} />
+        </TabsContent>
+
+        <TabsContent value="additional-tasks" className="mt-4">
+          <PatientTasks patientId={patientId} tasks={tasks ?? []} taskType="additional" onChanged={() => load()} />
         </TabsContent>
       </Tabs>
     </div>

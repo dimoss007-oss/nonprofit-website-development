@@ -140,11 +140,14 @@ def handler(event: dict, context) -> dict:
         if action == "add_task":
             pid = body.get("patient_id")
             description = (body.get("description") or "").strip()
+            task_type = body.get("task_type") or "main"
+            if task_type not in ("main", "additional"):
+                return err("task_type должен быть main или additional")
             if not pid or not description:
                 return err("Поля patient_id и description обязательны")
             cur.execute(
-                f"INSERT INTO {SCHEMA}.patient_tasks (patient_id, description, deadline, status) VALUES (%s,%s,%s,'active') RETURNING *",
-                (pid, description, body.get("deadline") or None)
+                f"INSERT INTO {SCHEMA}.patient_tasks (patient_id, description, deadline, status, task_type) VALUES (%s,%s,%s,'active',%s) RETURNING *",
+                (pid, description, body.get("deadline") or None, task_type)
             )
             task = cur.fetchone()
             conn.commit()

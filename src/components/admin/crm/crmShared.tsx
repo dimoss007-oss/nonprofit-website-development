@@ -14,7 +14,8 @@ export type Patient = {
   photo_url?: string; risk_level?: RiskLevel; care_stage?: CareStage; care_stage_since?: string;
 };
 export type TaskStatus = "active" | "completed";
-export type PatientTask = { id: number; patient_id: number; description: string; deadline?: string; status: TaskStatus; created_at: string; completed_at?: string };
+export type TaskType = "main" | "additional";
+export type PatientTask = { id: number; patient_id: number; description: string; deadline?: string; status: TaskStatus; created_at: string; completed_at?: string; task_type: TaskType };
 export type PatientFull = { patient: Patient; children: Child[]; documents: Document[]; latest_risk_level?: RiskLevel; tasks?: PatientTask[] };
 
 export const CARE_STAGE_META: Record<CareStage, { label: string }> = {
