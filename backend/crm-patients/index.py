@@ -42,16 +42,48 @@ def handler(event: dict, context) -> dict:
             children = cur.fetchall()
             cur.execute(f"SELECT * FROM {SCHEMA}.patient_documents WHERE patient_id = %s ORDER BY uploaded_at DESC", (patient_id,))
             documents = cur.fetchall()
-            return ok({"patient": dict(patient), "children": [dict(c) for c in children], "documents": [dict(d) for d in documents]})
+            cur.execute(
+                f"SELECT risk_level, report_date FROM {SCHEMA}.patient_daily_reports WHERE patient_id = %s ORDER BY report_date DESC, created_at DESC LIMIT 1",
+                (patient_id,)
+            )
+            latest_dynamics = cur.fetchone()
+            return ok({
+                "patient": dict(patient),
+                "children": [dict(c) for c in children],
+                "documents": [dict(d) for d in documents],
+                "latest_risk_level": latest_dynamics["risk_level"] if latest_dynamics else None,
+            })
         else:
             search = params.get("search", "")
+            latest_risk_cte = f"""
+                latest_risk AS (
+                    SELECT DISTINCT ON (patient_id) patient_id, risk_level
+                    FROM {SCHEMA}.patient_daily_reports
+                    ORDER BY patient_id, report_date DESC, created_at DESC
+                )
+            """
             if search:
                 cur.execute(
-                    f"SELECT p.*, COUNT(c.id) as children_count FROM {SCHEMA}.patients p LEFT JOIN {SCHEMA}.patient_children c ON c.patient_id = p.id WHERE p.last_name ILIKE %s OR p.first_name ILIKE %s OR p.middle_name ILIKE %s GROUP BY p.id ORDER BY (p.discharge_date IS NULL) DESC, p.created_at DESC",
+                    f"""WITH {latest_risk_cte}
+                        SELECT p.*, COUNT(c.id) as children_count, lr.risk_level
+                        FROM {SCHEMA}.patients p
+                        LEFT JOIN {SCHEMA}.patient_children c ON c.patient_id = p.id
+                        LEFT JOIN latest_risk lr ON lr.patient_id = p.id
+                        WHERE p.last_name ILIKE %s OR p.first_name ILIKE %s OR p.middle_name ILIKE %s
+                        GROUP BY p.id, lr.risk_level
+                        ORDER BY (p.discharge_date IS NULL) DESC, p.created_at DESC""",
                     (f"%{search}%", f"%{search}%", f"%{search}%")
                 )
             else:
-                cur.execute(f"SELECT p.*, COUNT(c.id) as children_count FROM {SCHEMA}.patients p LEFT JOIN {SCHEMA}.patient_children c ON c.patient_id = p.id GROUP BY p.id ORDER BY (p.discharge_date IS NULL) DESC, p.created_at DESC")
+                cur.execute(
+                    f"""WITH {latest_risk_cte}
+                        SELECT p.*, COUNT(c.id) as children_count, lr.risk_level
+                        FROM {SCHEMA}.patients p
+                        LEFT JOIN {SCHEMA}.patient_children c ON c.patient_id = p.id
+                        LEFT JOIN latest_risk lr ON lr.patient_id = p.id
+                        GROUP BY p.id, lr.risk_level
+                        ORDER BY (p.discharge_date IS NULL) DESC, p.created_at DESC"""
+                )
             rows = cur.fetchall()
             return ok({"patients": [dict(r) for r in rows]})
 

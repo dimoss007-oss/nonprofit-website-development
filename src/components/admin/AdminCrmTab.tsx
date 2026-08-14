@@ -7,16 +7,30 @@ import PatientDynamics from "@/components/admin/PatientDynamics";
 const API = "https://functions.poehali.dev/c30060e8-222e-48b5-823a-3f1a5b44fbd5";
 const UPLOAD_API = "https://functions.poehali.dev/8a6d9ba2-3c66-4604-bccf-68b50295e021";
 
-type Child = { id: number; last_name?: string; first_name: string; middle_name?: string; birth_date?: string };
+type Child = { id: number; last_name?: string; first_name: string; middle_name?: string; birth_date?: string; photo_url?: string };
 type Document = { id: number; file_name: string; file_url: string; file_type?: string; file_size?: number; uploaded_at: string };
+type RiskLevel = "none" | "attention" | "high" | null | undefined;
 type Patient = {
   id: number; last_name: string; first_name: string; middle_name?: string;
   birth_date?: string; address?: string; admission_date?: string; discharge_date?: string;
   case_description?: string; created_at: string; children_count?: number;
   passport_series?: string; passport_number?: string;
   passport_issued_date?: string; passport_issued_by?: string;
+  photo_url?: string; risk_level?: RiskLevel;
 };
-type PatientFull = { patient: Patient; children: Child[]; documents: Document[] };
+type PatientFull = { patient: Patient; children: Child[]; documents: Document[]; latest_risk_level?: RiskLevel };
+
+const RISK_META: Record<string, { label: string; badge: string }> = {
+  none: { label: "Норма", badge: "bg-green-100 text-green-700" },
+  attention: { label: "Внимание", badge: "bg-amber-100 text-amber-700" },
+  high: { label: "Высокий риск", badge: "bg-red-100 text-red-700" },
+};
+
+function RiskBadge({ level }: { level: RiskLevel }) {
+  if (!level || !RISK_META[level]) return null;
+  const m = RISK_META[level];
+  return <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium flex-shrink-0 ${m.badge}`}>{m.label}</span>;
+}
 
 function fmt(d?: string) {
   if (!d) return "—";
@@ -102,11 +116,20 @@ function ChildForm({ onAdd, onCancel }: { onAdd: (c: Omit<Child, "id">) => void;
   );
 }
 
-function ChildRow({ child, onUpdate, onDelete, isAdmin }: { child: Child; onUpdate: (id: number, data: Omit<Child, "id">) => void; onDelete: (id: number) => void; isAdmin: boolean }) {
+function ChildRow({ child, onUpdate, onDelete, onUploadPhoto, isAdmin }: { child: Child; onUpdate: (id: number, data: Omit<Child, "id">) => void; onDelete: (id: number) => void; onUploadPhoto: (childId: number, file: File) => void; isAdmin: boolean }) {
   const [editing, setEditing] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [form, setForm] = useState({ last_name: child.last_name ?? "", first_name: child.first_name, middle_name: child.middle_name ?? "", birth_date: child.birth_date?.slice(0, 10) ?? "" });
   const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) => setForm(f => ({ ...f, [k]: e.target.value }));
+  const photoRef = useRef<HTMLInputElement>(null);
   const save = () => { onUpdate(child.id, form); setEditing(false); };
+  const handlePhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setUploadingPhoto(true);
+    try { await onUploadPhoto(child.id, file); } finally { setUploadingPhoto(false); }
+  };
   if (editing) return (
     <div className="bg-beige-mid rounded-xl p-3 space-y-2">
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -123,9 +146,20 @@ function ChildRow({ child, onUpdate, onDelete, isAdmin }: { child: Child; onUpda
   );
   return (
     <div className="flex items-center justify-between py-2 border-b border-beige-mid last:border-0 group">
-      <div>
-        <span className="text-sm text-ink">{[child.last_name, child.first_name, child.middle_name].filter(Boolean).join(" ")}</span>
-        {child.birth_date && <span className="text-xs text-ink/40 ml-2">{fmt(child.birth_date)}</span>}
+      <div className="flex items-center gap-3">
+        <button onClick={() => photoRef.current?.click()} className="relative w-9 h-9 rounded-full overflow-hidden bg-beige-mid flex items-center justify-center flex-shrink-0 border border-beige-dark hover:border-ink transition-colors">
+          {child.photo_url ? (
+            <img src={child.photo_url} alt="" className="w-full h-full object-cover" />
+          ) : (
+            <Icon name="User" size={14} className="text-ink/30" />
+          )}
+          {uploadingPhoto && <div className="absolute inset-0 bg-black/30 flex items-center justify-center"><Icon name="Loader" size={12} className="animate-spin text-white" /></div>}
+        </button>
+        <input ref={photoRef} type="file" accept="image/*" className="hidden" onChange={handlePhoto} />
+        <div>
+          <span className="text-sm text-ink">{[child.last_name, child.first_name, child.middle_name].filter(Boolean).join(" ")}</span>
+          {child.birth_date && <span className="text-xs text-ink/40 ml-2">{fmt(child.birth_date)}</span>}
+        </div>
       </div>
       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
         <button onClick={() => setEditing(true)} className="p-1 text-ink/40 hover:text-ink transition-colors"><Icon name="Pencil" size={13} /></button>
@@ -148,7 +182,17 @@ function PatientCard({ patientId, onBack, onDeleted, isAdmin, authorName }: { pa
   const [saving, setSaving] = useState(false);
   const [addingChild, setAddingChild] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const photoRef = useRef<HTMLInputElement>(null);
+
+  const readAsBase64 = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve((reader.result as string).split(",")[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
 
   const load = async (showSpinner = false) => {
     if (showSpinner) setLoading(true);
@@ -192,13 +236,6 @@ function PatientCard({ patientId, onBack, onDeleted, isAdmin, authorName }: { pa
     const input = e.target;
     if (!files.length) return;
     setUploading(true);
-    const readAsBase64 = (file: File): Promise<string> =>
-      new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve((reader.result as string).split(",")[1]);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
     await Promise.all(files.map(async (file) => {
       const base64 = await readAsBase64(file);
       await fetch(UPLOAD_API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ patient_id: patientId, file_name: file.name, file_data: base64, file_type: file.type }) });
@@ -206,6 +243,26 @@ function PatientCard({ patientId, onBack, onDeleted, isAdmin, authorName }: { pa
     input.value = "";
     setUploading(false);
     load();
+  };
+
+  const uploadPatientPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setUploadingPhoto(true);
+    try {
+      const base64 = await readAsBase64(file);
+      await fetch(UPLOAD_API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ patient_id: patientId, file_name: file.name, file_data: base64, file_type: file.type, target: "patient_photo" }) });
+      await load();
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
+
+  const uploadChildPhoto = async (childId: number, file: File) => {
+    const base64 = await readAsBase64(file);
+    await fetch(UPLOAD_API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ patient_id: patientId, child_id: childId, file_name: file.name, file_data: base64, file_type: file.type, target: "child_photo" }) });
+    await load();
   };
 
   const discharge = async () => {
@@ -228,7 +285,7 @@ function PatientCard({ patientId, onBack, onDeleted, isAdmin, authorName }: { pa
   if (loading) return <div className="flex items-center justify-center h-64"><div className="w-6 h-6 border-2 border-ink border-t-transparent rounded-full animate-spin" /></div>;
   if (!data) return null;
 
-  const { patient, children, documents } = data;
+  const { patient, children, documents, latest_risk_level } = data;
   const fullName = [patient.last_name, patient.first_name, patient.middle_name].filter(Boolean).join(" ");
   const duration = stayDuration(patient.admission_date, patient.discharge_date);
   const isActive = !patient.discharge_date;
@@ -237,12 +294,22 @@ function PatientCard({ patientId, onBack, onDeleted, isAdmin, authorName }: { pa
     <div className="space-y-6">
       <div className="flex items-center gap-3 flex-wrap">
         <button onClick={onBack} className="p-2 rounded-lg hover:bg-beige-mid transition-colors"><Icon name="ArrowLeft" size={18} /></button>
+        <button onClick={() => photoRef.current?.click()} className="relative w-12 h-12 rounded-full overflow-hidden bg-beige-mid flex items-center justify-center flex-shrink-0 border border-beige-dark hover:border-ink transition-colors">
+          {patient.photo_url ? (
+            <img src={patient.photo_url} alt="" className="w-full h-full object-cover" />
+          ) : (
+            <Icon name="User" size={18} className="text-ink/30" />
+          )}
+          {uploadingPhoto && <div className="absolute inset-0 bg-black/30 flex items-center justify-center"><Icon name="Loader" size={14} className="animate-spin text-white" /></div>}
+        </button>
+        <input ref={photoRef} type="file" accept="image/*" className="hidden" onChange={uploadPatientPhoto} />
         <div className="flex-1">
           <div className="flex items-center gap-2 flex-wrap">
             <h2 className="font-cormorant text-ink text-2xl font-semibold">{fullName}</h2>
             <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${isActive ? "bg-green-100 text-green-700" : "bg-beige-dark text-ink/50"}`}>
               {isActive ? "В центре" : "Выписана"}
             </span>
+            <RiskBadge level={latest_risk_level} />
           </div>
           <p className="text-ink/50 text-sm">Поступила: {fmt(patient.admission_date)}</p>
         </div>
@@ -320,7 +387,7 @@ function PatientCard({ patientId, onBack, onDeleted, isAdmin, authorName }: { pa
             </div>
             {addingChild && <div className="mb-4"><ChildForm onAdd={addChild} onCancel={() => setAddingChild(false)} /></div>}
             {children.length === 0 && !addingChild && <p className="text-ink/40 text-sm">Нет данных о детях</p>}
-            <div className="space-y-1">{children.map(c => <ChildRow key={c.id} child={c} onUpdate={updateChild} onDelete={deleteChild} isAdmin={isAdmin} />)}</div>
+            <div className="space-y-1">{children.map(c => <ChildRow key={c.id} child={c} onUpdate={updateChild} onDelete={deleteChild} onUploadPhoto={uploadChildPhoto} isAdmin={isAdmin} />)}</div>
           </div>
 
           <div className="bg-white border border-beige-dark rounded-2xl p-5">
@@ -398,6 +465,7 @@ export default function AdminCrmTab({ isAdmin = true, authorName = "Сотруд
 
   const inCenter = allPatients.filter(p => !p.discharge_date);
   const totalChildren = inCenter.reduce((s, p) => s + (Number(p.children_count) || 0), 0);
+  const highRiskCount = inCenter.filter(p => p.risk_level === "high").length;
 
   const createPatient = async (form: typeof EMPTY_FORM) => {
     setSaving(true);
@@ -422,7 +490,7 @@ export default function AdminCrmTab({ isAdmin = true, authorName = "Сотруд
       </div>
 
       {allPatients.length > 0 && (
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div className="bg-white border border-green-200 rounded-2xl px-4 py-3.5 text-center">
             <p className="font-cormorant text-3xl font-semibold text-green-700">{inCenter.length}</p>
             <p className="text-xs text-ink/50 mt-0.5">{plural(inCenter.length, "пациентка", "пациентки", "пациенток")} в центре</p>
@@ -430,6 +498,10 @@ export default function AdminCrmTab({ isAdmin = true, authorName = "Сотруд
           <div className="bg-white border border-beige-dark rounded-2xl px-4 py-3.5 text-center">
             <p className="font-cormorant text-3xl font-semibold text-ink">{totalChildren}</p>
             <p className="text-xs text-ink/50 mt-0.5">{plural(totalChildren, "ребёнок", "ребёнка", "детей")} с ними</p>
+          </div>
+          <div className={`bg-white border rounded-2xl px-4 py-3.5 text-center ${highRiskCount > 0 ? "border-red-200" : "border-beige-dark"}`}>
+            <p className={`font-cormorant text-3xl font-semibold ${highRiskCount > 0 ? "text-red-600" : "text-ink"}`}>{highRiskCount}</p>
+            <p className="text-xs text-ink/50 mt-0.5">высокий риск</p>
           </div>
           <div className="bg-white border border-beige-dark rounded-2xl px-4 py-3.5 text-center">
             <p className="font-cormorant text-3xl font-semibold text-ink">{allPatients.length}</p>
@@ -462,24 +534,30 @@ export default function AdminCrmTab({ isAdmin = true, authorName = "Сотруд
           {patients.map(p => (
             <button key={p.id} onClick={() => setSelectedId(p.id)} className={`w-full bg-white border rounded-2xl px-5 py-4 text-left hover:border-ink transition-colors group ${p.discharge_date ? "border-beige-dark" : "border-green-200"}`}>
               <div className="flex items-center justify-between gap-3">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <p className="font-semibold text-ink">{p.last_name} {p.first_name} {p.middle_name ?? ""}</p>
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0 ${p.discharge_date ? "bg-beige-dark text-ink/40" : "bg-green-100 text-green-700"}`}>
-                      {p.discharge_date ? "Выписана" : "В центре"}
-                    </span>
-                    {!p.discharge_date && stayDuration(p.admission_date) && (
-                      <span className="text-xs text-green-600 flex-shrink-0">{stayDuration(p.admission_date)}</span>
-                    )}
-                    {p.discharge_date && stayDuration(p.admission_date, p.discharge_date) && (
-                      <span className="text-xs text-ink/40 flex-shrink-0">{stayDuration(p.admission_date, p.discharge_date)}</span>
-                    )}
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className="w-10 h-10 rounded-full overflow-hidden bg-beige-mid flex items-center justify-center flex-shrink-0 border border-beige-dark">
+                    {p.photo_url ? <img src={p.photo_url} alt="" className="w-full h-full object-cover" /> : <Icon name="User" size={16} className="text-ink/30" />}
                   </div>
-                  <div className="flex items-center gap-4 mt-1 flex-wrap">
-                    {p.birth_date && <span className="text-xs text-ink/40">Р. {fmt(p.birth_date)}</span>}
-                    {p.admission_date && <span className="text-xs text-ink/40">Поступила: {fmt(p.admission_date)}</span>}
-                    {p.discharge_date && <span className="text-xs text-ink/40">Выписана: {fmt(p.discharge_date)}</span>}
-                    {(p.children_count ?? 0) > 0 && <span className="text-xs text-ink/40">{p.children_count} {Number(p.children_count) === 1 ? "ребёнок" : Number(p.children_count) < 5 ? "ребёнка" : "детей"}</span>}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="font-semibold text-ink">{p.last_name} {p.first_name} {p.middle_name ?? ""}</p>
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0 ${p.discharge_date ? "bg-beige-dark text-ink/40" : "bg-green-100 text-green-700"}`}>
+                        {p.discharge_date ? "Выписана" : "В центре"}
+                      </span>
+                      <RiskBadge level={p.risk_level} />
+                      {!p.discharge_date && stayDuration(p.admission_date) && (
+                        <span className="text-xs text-green-600 flex-shrink-0">{stayDuration(p.admission_date)}</span>
+                      )}
+                      {p.discharge_date && stayDuration(p.admission_date, p.discharge_date) && (
+                        <span className="text-xs text-ink/40 flex-shrink-0">{stayDuration(p.admission_date, p.discharge_date)}</span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-4 mt-1 flex-wrap">
+                      {p.birth_date && <span className="text-xs text-ink/40">Р. {fmt(p.birth_date)}</span>}
+                      {p.admission_date && <span className="text-xs text-ink/40">Поступила: {fmt(p.admission_date)}</span>}
+                      {p.discharge_date && <span className="text-xs text-ink/40">Выписана: {fmt(p.discharge_date)}</span>}
+                      {(p.children_count ?? 0) > 0 && <span className="text-xs text-ink/40">{p.children_count} {Number(p.children_count) === 1 ? "ребёнок" : Number(p.children_count) < 5 ? "ребёнка" : "детей"}</span>}
+                    </div>
                   </div>
                 </div>
                 <Icon name="ChevronRight" size={16} className="text-ink/30 group-hover:text-ink transition-colors flex-shrink-0" />
