@@ -261,7 +261,7 @@ export default function FamiliesCaseCard({ c, openLightbox }: Props) {
         {c.plpText && (
           <div className="mb-12">
             <h4 className="text-ink text-base font-semibold uppercase tracking-wide mb-3">
-              Планы на постлечебную программу (ПЛП)
+              Планы на амбулаторную программу
             </h4>
             <p className="text-ink/70 leading-relaxed text-sm">{c.plpText}</p>
           </div>

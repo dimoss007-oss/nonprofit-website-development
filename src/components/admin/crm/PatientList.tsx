@@ -37,7 +37,7 @@ export default function PatientList({
       <Tabs value={careStage} onValueChange={(v) => setCareStage(v as CareStage)}>
         <TabsList>
           <TabsTrigger value="inpatient">Стационар</TabsTrigger>
-          <TabsTrigger value="posttreatment">Постлечебка</TabsTrigger>
+          <TabsTrigger value="posttreatment">Амбулаторная программа</TabsTrigger>
         </TabsList>
       </Tabs>
 
@@ -49,7 +49,7 @@ export default function PatientList({
           </div>
           <div className="bg-white border border-blue-200 rounded-2xl px-4 py-3.5 text-center">
             <p className="font-cormorant text-3xl font-semibold text-blue-700">{postTreatmentCount}</p>
-            <p className="text-xs text-ink/50 mt-0.5">на постлечебке</p>
+            <p className="text-xs text-ink/50 mt-0.5">на амб. программе</p>
           </div>
           <div className="bg-white border border-beige-dark rounded-2xl px-4 py-3.5 text-center">
             <p className="font-cormorant text-3xl font-semibold text-ink">{totalChildren}</p>
@@ -108,7 +108,7 @@ export default function PatientList({
                         <span className="text-xs text-ink/40 flex-shrink-0">{stayDuration(p.admission_date, p.discharge_date)}</span>
                       )}
                       {p.care_stage === "posttreatment" && stayDuration(p.care_stage_since) && (
-                        <span className="text-xs text-blue-600 flex-shrink-0">на ПЛП: {stayDuration(p.care_stage_since)}</span>
+                        <span className="text-xs text-blue-600 flex-shrink-0">на амб. программе: {stayDuration(p.care_stage_since)}</span>
                       )}
                     </div>
                     <div className="flex items-center gap-4 mt-1 flex-wrap">

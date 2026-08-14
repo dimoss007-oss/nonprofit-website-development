@@ -17,7 +17,7 @@ export type PatientFull = { patient: Patient; children: Child[]; documents: Docu
 
 export const CARE_STAGE_META: Record<CareStage, { label: string }> = {
   inpatient: { label: "Стационар" },
-  posttreatment: { label: "Постлечебка" },
+  posttreatment: { label: "Амбулаторная программа" },
 };
 
 export const RISK_META: Record<string, { label: string; badge: string }> = {

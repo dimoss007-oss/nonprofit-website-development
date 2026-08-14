@@ -169,8 +169,8 @@ export default function PatientCard({ patientId, onBack, onDeleted, isAdmin, aut
           </button>
         )}
         {(patient.care_stage ?? "inpatient") === "inpatient" ? (
-          <button onClick={() => confirm("Перевести пациента на постлечебное сопровождение (ПЛП)?") && setCareStage("posttreatment")} className="px-3 py-1.5 text-sm border border-blue-200 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors flex items-center gap-1.5">
-            <Icon name="ArrowRightCircle" size={14} /> Перевести на ПЛП
+          <button onClick={() => confirm("Перевести пациента на амбулаторную программу?") && setCareStage("posttreatment")} className="px-3 py-1.5 text-sm border border-blue-200 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors flex items-center gap-1.5">
+            <Icon name="ArrowRightCircle" size={14} /> Перевести на амб. программу
           </button>
         ) : (
           <button onClick={() => setCareStage("inpatient")} className="px-3 py-1.5 text-sm border border-beige-dark rounded-lg hover:border-ink transition-colors flex items-center gap-1.5">
@@ -217,7 +217,7 @@ export default function PatientCard({ patientId, onBack, onDeleted, isAdmin, aut
                     <Icon name="Timer" size={18} className="text-blue-600" />
                   </div>
                   <div>
-                    <p className="text-xs text-ink/40 uppercase tracking-wide mb-0.5">На постлечебке</p>
+                    <p className="text-xs text-ink/40 uppercase tracking-wide mb-0.5">На амбулаторной программе</p>
                     <p className="font-semibold text-ink text-lg leading-tight">{postTreatmentDuration}</p>
                   </div>
                 </div>
