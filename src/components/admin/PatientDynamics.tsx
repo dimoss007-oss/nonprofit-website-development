@@ -9,6 +9,7 @@ type DailyReport = {
   patient_id: number;
   author: string;
   report_date: string;
+  overall_state: number;
   contact_children: number;
   contact_surroundings: number;
   contact_staff: number;
@@ -28,6 +29,7 @@ type DailyReport = {
 };
 
 const EMPTY_SCALES = {
+  overall_state: 5,
   contact_children: 5,
   contact_surroundings: 5,
   contact_staff: 5,
@@ -40,6 +42,7 @@ const EMPTY_SCALES = {
 };
 
 const SCALE_META: { key: keyof typeof EMPTY_SCALES; label: string; color: string; gradient?: "yellow-red" | "blue-green" }[] = [
+  { key: "overall_state", label: "Общее состояние", color: "#f97316" },
   { key: "contact_children", label: "Контакт с детьми", color: "#4f9d69" },
   { key: "contact_surroundings", label: "Контакт с окружающими", color: "#3b82f6" },
   { key: "contact_staff", label: "Контакт с сотрудниками", color: "#06b6d4" },

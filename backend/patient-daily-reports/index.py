@@ -14,19 +14,20 @@ CORS = {
 }
 
 SCALES = (
-    "contact_children", "contact_surroundings", "contact_staff", "engagement_level",
+    "overall_state", "contact_children", "contact_surroundings", "contact_staff", "engagement_level",
     "negative_behavior_level", "positive_thinking_level", "tasks_completion",
     "feelings_diary_usage", "self_analysis_usage",
 )
 # Для этих шкал НИЗКОЕ значение — тревожный сигнал (мало контакта, вовлечённости, позитивного мышления и т.д.)
 LOW_IS_BAD = (
-    "contact_children", "contact_surroundings", "contact_staff", "engagement_level",
+    "overall_state", "contact_children", "contact_surroundings", "contact_staff", "engagement_level",
     "positive_thinking_level", "tasks_completion", "feelings_diary_usage", "self_analysis_usage",
 )
 # Для этих шкал ВЫСОКОЕ значение — тревожный сигнал (негативное поведение)
 HIGH_IS_BAD = ("negative_behavior_level",)
 
 LABELS = {
+    "overall_state": "Общее состояние",
     "contact_children": "Контакт с детьми",
     "contact_surroundings": "Контакт с окружающими",
     "contact_staff": "Контакт с сотрудниками",
@@ -135,11 +136,12 @@ def route_create(event: dict) -> dict:
     cur.execute(
         f"""INSERT INTO {SCHEMA}.patient_daily_reports
             (patient_id, author, report_date, mood, anxiety, sleep, appetite, social_activity, aggression,
-             contact_children, contact_surroundings, contact_staff, engagement_level, negative_behavior_level,
+             overall_state, contact_children, contact_surroundings, contact_staff, engagement_level, negative_behavior_level,
              positive_thinking_level, tasks_completion, feelings_diary_usage, self_analysis_usage,
              notes, risk_markers, risk_level, problems_identified, actions_taken, results)
-            VALUES (%s,%s,%s,0,0,0,0,0,0,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+            VALUES (%s,%s,%s,0,0,0,0,0,0,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
             ON CONFLICT (patient_id, report_date, author) DO UPDATE SET
+                overall_state=EXCLUDED.overall_state,
                 contact_children=EXCLUDED.contact_children, contact_surroundings=EXCLUDED.contact_surroundings,
                 contact_staff=EXCLUDED.contact_staff, engagement_level=EXCLUDED.engagement_level,
                 negative_behavior_level=EXCLUDED.negative_behavior_level,
@@ -152,6 +154,7 @@ def route_create(event: dict) -> dict:
             RETURNING *""",
         (
             patient_id, author, report_date,
+            scale_values["overall_state"],
             scale_values["contact_children"], scale_values["contact_surroundings"], scale_values["contact_staff"],
             scale_values["engagement_level"], scale_values["negative_behavior_level"],
             scale_values["positive_thinking_level"], scale_values["tasks_completion"],
