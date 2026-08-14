@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import Icon from "@/components/ui/icon";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import PatientDynamics from "@/components/admin/PatientDynamics";
-import { API, UPLOAD_API, Child, PatientFull, EMPTY_FORM, RiskBadge, fmt, fmtSize, stayDuration } from "@/components/admin/crm/crmShared";
+import { API, UPLOAD_API, Child, PatientFull, EMPTY_FORM, RiskBadge, fmt, fmtSize, stayDuration, CARE_STAGE_META } from "@/components/admin/crm/crmShared";
 import { PatientForm, ChildForm, ChildRow, Row } from "@/components/admin/crm/PatientFormParts";
 
 export default function PatientCard({ patientId, onBack, onDeleted, isAdmin, authorName }: { patientId: number; onBack: () => void; onDeleted: () => void; isAdmin: boolean; authorName: string }) {
@@ -106,6 +106,11 @@ export default function PatientCard({ patientId, onBack, onDeleted, isAdmin, aut
     load();
   };
 
+  const setCareStage = async (stage: "inpatient" | "posttreatment") => {
+    await fetch(API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "set_care_stage", patient_id: patientId, care_stage: stage }) });
+    load();
+  };
+
   const deleteDoc = async (docId: number) => {
     if (!confirm("Удалить документ?")) return;
     await fetch(API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "delete_document", document_id: docId }) });
@@ -139,6 +144,9 @@ export default function PatientCard({ patientId, onBack, onDeleted, isAdmin, aut
             <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${isActive ? "bg-green-100 text-green-700" : "bg-beige-dark text-ink/50"}`}>
               {isActive ? "В центре" : "Выписана"}
             </span>
+            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${(patient.care_stage ?? "inpatient") === "posttreatment" ? "bg-blue-100 text-blue-700" : "bg-beige-mid text-ink/60"}`}>
+              {CARE_STAGE_META[patient.care_stage ?? "inpatient"].label}
+            </span>
             <RiskBadge level={latest_risk_level} />
           </div>
           <p className="text-ink/50 text-sm">
@@ -156,6 +164,15 @@ export default function PatientCard({ patientId, onBack, onDeleted, isAdmin, aut
         ) : (
           <button onClick={readmit} className="px-3 py-1.5 text-sm border border-green-200 text-green-700 rounded-lg hover:bg-green-50 transition-colors flex items-center gap-1.5">
             <Icon name="LogIn" size={14} /> Вернуть в центр
+          </button>
+        )}
+        {(patient.care_stage ?? "inpatient") === "inpatient" ? (
+          <button onClick={() => confirm("Перевести пациента на постлечебное сопровождение (ПЛП)?") && setCareStage("posttreatment")} className="px-3 py-1.5 text-sm border border-blue-200 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors flex items-center gap-1.5">
+            <Icon name="ArrowRightCircle" size={14} /> Перевести на ПЛП
+          </button>
+        ) : (
+          <button onClick={() => setCareStage("inpatient")} className="px-3 py-1.5 text-sm border border-beige-dark rounded-lg hover:border-ink transition-colors flex items-center gap-1.5">
+            <Icon name="ArrowLeftCircle" size={14} /> Вернуть в стационар
           </button>
         )}
         {isAdmin && (

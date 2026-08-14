@@ -1,10 +1,11 @@
 import Icon from "@/components/ui/icon";
-import { Patient, EMPTY_FORM, RiskBadge, fmt, stayDuration, plural } from "@/components/admin/crm/crmShared";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Patient, EMPTY_FORM, RiskBadge, fmt, stayDuration, plural, CareStage } from "@/components/admin/crm/crmShared";
 import { PatientForm } from "@/components/admin/crm/PatientFormParts";
 
 export default function PatientList({
   allPatients, patients, loading, search, setSearch, adding, setAdding, saving,
-  onCreatePatient, onSelect,
+  careStage, setCareStage, onCreatePatient, onSelect,
 }: {
   allPatients: Patient[];
   patients: Patient[];
@@ -14,6 +15,8 @@ export default function PatientList({
   adding: boolean;
   setAdding: (v: boolean) => void;
   saving: boolean;
+  careStage: CareStage;
+  setCareStage: (v: CareStage) => void;
   onCreatePatient: (form: typeof EMPTY_FORM) => void;
   onSelect: (id: number) => void;
 }) {
@@ -29,6 +32,13 @@ export default function PatientList({
           <Icon name="UserPlus" size={16} /> Добавить
         </button>
       </div>
+
+      <Tabs value={careStage} onValueChange={(v) => setCareStage(v as CareStage)}>
+        <TabsList>
+          <TabsTrigger value="inpatient">Стационар</TabsTrigger>
+          <TabsTrigger value="posttreatment">Постлечебка</TabsTrigger>
+        </TabsList>
+      </Tabs>
 
       {allPatients.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">

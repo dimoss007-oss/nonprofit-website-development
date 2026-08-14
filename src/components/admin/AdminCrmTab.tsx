@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { API, Patient, EMPTY_FORM } from "@/components/admin/crm/crmShared";
+import { API, Patient, EMPTY_FORM, CareStage } from "@/components/admin/crm/crmShared";
 import PatientCard from "@/components/admin/crm/PatientCard";
 import PatientList from "@/components/admin/crm/PatientList";
 
@@ -10,6 +10,7 @@ export default function AdminCrmTab({ isAdmin = true, authorName = "Сотруд
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [adding, setAdding] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [careStage, setCareStage] = useState<CareStage>("inpatient");
 
   const loadPatients = async () => {
     setLoading(true);
@@ -21,10 +22,12 @@ export default function AdminCrmTab({ isAdmin = true, authorName = "Сотруд
 
   useEffect(() => { loadPatients(); }, []);
 
+  const stagePatients = allPatients.filter(p => (p.care_stage ?? "inpatient") === careStage);
+
   const q = search.toLowerCase();
   const patients = search
-    ? allPatients.filter(p => `${p.last_name} ${p.first_name} ${p.middle_name ?? ""}`.toLowerCase().includes(q))
-    : allPatients;
+    ? stagePatients.filter(p => `${p.last_name} ${p.first_name} ${p.middle_name ?? ""}`.toLowerCase().includes(q))
+    : stagePatients;
 
   const createPatient = async (form: typeof EMPTY_FORM) => {
     setSaving(true);
@@ -41,7 +44,7 @@ export default function AdminCrmTab({ isAdmin = true, authorName = "Сотруд
 
   return (
     <PatientList
-      allPatients={allPatients}
+      allPatients={stagePatients}
       patients={patients}
       loading={loading}
       search={search}
@@ -49,6 +52,8 @@ export default function AdminCrmTab({ isAdmin = true, authorName = "Сотруд
       adding={adding}
       setAdding={setAdding}
       saving={saving}
+      careStage={careStage}
+      setCareStage={setCareStage}
       onCreatePatient={createPatient}
       onSelect={setSelectedId}
     />

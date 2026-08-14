@@ -4,15 +4,21 @@ export const UPLOAD_API = "https://functions.poehali.dev/8a6d9ba2-3c66-4604-bccf
 export type Child = { id: number; last_name?: string; first_name: string; middle_name?: string; birth_date?: string; photo_url?: string };
 export type Document = { id: number; file_name: string; file_url: string; file_type?: string; file_size?: number; uploaded_at: string };
 export type RiskLevel = "none" | "attention" | "high" | null | undefined;
+export type CareStage = "inpatient" | "posttreatment";
 export type Patient = {
   id: number; last_name: string; first_name: string; middle_name?: string; alias?: string;
   birth_date?: string; address?: string; admission_date?: string; discharge_date?: string;
   case_description?: string; created_at: string; children_count?: number;
   passport_series?: string; passport_number?: string;
   passport_issued_date?: string; passport_issued_by?: string;
-  photo_url?: string; risk_level?: RiskLevel;
+  photo_url?: string; risk_level?: RiskLevel; care_stage?: CareStage;
 };
 export type PatientFull = { patient: Patient; children: Child[]; documents: Document[]; latest_risk_level?: RiskLevel };
+
+export const CARE_STAGE_META: Record<CareStage, { label: string }> = {
+  inpatient: { label: "Стационар" },
+  posttreatment: { label: "Постлечебка" },
+};
 
 export const RISK_META: Record<string, { label: string; badge: string }> = {
   none: { label: "Норма", badge: "bg-green-100 text-green-700" },

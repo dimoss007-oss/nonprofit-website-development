@@ -133,6 +133,19 @@ def handler(event: dict, context) -> dict:
             conn.commit()
             return ok({"child": dict(child)})
 
+        if action == "set_care_stage":
+            pid = body.get("patient_id")
+            stage = body.get("care_stage")
+            if stage not in ("inpatient", "posttreatment"):
+                return err("care_stage должен быть inpatient или posttreatment")
+            cur.execute(
+                f"UPDATE {SCHEMA}.patients SET care_stage=%s, updated_at=NOW() WHERE id=%s RETURNING *",
+                (stage, pid)
+            )
+            patient = cur.fetchone()
+            conn.commit()
+            return ok({"patient": dict(patient)})
+
         cur.execute(
             f"INSERT INTO {SCHEMA}.patients (last_name, first_name, middle_name, alias, birth_date, address, admission_date, discharge_date, case_description, passport_series, passport_number, passport_issued_date, passport_issued_by) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING *",
             (body.get("last_name"), body.get("first_name"), body.get("middle_name"), body.get("alias"),
