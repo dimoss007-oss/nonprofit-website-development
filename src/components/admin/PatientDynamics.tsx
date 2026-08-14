@@ -9,12 +9,15 @@ type DailyReport = {
   patient_id: number;
   author: string;
   report_date: string;
-  mood: number;
-  anxiety: number;
-  sleep: number;
-  appetite: number;
-  social_activity: number;
-  aggression: number;
+  contact_children: number;
+  contact_surroundings: number;
+  contact_staff: number;
+  engagement_level: number;
+  negative_behavior_level: number;
+  positive_thinking_level: number;
+  tasks_completion: number;
+  feelings_diary_usage: number;
+  self_analysis_usage: number;
   notes?: string;
   problems_identified?: string;
   actions_taken?: string;
@@ -24,15 +27,28 @@ type DailyReport = {
   created_at: string;
 };
 
-const EMPTY_SCALES = { mood: 3, anxiety: 3, sleep: 3, appetite: 3, social_activity: 3, aggression: 3 };
+const EMPTY_SCALES = {
+  contact_children: 5,
+  contact_surroundings: 5,
+  contact_staff: 5,
+  engagement_level: 5,
+  negative_behavior_level: 5,
+  positive_thinking_level: 5,
+  tasks_completion: 5,
+  feelings_diary_usage: 5,
+  self_analysis_usage: 5,
+};
 
-const SCALE_META: { key: keyof typeof EMPTY_SCALES; label: string; color: string }[] = [
-  { key: "mood", label: "Настроение", color: "#4f9d69" },
-  { key: "anxiety", label: "Тревожность", color: "#d97706" },
-  { key: "sleep", label: "Сон", color: "#3b82f6" },
-  { key: "appetite", label: "Аппетит", color: "#8b5cf6" },
-  { key: "social_activity", label: "Соц. активность", color: "#06b6d4" },
-  { key: "aggression", label: "Агрессия", color: "#ef4444" },
+const SCALE_META: { key: keyof typeof EMPTY_SCALES; label: string; color: string; gradient?: "yellow-red" | "blue-green" }[] = [
+  { key: "contact_children", label: "Контакт с детьми", color: "#4f9d69" },
+  { key: "contact_surroundings", label: "Контакт с окружающими", color: "#3b82f6" },
+  { key: "contact_staff", label: "Контакт с сотрудниками", color: "#06b6d4" },
+  { key: "engagement_level", label: "Уровень вовлечённости в процесс", color: "#8b5cf6" },
+  { key: "negative_behavior_level", label: "Уровень проявления негативного поведения", color: "#ef4444", gradient: "yellow-red" },
+  { key: "positive_thinking_level", label: "Уровень применения позитивного мышления", color: "#22c55e", gradient: "blue-green" },
+  { key: "tasks_completion", label: "Выполнение основных заданий", color: "#d97706" },
+  { key: "feelings_diary_usage", label: "Применение инструмента «Дневник чувств»", color: "#ec4899" },
+  { key: "self_analysis_usage", label: "Применение инструмента «Самоанализ»", color: "#0ea5e9" },
 ];
 
 const RISK_META = {
@@ -45,21 +61,22 @@ function fmtDate(d: string) {
   return new Date(d).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" });
 }
 
-function ScaleSlider({ label, value, onChange }: { label: string; value: number; onChange: (v: number) => void }) {
+function ScaleSlider({ label, value, onChange, gradient }: { label: string; value: number; onChange: (v: number) => void; gradient?: "yellow-red" | "blue-green" }) {
+  const gradientClass = gradient === "yellow-red" ? "gradient-yellow-red" : gradient === "blue-green" ? "gradient-blue-green" : "";
   return (
     <div>
       <div className="flex items-center justify-between mb-1">
         <label className="text-xs text-ink/60">{label}</label>
-        <span className="text-xs font-semibold text-ink">{value}/5</span>
+        <span className="text-xs font-semibold text-ink">{value}/10</span>
       </div>
       <input
         type="range"
-        min={1}
-        max={5}
+        min={0}
+        max={10}
         step={1}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="w-full accent-sage"
+        className={gradientClass ? `w-full ${gradientClass}` : "w-full accent-sage"}
       />
     </div>
   );
@@ -138,6 +155,7 @@ export default function PatientDynamics({ patientId, authorName }: { patientId: 
               label={s.label}
               value={scales[s.key]}
               onChange={(v) => setScales((prev) => ({ ...prev, [s.key]: v }))}
+              gradient={s.gradient}
             />
           ))}
         </div>
@@ -231,7 +249,7 @@ export default function PatientDynamics({ patientId, authorName }: { patientId: 
             <LineChart data={chartData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e1d8" />
               <XAxis dataKey="date" tick={{ fontSize: 11 }} />
-              <YAxis domain={[1, 5]} ticks={[1, 2, 3, 4, 5]} tick={{ fontSize: 11 }} />
+              <YAxis domain={[0, 10]} ticks={[0, 2, 4, 6, 8, 10]} tick={{ fontSize: 11 }} />
               <Tooltip />
               <Legend wrapperStyle={{ fontSize: 12 }} />
               {SCALE_META.map((s) => (

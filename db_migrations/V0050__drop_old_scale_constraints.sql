@@ -1,0 +1,6 @@
+ALTER TABLE patient_daily_reports DROP CONSTRAINT patient_daily_reports_mood_check;
+ALTER TABLE patient_daily_reports DROP CONSTRAINT patient_daily_reports_anxiety_check;
+ALTER TABLE patient_daily_reports DROP CONSTRAINT patient_daily_reports_sleep_check;
+ALTER TABLE patient_daily_reports DROP CONSTRAINT patient_daily_reports_appetite_check;
+ALTER TABLE patient_daily_reports DROP CONSTRAINT patient_daily_reports_social_activity_check;
+ALTER TABLE patient_daily_reports DROP CONSTRAINT patient_daily_reports_aggression_check;

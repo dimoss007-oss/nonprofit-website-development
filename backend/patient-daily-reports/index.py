@@ -13,19 +13,29 @@ CORS = {
     "Access-Control-Allow-Headers": "Content-Type, X-User-Id, X-Auth-Token",
 }
 
-SCALES = ("mood", "anxiety", "sleep", "appetite", "social_activity", "aggression")
-# Для этих шкал НИЗКОЕ значение — тревожный сигнал (плохое настроение, сон, аппетит, соц. активность)
-LOW_IS_BAD = ("mood", "sleep", "appetite", "social_activity")
-# Для этих шкал ВЫСОКОЕ значение — тревожный сигнал (тревожность, агрессия)
-HIGH_IS_BAD = ("anxiety", "aggression")
+SCALES = (
+    "contact_children", "contact_surroundings", "contact_staff", "engagement_level",
+    "negative_behavior_level", "positive_thinking_level", "tasks_completion",
+    "feelings_diary_usage", "self_analysis_usage",
+)
+# Для этих шкал НИЗКОЕ значение — тревожный сигнал (мало контакта, вовлечённости, позитивного мышления и т.д.)
+LOW_IS_BAD = (
+    "contact_children", "contact_surroundings", "contact_staff", "engagement_level",
+    "positive_thinking_level", "tasks_completion", "feelings_diary_usage", "self_analysis_usage",
+)
+# Для этих шкал ВЫСОКОЕ значение — тревожный сигнал (негативное поведение)
+HIGH_IS_BAD = ("negative_behavior_level",)
 
 LABELS = {
-    "mood": "Настроение",
-    "anxiety": "Тревожность",
-    "sleep": "Сон",
-    "appetite": "Аппетит",
-    "social_activity": "Социальная активность",
-    "aggression": "Агрессия",
+    "contact_children": "Контакт с детьми",
+    "contact_surroundings": "Контакт с окружающими",
+    "contact_staff": "Контакт с сотрудниками",
+    "engagement_level": "Уровень вовлечённости в процесс",
+    "negative_behavior_level": "Уровень проявления негативного поведения",
+    "positive_thinking_level": "Уровень применения позитивного мышления",
+    "tasks_completion": "Выполнение основных заданий",
+    "feelings_diary_usage": "Применение инструмента «Дневник чувств»",
+    "self_analysis_usage": "Применение инструмента «Самоанализ»",
 }
 
 
@@ -42,24 +52,26 @@ def err(msg, status=400):
 
 
 def calc_risk(report: dict, history: list) -> tuple:
-    """Считает маркеры риска по прозрачным правилам: критические разовые значения + устойчивый тренд ухудшения за последние 3 дня."""
+    """Считает маркеры риска по прозрачным правилам: критические разовые значения + устойчивый тренд ухудшения за последние 3 дня. Шкала 0-10."""
     markers = []
 
     for scale in LOW_IS_BAD:
         v = report[scale]
-        if v <= 1:
-            markers.append(f"{LABELS[scale]}: критически низкий показатель ({v}/5)")
-        elif v == 2:
-            markers.append(f"{LABELS[scale]}: сниженный показатель ({v}/5)")
+        if v <= 2:
+            markers.append(f"{LABELS[scale]}: критически низкий показатель ({v}/10)")
+        elif v <= 4:
+            markers.append(f"{LABELS[scale]}: сниженный показатель ({v}/10)")
 
     for scale in HIGH_IS_BAD:
         v = report[scale]
-        if v >= 5:
-            markers.append(f"{LABELS[scale]}: критически высокий показатель ({v}/5)")
-        elif v == 4:
-            markers.append(f"{LABELS[scale]}: повышенный показатель ({v}/5)")
+        if v >= 9:
+            markers.append(f"{LABELS[scale]}: критически высокий показатель ({v}/10)")
+        elif v >= 7:
+            markers.append(f"{LABELS[scale]}: повышенный показатель ({v}/10)")
 
-    recent = history[-3:] if len(history) >= 3 else []
+    # Историю берём только из отчётов, где уже заполнены новые шкалы (старые записи пропускаем)
+    recent_full = [r for r in history if all(r.get(s) is not None for s in SCALES)]
+    recent = recent_full[-3:] if len(recent_full) >= 3 else []
     if len(recent) == 3:
         for scale in LOW_IS_BAD:
             vals = [r[scale] for r in recent] + [report[scale]]
@@ -70,7 +82,7 @@ def calc_risk(report: dict, history: list) -> tuple:
             if all(vals[i] <= vals[i + 1] for i in range(len(vals) - 1)) and vals[0] < vals[-1]:
                 markers.append(f"{LABELS[scale]}: устойчивый рост 3+ дня подряд")
 
-    has_critical = any(report[s] <= 1 for s in LOW_IS_BAD) or any(report[s] >= 5 for s in HIGH_IS_BAD)
+    has_critical = any(report[s] <= 2 for s in LOW_IS_BAD) or any(report[s] >= 9 for s in HIGH_IS_BAD)
     has_trend = any("устойчив" in m for m in markers)
 
     if has_critical:
@@ -97,8 +109,8 @@ def route_create(event: dict) -> dict:
     scale_values = {}
     for scale in SCALES:
         v = body.get(scale)
-        if v is None or not isinstance(v, int) or not (1 <= v <= 5):
-            return err(f"Поле {scale} должно быть целым числом от 1 до 5")
+        if v is None or not isinstance(v, int) or not (0 <= v <= 10):
+            return err(f"Поле {scale} должно быть целым числом от 0 до 10")
         scale_values[scale] = v
 
     notes = (body.get("notes") or "").strip()
@@ -122,20 +134,28 @@ def route_create(event: dict) -> dict:
 
     cur.execute(
         f"""INSERT INTO {SCHEMA}.patient_daily_reports
-            (patient_id, author, report_date, mood, anxiety, sleep, appetite, social_activity, aggression, notes, risk_markers, risk_level, problems_identified, actions_taken, results)
-            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+            (patient_id, author, report_date, mood, anxiety, sleep, appetite, social_activity, aggression,
+             contact_children, contact_surroundings, contact_staff, engagement_level, negative_behavior_level,
+             positive_thinking_level, tasks_completion, feelings_diary_usage, self_analysis_usage,
+             notes, risk_markers, risk_level, problems_identified, actions_taken, results)
+            VALUES (%s,%s,%s,0,0,0,0,0,0,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
             ON CONFLICT (patient_id, report_date, author) DO UPDATE SET
-                mood=EXCLUDED.mood, anxiety=EXCLUDED.anxiety, sleep=EXCLUDED.sleep,
-                appetite=EXCLUDED.appetite, social_activity=EXCLUDED.social_activity,
-                aggression=EXCLUDED.aggression, notes=EXCLUDED.notes,
+                contact_children=EXCLUDED.contact_children, contact_surroundings=EXCLUDED.contact_surroundings,
+                contact_staff=EXCLUDED.contact_staff, engagement_level=EXCLUDED.engagement_level,
+                negative_behavior_level=EXCLUDED.negative_behavior_level,
+                positive_thinking_level=EXCLUDED.positive_thinking_level,
+                tasks_completion=EXCLUDED.tasks_completion, feelings_diary_usage=EXCLUDED.feelings_diary_usage,
+                self_analysis_usage=EXCLUDED.self_analysis_usage, notes=EXCLUDED.notes,
                 risk_markers=EXCLUDED.risk_markers, risk_level=EXCLUDED.risk_level,
                 problems_identified=EXCLUDED.problems_identified, actions_taken=EXCLUDED.actions_taken,
                 results=EXCLUDED.results
             RETURNING *""",
         (
             patient_id, author, report_date,
-            scale_values["mood"], scale_values["anxiety"], scale_values["sleep"],
-            scale_values["appetite"], scale_values["social_activity"], scale_values["aggression"],
+            scale_values["contact_children"], scale_values["contact_surroundings"], scale_values["contact_staff"],
+            scale_values["engagement_level"], scale_values["negative_behavior_level"],
+            scale_values["positive_thinking_level"], scale_values["tasks_completion"],
+            scale_values["feelings_diary_usage"], scale_values["self_analysis_usage"],
             notes, json.dumps(markers), risk_level, problems_identified, actions_taken, results,
         ),
     )
