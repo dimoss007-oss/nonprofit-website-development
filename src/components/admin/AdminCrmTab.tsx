@@ -23,6 +23,7 @@ export default function AdminCrmTab({ isAdmin = true, authorName = "Сотруд
   useEffect(() => { loadPatients(); }, []);
 
   const stagePatients = allPatients.filter(p => (p.care_stage ?? "inpatient") === careStage);
+  const postTreatmentCount = allPatients.filter(p => p.care_stage === "posttreatment").length;
 
   const q = search.toLowerCase();
   const patients = search
@@ -54,6 +55,7 @@ export default function AdminCrmTab({ isAdmin = true, authorName = "Сотруд
       saving={saving}
       careStage={careStage}
       setCareStage={setCareStage}
+      postTreatmentCount={postTreatmentCount}
       onCreatePatient={createPatient}
       onSelect={setSelectedId}
     />

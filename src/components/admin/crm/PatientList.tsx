@@ -5,7 +5,7 @@ import { PatientForm } from "@/components/admin/crm/PatientFormParts";
 
 export default function PatientList({
   allPatients, patients, loading, search, setSearch, adding, setAdding, saving,
-  careStage, setCareStage, onCreatePatient, onSelect,
+  careStage, setCareStage, postTreatmentCount, onCreatePatient, onSelect,
 }: {
   allPatients: Patient[];
   patients: Patient[];
@@ -17,6 +17,7 @@ export default function PatientList({
   saving: boolean;
   careStage: CareStage;
   setCareStage: (v: CareStage) => void;
+  postTreatmentCount: number;
   onCreatePatient: (form: typeof EMPTY_FORM) => void;
   onSelect: (id: number) => void;
 }) {
@@ -41,10 +42,14 @@ export default function PatientList({
       </Tabs>
 
       {allPatients.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           <div className="bg-white border border-green-200 rounded-2xl px-4 py-3.5 text-center">
             <p className="font-cormorant text-3xl font-semibold text-green-700">{inCenter.length}</p>
             <p className="text-xs text-ink/50 mt-0.5">{plural(inCenter.length, "пациентка", "пациентки", "пациенток")} в центре</p>
+          </div>
+          <div className="bg-white border border-blue-200 rounded-2xl px-4 py-3.5 text-center">
+            <p className="font-cormorant text-3xl font-semibold text-blue-700">{postTreatmentCount}</p>
+            <p className="text-xs text-ink/50 mt-0.5">на постлечебке</p>
           </div>
           <div className="bg-white border border-beige-dark rounded-2xl px-4 py-3.5 text-center">
             <p className="font-cormorant text-3xl font-semibold text-ink">{totalChildren}</p>
