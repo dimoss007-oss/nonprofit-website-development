@@ -10,7 +10,7 @@ type Child = { id: number; last_name?: string; first_name: string; middle_name?:
 type Document = { id: number; file_name: string; file_url: string; file_type?: string; file_size?: number; uploaded_at: string };
 type RiskLevel = "none" | "attention" | "high" | null | undefined;
 type Patient = {
-  id: number; last_name: string; first_name: string; middle_name?: string;
+  id: number; last_name: string; first_name: string; middle_name?: string; alias?: string;
   birth_date?: string; address?: string; admission_date?: string; discharge_date?: string;
   case_description?: string; created_at: string; children_count?: number;
   passport_series?: string; passport_number?: string;
@@ -59,7 +59,7 @@ function stayDuration(admission?: string, discharge?: string): string | null {
   return parts.join(" ");
 }
 
-const EMPTY_FORM = { last_name: "", first_name: "", middle_name: "", birth_date: "", address: "", admission_date: "", discharge_date: "", case_description: "", passport_series: "", passport_number: "", passport_issued_date: "", passport_issued_by: "" };
+const EMPTY_FORM = { last_name: "", first_name: "", middle_name: "", alias: "", birth_date: "", address: "", admission_date: "", discharge_date: "", case_description: "", passport_series: "", passport_number: "", passport_issued_date: "", passport_issued_by: "" };
 
 function PatientForm({ initial, onSave, onCancel, loading }: { initial?: Partial<typeof EMPTY_FORM>; onSave: (data: typeof EMPTY_FORM) => void; onCancel: () => void; loading: boolean }) {
   const [form, setForm] = useState({ ...EMPTY_FORM, ...initial });
@@ -71,6 +71,7 @@ function PatientForm({ initial, onSave, onCancel, loading }: { initial?: Partial
         <div><label className="text-xs text-ink/50 mb-1 block">Имя *</label><input value={form.first_name} onChange={set("first_name")} className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" /></div>
         <div><label className="text-xs text-ink/50 mb-1 block">Отчество</label><input value={form.middle_name} onChange={set("middle_name")} className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" /></div>
       </div>
+      <div><label className="text-xs text-ink/50 mb-1 block">Псевдоним</label><input value={form.alias} onChange={set("alias")} placeholder="Для внутреннего использования" className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" /></div>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div><label className="text-xs text-ink/50 mb-1 block">Дата рождения</label><input type="date" value={form.birth_date} onChange={set("birth_date")} className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" /></div>
         <div><label className="text-xs text-ink/50 mb-1 block">Дата поступления</label><input type="date" value={form.admission_date} onChange={set("admission_date")} className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" /></div>
@@ -310,7 +311,10 @@ function PatientCard({ patientId, onBack, onDeleted, isAdmin, authorName }: { pa
             </span>
             <RiskBadge level={latest_risk_level} />
           </div>
-          <p className="text-ink/50 text-sm">Поступила: {fmt(patient.admission_date)}</p>
+          <p className="text-ink/50 text-sm">
+            {patient.alias && <span className="text-ink/70">Псевдоним: {patient.alias} · </span>}
+            Поступила: {fmt(patient.admission_date)}
+          </p>
         </div>
         <button onClick={() => setEditing(e => !e)} className="px-3 py-1.5 text-sm border border-beige-dark rounded-lg hover:border-ink transition-colors flex items-center gap-1.5">
           <Icon name="Pencil" size={14} /> Редактировать
@@ -334,7 +338,7 @@ function PatientCard({ patientId, onBack, onDeleted, isAdmin, authorName }: { pa
       {editing && (
         <div className="bg-white border border-beige-dark rounded-2xl p-6">
           <h3 className="font-semibold text-ink mb-4">Редактирование</h3>
-          <PatientForm initial={{ last_name: patient.last_name, first_name: patient.first_name, middle_name: patient.middle_name ?? "", birth_date: patient.birth_date?.slice(0, 10) ?? "", address: patient.address ?? "", admission_date: patient.admission_date?.slice(0, 10) ?? "", discharge_date: patient.discharge_date?.slice(0, 10) ?? "", case_description: patient.case_description ?? "", passport_series: patient.passport_series ?? "", passport_number: patient.passport_number ?? "", passport_issued_date: patient.passport_issued_date?.slice(0, 10) ?? "", passport_issued_by: patient.passport_issued_by ?? "" }} onSave={save} onCancel={() => setEditing(false)} loading={saving} />
+          <PatientForm initial={{ last_name: patient.last_name, first_name: patient.first_name, middle_name: patient.middle_name ?? "", alias: patient.alias ?? "", birth_date: patient.birth_date?.slice(0, 10) ?? "", address: patient.address ?? "", admission_date: patient.admission_date?.slice(0, 10) ?? "", discharge_date: patient.discharge_date?.slice(0, 10) ?? "", case_description: patient.case_description ?? "", passport_series: patient.passport_series ?? "", passport_number: patient.passport_number ?? "", passport_issued_date: patient.passport_issued_date?.slice(0, 10) ?? "", passport_issued_by: patient.passport_issued_by ?? "" }} onSave={save} onCancel={() => setEditing(false)} loading={saving} />
         </div>
       )}
 
@@ -360,6 +364,7 @@ function PatientCard({ patientId, onBack, onDeleted, isAdmin, authorName }: { pa
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="bg-white border border-beige-dark rounded-2xl p-5 space-y-3">
               <h3 className="font-semibold text-ink text-sm uppercase tracking-wide">Личные данные</h3>
+              <Row label="Псевдоним" value={patient.alias || "—"} />
               <Row label="Дата рождения" value={fmt(patient.birth_date)} />
               <Row label="Прописка" value={patient.address || "—"} />
               <Row label="Дата поступления" value={fmt(patient.admission_date)} />
@@ -534,7 +539,7 @@ export default function AdminCrmTab({ isAdmin = true, authorName = "Сотруд
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <p className="font-semibold text-ink">{p.last_name} {p.first_name} {p.middle_name ?? ""}</p>
+                      <p className="font-semibold text-ink">{p.last_name} {p.first_name} {p.middle_name ?? ""}{p.alias && <span className="font-normal text-ink/40"> ({p.alias})</span>}</p>
                       <span className={`text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0 ${p.discharge_date ? "bg-beige-dark text-ink/40" : "bg-green-100 text-green-700"}`}>
                         {p.discharge_date ? "Выписана" : "В центре"}
                       </span>
