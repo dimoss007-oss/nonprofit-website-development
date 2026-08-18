@@ -19,18 +19,18 @@ export default function ChildrenList({
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="font-cormorant text-ink text-2xl font-semibold">Дети пациенток</h2>
+        <h2 className="font-cormorant text-ink text-2xl font-semibold">Дети в стационаре</h2>
       </div>
 
       {children.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          <div className="bg-white border border-beige-dark rounded-2xl px-4 py-3.5 text-center">
-            <p className="font-cormorant text-3xl font-semibold text-ink">{children.length}</p>
-            <p className="text-xs text-ink/50 mt-0.5">{plural(children.length, "ребёнок", "ребёнка", "детей")} всего</p>
-          </div>
           <div className="bg-white border border-green-200 rounded-2xl px-4 py-3.5 text-center">
-            <p className="font-cormorant text-3xl font-semibold text-green-700">{children.filter(c => !c.patient_discharge_date).length}</p>
-            <p className="text-xs text-ink/50 mt-0.5">мамы в центре</p>
+            <p className="font-cormorant text-3xl font-semibold text-green-700">{children.length}</p>
+            <p className="text-xs text-ink/50 mt-0.5">{plural(children.length, "ребёнок", "ребёнка", "детей")} с мамами в центре</p>
+          </div>
+          <div className="bg-white border border-beige-dark rounded-2xl px-4 py-3.5 text-center">
+            <p className="font-cormorant text-3xl font-semibold text-ink">{children.filter(c => typeof c.latest_avg_score === "number").length}</p>
+            <p className="text-xs text-ink/50 mt-0.5">есть отчёты</p>
           </div>
           <div className="bg-white border border-red-200 rounded-2xl px-4 py-3.5 text-center">
             <p className="font-cormorant text-3xl font-semibold text-red-600">{children.filter(c => typeof c.latest_avg_score === "number" && c.latest_avg_score < 5).length}</p>

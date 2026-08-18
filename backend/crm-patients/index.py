@@ -242,6 +242,7 @@ def handler(event: dict, context) -> dict:
                        p.middle_name AS patient_middle_name, p.alias AS patient_alias, p.discharge_date AS patient_discharge_date
                 FROM {SCHEMA}.patient_children c
                 JOIN {SCHEMA}.patients p ON p.id = c.patient_id
+                WHERE p.discharge_date IS NULL AND (p.care_stage IS NULL OR p.care_stage = 'inpatient')
                 ORDER BY c.last_name, c.first_name
             """)
             all_children = [dict(c) for c in cur.fetchall()]
