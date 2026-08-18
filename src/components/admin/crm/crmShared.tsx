@@ -5,6 +5,7 @@ export const CHILD_REPORTS_API = "https://functions.poehali.dev/5c7a56b7-8b5d-45
 export type Child = {
   id: number; last_name?: string; first_name: string; middle_name?: string; birth_date?: string; photo_url?: string;
   previous_education?: string; current_education?: string; extracurriculars?: string; current_age?: number;
+  latest_avg_score?: number;
 };
 export type Document = { id: number; file_name: string; file_url: string; file_type?: string; file_size?: number; uploaded_at: string };
 export type RiskLevel = "none" | "attention" | "high" | null | undefined;

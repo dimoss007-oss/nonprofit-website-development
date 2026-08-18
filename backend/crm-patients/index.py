@@ -123,7 +123,33 @@ def handler(event: dict, context) -> dict:
                 f"SELECT *, EXTRACT(YEAR FROM AGE(CURRENT_DATE, birth_date))::int AS current_age FROM {SCHEMA}.patient_children WHERE patient_id = %s ORDER BY birth_date",
                 (patient_id,)
             )
-            children = cur.fetchall()
+            children = [dict(c) for c in cur.fetchall()]
+
+            child_scales = (
+                "scale_emotional", "scale_stress", "scale_sociability", "scale_activity",
+                "scale_contact_mother", "scale_contact_peers", "scale_academic", "scale_work",
+                "scale_attention", "scale_discipline",
+            )
+            child_ids = [c["id"] for c in children]
+            latest_scores = {}
+            if child_ids:
+                try:
+                    cur.execute(
+                        f"""SELECT DISTINCT ON (child_id) * FROM {SCHEMA}.child_daily_reports
+                            WHERE child_id = ANY(%s)
+                            ORDER BY child_id, report_date DESC, created_at DESC""",
+                        (child_ids,)
+                    )
+                    latest_reports = cur.fetchall()
+                    for r in latest_reports:
+                        values = [r[s] for s in child_scales if r.get(s) is not None]
+                        latest_scores[r["child_id"]] = round(sum(values) / len(values), 1) if values else None
+                except errors.UndefinedTable:
+                    conn.rollback()
+
+            for c in children:
+                c["latest_avg_score"] = latest_scores.get(c["id"])
+
             cur.execute(f"SELECT * FROM {SCHEMA}.patient_documents WHERE patient_id = %s ORDER BY uploaded_at DESC", (patient_id,))
             documents = cur.fetchall()
             cur.execute(
@@ -146,7 +172,7 @@ def handler(event: dict, context) -> dict:
 
             return ok({
                 "patient": dict(patient),
-                "children": [dict(c) for c in children],
+                "children": children,
                 "documents": [dict(d) for d in documents],
                 "latest_risk_level": latest_dynamics["risk_level"] if latest_dynamics else None,
                 "tasks": [dict(t) for t in tasks],

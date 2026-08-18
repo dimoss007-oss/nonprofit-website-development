@@ -136,6 +136,11 @@ export function ChildRow({ child, onUpdate, onDelete, onUploadPhoto, isAdmin, au
       <div className="flex items-center gap-2 mt-2 ml-12">
         <button onClick={() => setReportsOpen(true)} className="text-xs px-2.5 py-1 rounded-lg border border-beige-dark text-ink/60 hover:text-ink hover:border-ink transition-colors flex items-center gap-1">
           <Icon name="ClipboardList" size={12} /> Ежедневные отчёты
+          {typeof child.latest_avg_score === "number" && (
+            <span className={`ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold ${
+              child.latest_avg_score >= 8 ? "bg-green-100 text-green-700" : child.latest_avg_score >= 5 ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-700"
+            }`}>{child.latest_avg_score}</span>
+          )}
         </button>
         <button disabled className="text-xs px-2.5 py-1 rounded-lg border border-beige-dark text-ink/40 flex items-center gap-1 cursor-not-allowed" title="Скоро">
           <Icon name="ListChecks" size={12} /> Задачи
