@@ -33,6 +33,8 @@ export type ChildDailyReport = ChildScales & {
   id: number; child_id: number; author?: string; report_date: string;
   identified_problems?: string; taken_actions?: string; results?: string; created_at: string;
 };
+export type ChildAiSummary = { id: number; child_id: number; summary_text: string; created_at: string };
+
 export const CHILD_SCALE_META: { key: keyof ChildScales; label: string }[] = [
   { key: "scale_emotional", label: "Эмоциональный фон" },
   { key: "scale_stress", label: "Стрессоустойчивость" },

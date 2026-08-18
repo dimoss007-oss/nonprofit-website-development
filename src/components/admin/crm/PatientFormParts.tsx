@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import Icon from "@/components/ui/icon";
 import { Child, EMPTY_FORM, fmt } from "@/components/admin/crm/crmShared";
 import ChildDailyReportsModal from "@/components/admin/crm/ChildDailyReportsModal";
+import ChildDynamicsModal from "@/components/admin/crm/ChildDynamicsModal";
 
 export function PatientForm({ initial, onSave, onCancel, loading }: { initial?: Partial<typeof EMPTY_FORM>; onSave: (data: typeof EMPTY_FORM) => void; onCancel: () => void; loading: boolean }) {
   const [form, setForm] = useState({ ...EMPTY_FORM, ...initial });
@@ -69,6 +70,7 @@ export function ChildRow({ child, onUpdate, onDelete, onUploadPhoto, isAdmin, au
   const [editing, setEditing] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [reportsOpen, setReportsOpen] = useState(false);
+  const [dynamicsOpen, setDynamicsOpen] = useState(false);
   const [form, setForm] = useState({
     last_name: child.last_name ?? "", first_name: child.first_name, middle_name: child.middle_name ?? "", birth_date: child.birth_date?.slice(0, 10) ?? "",
     previous_education: child.previous_education ?? "", current_education: child.current_education ?? "", extracurriculars: child.extracurriculars ?? "",
@@ -155,10 +157,16 @@ export function ChildRow({ child, onUpdate, onDelete, onUploadPhoto, isAdmin, au
         <button disabled className="text-xs px-2.5 py-1 rounded-lg border border-beige-dark text-ink/40 flex items-center gap-1 cursor-not-allowed" title="Скоро">
           <Icon name="ListChecks" size={12} /> Задачи
         </button>
-        <button disabled className="text-xs px-2.5 py-1 rounded-lg border border-beige-dark text-ink/40 flex items-center gap-1 cursor-not-allowed" title="Скоро">
+        <button onClick={() => setDynamicsOpen(true)} className="text-xs px-2.5 py-1 rounded-lg border border-beige-dark text-ink/60 hover:text-ink hover:border-ink transition-colors flex items-center gap-1">
           <Icon name="TrendingUp" size={12} /> Динамика
         </button>
       </div>
+      <ChildDynamicsModal
+        childId={child.id}
+        childName={[child.last_name, child.first_name, child.middle_name].filter(Boolean).join(" ")}
+        open={dynamicsOpen}
+        onClose={() => setDynamicsOpen(false)}
+      />
       <ChildDailyReportsModal
         childId={child.id}
         childName={[child.last_name, child.first_name, child.middle_name].filter(Boolean).join(" ")}

@@ -101,6 +101,100 @@ def analyze_patient_data(cur, patient_id, schema, alias, days=7):
     return result_text
 
 
+def analyze_child_data(cur, child_id, schema, days=7):
+    """Локальный генератор текстовой сводки по ребёнку на основе шаблонов, шкал и ключевых слов (без внешних ИИ-сервисов)."""
+    cur.execute(f"""
+        SELECT * FROM {schema}.child_daily_reports
+        WHERE child_id = %s
+          AND report_date >= CURRENT_DATE - %s::interval
+        ORDER BY report_date ASC
+    """, (child_id, f"{days} days"))
+    reports = cur.fetchall()
+
+    if not reports:
+        return "Недостаточно данных за выбранный период для формирования аналитической сводки."
+
+    dict_problems = ['плач', 'истерик', 'каприз', 'агрес', 'страх', 'тревож', 'замкнут', 'конфликт']
+    dict_actions = ['игр', 'бесед', 'успоко', 'отвлек', 'поощр', 'вниман', 'психолог']
+    dict_results_pos = ['успоко', 'улыб', 'контакт', 'вовлеч', 'интерес']
+    dict_results_neg = ['отказ', 'игнор', 'продолж']
+
+    found_problems = set()
+    found_actions = set()
+    pos_results = 0
+    neg_results = 0
+
+    def avg_scale(field):
+        vals = [r[field] for r in reports if r.get(field) is not None]
+        return (sum(vals) / len(vals)) if vals else None
+
+    for r in reports:
+        p_text = (r.get("identified_problems") or "").lower()
+        a_text = (r.get("taken_actions") or "").lower()
+        res_text = (r.get("results") or "").lower()
+
+        for word in dict_problems:
+            if word in p_text or word in a_text or word in res_text:
+                found_problems.add(word)
+        for word in dict_actions:
+            if word in a_text:
+                found_actions.add(word)
+        for word in dict_results_pos:
+            if word in res_text:
+                pos_results += 1
+        for word in dict_results_neg:
+            if word in res_text:
+                neg_results += 1
+
+    avg_emotional = avg_scale("scale_emotional")
+    if avg_emotional is not None:
+        if avg_emotional >= 8:
+            emotional_phrase = "ребёнок демонстрировал позитивный эмоциональный фон"
+        elif avg_emotional >= 5:
+            emotional_phrase = "ребёнок эмоционально стабилен"
+        else:
+            emotional_phrase = "у ребёнка наблюдается эмоциональная нестабильность/подавленность"
+    else:
+        emotional_phrase = "эмоциональное состояние ребёнка требует дополнительной оценки"
+
+    scale_notes = []
+
+    avg_contact_mother = avg_scale("scale_contact_mother")
+    if avg_contact_mother is not None and avg_contact_mother < 5:
+        scale_notes.append("Зафиксированы сложности в контакте с матерью.")
+
+    discipline_vals = [r["scale_discipline"] for r in reports if r.get("scale_discipline") is not None]
+    academic_vals = [r["scale_academic"] for r in reports if r.get("scale_academic") is not None]
+    if discipline_vals and academic_vals:
+        avg_disc_acad = (sum(discipline_vals) / len(discipline_vals) + sum(academic_vals) / len(academic_vals)) / 2
+        if avg_disc_acad < 5:
+            scale_notes.append("Отмечаются проблемы с дисциплиной и успеваемостью.")
+
+    problems_part = f"В записях воспитателей отмечались триггеры: {', '.join(found_problems)}." if found_problems else ""
+    actions_part = f"Применялись методы: {', '.join(found_actions)}." if found_actions else ""
+
+    results_part = ""
+    if pos_results > 0 or neg_results > 0:
+        if pos_results > neg_results:
+            results_part = "Реакция преимущественно положительная."
+        elif neg_results > pos_results:
+            results_part = "Зафиксировано сопротивление или отсутствие реакции."
+        else:
+            results_part = "Реакция смешанная."
+
+    text = f"За последние {days} дней {emotional_phrase}."
+    if scale_notes:
+        text += " " + " ".join(scale_notes)
+    if problems_part:
+        text += " " + problems_part
+    if actions_part:
+        text += " " + actions_part
+    if results_part:
+        text += " " + results_part
+
+    return text
+
+
 def handler(event: dict, context) -> dict:
     """CRM: управление пациентами. GET /? — список, GET /?id=N — карточка, POST / — создать, PUT /?id=N — обновить"""
     if event.get("httpMethod") == "OPTIONS":
@@ -109,11 +203,24 @@ def handler(event: dict, context) -> dict:
     method = event.get("httpMethod", "GET")
     params = event.get("queryStringParameters") or {}
     patient_id = params.get("id")
+    child_id_param = params.get("child_id")
 
     conn = get_conn()
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
     if method == "GET":
+        if child_id_param:
+            summaries = []
+            try:
+                cur.execute(
+                    f"SELECT id, child_id, summary_text, created_at FROM {SCHEMA}.child_ai_summaries WHERE child_id = %s ORDER BY created_at DESC",
+                    (child_id_param,)
+                )
+                summaries = cur.fetchall()
+            except errors.UndefinedTable:
+                conn.rollback()
+            return ok({"summaries": [dict(s) for s in summaries]})
+
         if patient_id:
             cur.execute(f"SELECT * FROM {SCHEMA}.patients WHERE id = %s", (patient_id,))
             patient = cur.fetchone()
@@ -327,6 +434,27 @@ def handler(event: dict, context) -> dict:
             cur.execute(
                 f"INSERT INTO {SCHEMA}.patient_ai_summaries (patient_id, summary_text) VALUES (%s, %s) RETURNING id, patient_id, summary_text, created_at",
                 (pid, summary_text)
+            )
+            summary = cur.fetchone()
+            conn.commit()
+            return ok({"summary": dict(summary)}, 201)
+
+        if action == "generate_child_summary":
+            child_id = body.get("child_id")
+            if not child_id:
+                return err("Поле child_id обязательно")
+            summary_text = analyze_child_data(cur, child_id, SCHEMA, days=7)
+            return ok({"summary": summary_text})
+
+        if action == "save_child_summary":
+            child_id = body.get("child_id")
+            summary_text = (body.get("summary_text") or "").strip()
+            if not child_id or not summary_text:
+                return err("Поля child_id и summary_text обязательны")
+
+            cur.execute(
+                f"INSERT INTO {SCHEMA}.child_ai_summaries (child_id, summary_text) VALUES (%s, %s) RETURNING id, child_id, summary_text, created_at",
+                (child_id, summary_text)
             )
             summary = cur.fetchone()
             conn.commit()
