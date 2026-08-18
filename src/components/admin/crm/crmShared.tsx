@@ -16,7 +16,8 @@ export type Patient = {
 export type TaskStatus = "active" | "completed";
 export type TaskType = "main" | "additional";
 export type PatientTask = { id: number; patient_id: number; description: string; deadline?: string; status: TaskStatus; created_at: string; completed_at?: string; task_type: TaskType };
-export type PatientFull = { patient: Patient; children: Child[]; documents: Document[]; latest_risk_level?: RiskLevel; tasks?: PatientTask[] };
+export type AiSummary = { id: number; patient_id: number; summary_text: string; created_at: string };
+export type PatientFull = { patient: Patient; children: Child[]; documents: Document[]; latest_risk_level?: RiskLevel; tasks?: PatientTask[]; advanced_local_summary?: string; saved_summaries?: AiSummary[] };
 
 export const CARE_STAGE_META: Record<CareStage, { label: string }> = {
   inpatient: { label: "Стационар" },
@@ -38,6 +39,10 @@ export function RiskBadge({ level }: { level: RiskLevel }) {
 export function fmt(d?: string) {
   if (!d) return "—";
   return new Date(d).toLocaleDateString("ru-RU");
+}
+export function fmtDateTime(d?: string) {
+  if (!d) return "—";
+  return new Date(d).toLocaleString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 export function fmtSize(bytes?: number) {
   if (!bytes) return "";

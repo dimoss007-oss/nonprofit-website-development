@@ -3,6 +3,7 @@ import Icon from "@/components/ui/icon";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import PatientDynamics from "@/components/admin/PatientDynamics";
 import PatientTasks from "@/components/admin/crm/PatientTasks";
+import PatientAiSummary from "@/components/admin/crm/PatientAiSummary";
 import { API, UPLOAD_API, Child, PatientFull, EMPTY_FORM, RiskBadge, fmt, fmtSize, stayDuration, CARE_STAGE_META } from "@/components/admin/crm/crmShared";
 import { PatientForm, ChildForm, ChildRow, Row } from "@/components/admin/crm/PatientFormParts";
 
@@ -198,6 +199,7 @@ export default function PatientCard({ patientId, onBack, onDeleted, isAdmin, aut
           <TabsTrigger value="dynamics">Динамика</TabsTrigger>
           <TabsTrigger value="tasks">Основное задание</TabsTrigger>
           <TabsTrigger value="additional-tasks">Доп. задание</TabsTrigger>
+          <TabsTrigger value="ai-summary">Аналитическая сводка</TabsTrigger>
         </TabsList>
 
         <TabsContent value="data" className="space-y-6 mt-4">
@@ -300,6 +302,10 @@ export default function PatientCard({ patientId, onBack, onDeleted, isAdmin, aut
 
         <TabsContent value="additional-tasks" className="mt-4">
           <PatientTasks patientId={patientId} tasks={tasks ?? []} taskType="additional" onChanged={() => load()} />
+        </TabsContent>
+
+        <TabsContent value="ai-summary" className="mt-4">
+          <PatientAiSummary patientId={patientId} currentSummary={data.advanced_local_summary} savedSummaries={data.saved_summaries ?? []} onChanged={() => load()} />
         </TabsContent>
       </Tabs>
     </div>
