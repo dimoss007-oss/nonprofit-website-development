@@ -3,6 +3,7 @@ import os
 from datetime import date
 import psycopg2
 from psycopg2.extras import RealDictCursor
+from psycopg2 import errors
 
 SCHEMA = os.environ.get("MAIN_DB_SCHEMA", "public")
 
@@ -20,6 +21,85 @@ def ok(data, status=200):
 
 def err(msg, status=400):
     return {"statusCode": status, "headers": {**CORS, "Content-Type": "application/json"}, "body": json.dumps({"error": msg})}
+
+def analyze_patient_data(cur, patient_id, schema, alias, days=7):
+    """Локальный генератор текстовой сводки на основе шаблонов и ключевых слов (без внешних ИИ-сервисов)."""
+    cur.execute(f"""
+        SELECT * FROM {schema}.patient_daily_reports
+        WHERE patient_id = %s
+          AND report_date >= CURRENT_DATE - %s::interval
+        ORDER BY report_date ASC
+    """, (patient_id, f"{days} days"))
+    reports = cur.fetchall()
+
+    if not reports:
+        return "Недостаточно данных за выбранный период для формирования аналитической сводки."
+
+    dict_problems = ['сон', 'аппетит', 'агрес', 'апат', 'конфликт', 'тяг', 'саботаж', 'ссор']
+    dict_actions = ['бесед', 'групп', 'психолог', 'дневник', 'задани', 'отстран']
+    dict_results_pos = ['осозна', 'успоко', 'стабил', 'принял', 'соглас']
+    dict_results_neg = ['отказ', 'игнор', 'отрица']
+
+    found_problems = set()
+    found_actions = set()
+    pos_results = 0
+    neg_results = 0
+
+    overall_sum = 0
+    overall_count = 0
+
+    for r in reports:
+        p_text = (r.get("problems_identified") or "").lower()
+        a_text = (r.get("actions_taken") or "").lower()
+        res_text = (r.get("results") or "").lower()
+
+        for word in dict_problems:
+            if word in p_text or word in a_text or word in res_text:
+                found_problems.add(word)
+        for word in dict_actions:
+            if word in a_text:
+                found_actions.add(word)
+        for word in dict_results_pos:
+            if word in res_text:
+                pos_results += 1
+        for word in dict_results_neg:
+            if word in res_text:
+                neg_results += 1
+
+        score = r.get("overall_state")
+        if score is not None:
+            overall_sum += score
+            overall_count += 1
+
+    text_blocks = []
+
+    if overall_count > 0:
+        avg_state = overall_sum / overall_count
+        if avg_state >= 8:
+            text_blocks.append("находилась в стабильно приподнятом настроении")
+        elif avg_state >= 5:
+            text_blocks.append("демонстрировала ровный эмоциональный фон")
+        else:
+            text_blocks.append("эмоциональный фон был преимущественно подавленным")
+    else:
+        text_blocks.append("состояние требует дополнительной оценки")
+
+    if found_problems:
+        text_blocks.append(f"В записях отмечены маркеры рисков: {', '.join(found_problems)}.")
+    if found_actions:
+        text_blocks.append(f"В качестве мер стабилизации применялись: {', '.join(found_actions)}.")
+
+    if pos_results > 0 or neg_results > 0:
+        if pos_results > neg_results:
+            text_blocks.append("Реакция на вмешательства персонала преимущественно положительная.")
+        elif neg_results > pos_results:
+            text_blocks.append("Зафиксировано сопротивление или отсутствие реакции на вмешательства.")
+        else:
+            text_blocks.append("Реакция на вмешательства смешанная.")
+
+    result_text = f"За последние {days} дней {alias} {text_blocks[0]}. " + " ".join(text_blocks[1:])
+    return result_text
+
 
 def handler(event: dict, context) -> dict:
     """CRM: управление пациентами. GET /? — список, GET /?id=N — карточка, POST / — создать, PUT /?id=N — обновить"""
@@ -50,12 +130,25 @@ def handler(event: dict, context) -> dict:
             latest_dynamics = cur.fetchone()
             cur.execute(f"SELECT * FROM {SCHEMA}.patient_tasks WHERE patient_id = %s ORDER BY created_at DESC", (patient_id,))
             tasks = cur.fetchall()
+
+            alias = patient.get("alias") or f"{patient.get('first_name', '')} {patient.get('last_name', '')}".strip() or "Пациент"
+            advanced_local_summary = analyze_patient_data(cur, patient_id, SCHEMA, alias, days=7)
+
+            saved_summaries = []
+            try:
+                cur.execute(f"SELECT id, summary_text, created_at FROM {SCHEMA}.patient_ai_summaries WHERE patient_id = %s ORDER BY created_at DESC", (patient_id,))
+                saved_summaries = cur.fetchall()
+            except errors.UndefinedTable:
+                conn.rollback()
+
             return ok({
                 "patient": dict(patient),
                 "children": [dict(c) for c in children],
                 "documents": [dict(d) for d in documents],
                 "latest_risk_level": latest_dynamics["risk_level"] if latest_dynamics else None,
                 "tasks": [dict(t) for t in tasks],
+                "advanced_local_summary": advanced_local_summary,
+                "saved_summaries": [dict(s) for s in saved_summaries]
             })
         else:
             search = params.get("search", "")
@@ -178,6 +271,20 @@ def handler(event: dict, context) -> dict:
             patient = cur.fetchone()
             conn.commit()
             return ok({"patient": dict(patient)})
+
+        if action == "save_local_summary":
+            pid = body.get("patient_id")
+            summary_text = (body.get("summary_text") or "").strip()
+            if not pid or not summary_text:
+                return err("Поля patient_id и summary_text обязательны")
+
+            cur.execute(
+                f"INSERT INTO {SCHEMA}.patient_ai_summaries (patient_id, summary_text) VALUES (%s, %s) RETURNING id, patient_id, summary_text, created_at",
+                (pid, summary_text)
+            )
+            summary = cur.fetchone()
+            conn.commit()
+            return ok({"summary": dict(summary)}, 201)
 
         cur.execute(
             f"INSERT INTO {SCHEMA}.patients (last_name, first_name, middle_name, alias, birth_date, address, admission_date, discharge_date, case_description, passport_series, passport_number, passport_issued_date, passport_issued_by) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING *",
