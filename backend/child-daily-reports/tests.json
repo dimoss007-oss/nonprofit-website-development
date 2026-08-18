@@ -1,0 +1,25 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Missing child_id on list",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 400,
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Missing child_id on create",
+      "method": "POST",
+      "path": "/",
+      "body": { "author": "Тест" },
+      "expectedStatus": 400,
+      "bodyMatcher": "partial"
+    }
+  ]
+}

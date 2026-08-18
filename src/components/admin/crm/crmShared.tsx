@@ -1,5 +1,6 @@
 export const API = "https://functions.poehali.dev/c30060e8-222e-48b5-823a-3f1a5b44fbd5";
 export const UPLOAD_API = "https://functions.poehali.dev/8a6d9ba2-3c66-4604-bccf-68b50295e021";
+export const CHILD_REPORTS_API = "https://functions.poehali.dev/5c7a56b7-8b5d-4577-aeb5-bc9c3f9aaad1";
 
 export type Child = {
   id: number; last_name?: string; first_name: string; middle_name?: string; birth_date?: string; photo_url?: string;
@@ -21,6 +22,28 @@ export type TaskType = "main" | "additional";
 export type PatientTask = { id: number; patient_id: number; description: string; deadline?: string; status: TaskStatus; created_at: string; completed_at?: string; task_type: TaskType };
 export type AiSummary = { id: number; patient_id: number; summary_text: string; created_at: string };
 export type PatientFull = { patient: Patient; children: Child[]; documents: Document[]; latest_risk_level?: RiskLevel; tasks?: PatientTask[]; advanced_local_summary?: string; saved_summaries?: AiSummary[] };
+
+export type ChildScales = {
+  scale_emotional: number | null; scale_stress: number | null; scale_sociability: number | null; scale_activity: number | null;
+  scale_contact_mother: number | null; scale_contact_peers: number | null; scale_academic: number | null; scale_work: number | null;
+  scale_attention: number | null; scale_discipline: number | null;
+};
+export type ChildDailyReport = ChildScales & {
+  id: number; child_id: number; author?: string; report_date: string;
+  identified_problems?: string; taken_actions?: string; results?: string; created_at: string;
+};
+export const CHILD_SCALE_META: { key: keyof ChildScales; label: string }[] = [
+  { key: "scale_emotional", label: "Эмоциональный фон" },
+  { key: "scale_stress", label: "Стрессоустойчивость" },
+  { key: "scale_sociability", label: "Коммуникабельность" },
+  { key: "scale_activity", label: "Активность" },
+  { key: "scale_contact_mother", label: "Контакт с матерью" },
+  { key: "scale_contact_peers", label: "Контакт со сверстниками" },
+  { key: "scale_academic", label: "Успеваемость" },
+  { key: "scale_work", label: "Трудоспособность" },
+  { key: "scale_attention", label: "Внимательность" },
+  { key: "scale_discipline", label: "Дисциплина" },
+];
 
 export const CARE_STAGE_META: Record<CareStage, { label: string }> = {
   inpatient: { label: "Стационар" },

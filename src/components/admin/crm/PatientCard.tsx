@@ -266,7 +266,7 @@ export default function PatientCard({ patientId, onBack, onDeleted, isAdmin, aut
             </div>
             {addingChild && <div className="mb-4"><ChildForm onAdd={addChild} onCancel={() => setAddingChild(false)} /></div>}
             {children.length === 0 && !addingChild && <p className="text-ink/40 text-sm">Нет данных о детях</p>}
-            <div className="space-y-1">{children.map(c => <ChildRow key={c.id} child={c} onUpdate={updateChild} onDelete={deleteChild} onUploadPhoto={uploadChildPhoto} isAdmin={isAdmin} />)}</div>
+            <div className="space-y-1">{children.map(c => <ChildRow key={c.id} child={c} onUpdate={updateChild} onDelete={deleteChild} onUploadPhoto={uploadChildPhoto} isAdmin={isAdmin} authorName={authorName} />)}</div>
           </div>
 
           <div className="bg-white border border-beige-dark rounded-2xl p-5">
