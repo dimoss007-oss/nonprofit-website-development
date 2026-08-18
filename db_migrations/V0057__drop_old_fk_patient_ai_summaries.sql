@@ -1,0 +1,1 @@
+ALTER TABLE patient_ai_summaries DROP CONSTRAINT patient_ai_summaries_patient_id_fkey;

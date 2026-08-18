@@ -1,0 +1,1 @@
+alter table patient_ai_summaries add constraint fk_patient_ai_summaries_patient foreign key (patient_id) references patients(id);
