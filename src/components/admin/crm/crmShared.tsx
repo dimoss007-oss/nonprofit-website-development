@@ -7,6 +7,10 @@ export type Child = {
   previous_education?: string; current_education?: string; extracurriculars?: string; current_age?: number;
   latest_avg_score?: number;
 };
+export type ChildWithPatient = Child & {
+  patient_id: number; patient_last_name?: string; patient_first_name?: string; patient_middle_name?: string;
+  patient_alias?: string; patient_discharge_date?: string;
+};
 export type Document = { id: number; file_name: string; file_url: string; file_type?: string; file_size?: number; uploaded_at: string };
 export type RiskLevel = "none" | "attention" | "high" | null | undefined;
 export type CareStage = "inpatient" | "posttreatment";

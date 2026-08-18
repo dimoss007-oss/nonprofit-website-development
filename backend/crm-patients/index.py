@@ -204,11 +204,68 @@ def handler(event: dict, context) -> dict:
     params = event.get("queryStringParameters") or {}
     patient_id = params.get("id")
     child_id_param = params.get("child_id")
+    view = params.get("view")
 
     conn = get_conn()
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
+    child_scales = (
+        "scale_emotional", "scale_stress", "scale_sociability", "scale_activity",
+        "scale_contact_mother", "scale_contact_peers", "scale_academic", "scale_work",
+        "scale_attention", "scale_discipline",
+    )
+
+    def load_latest_scores(ids):
+        """Средний балл по последнему ежедневному отчёту для каждого ребёнка из списка id."""
+        scores = {}
+        if not ids:
+            return scores
+        try:
+            cur.execute(
+                f"""SELECT DISTINCT ON (child_id) * FROM {SCHEMA}.child_daily_reports
+                    WHERE child_id = ANY(%s)
+                    ORDER BY child_id, report_date DESC, created_at DESC""",
+                (ids,)
+            )
+            for r in cur.fetchall():
+                values = [r[s] for s in child_scales if r.get(s) is not None]
+                scores[r["child_id"]] = round(sum(values) / len(values), 1) if values else None
+        except errors.UndefinedTable:
+            conn.rollback()
+        return scores
+
     if method == "GET":
+        if view == "children":
+            cur.execute(f"""
+                SELECT c.*, EXTRACT(YEAR FROM AGE(CURRENT_DATE, c.birth_date))::int AS current_age,
+                       p.id AS patient_id, p.last_name AS patient_last_name, p.first_name AS patient_first_name,
+                       p.middle_name AS patient_middle_name, p.alias AS patient_alias, p.discharge_date AS patient_discharge_date
+                FROM {SCHEMA}.patient_children c
+                JOIN {SCHEMA}.patients p ON p.id = c.patient_id
+                ORDER BY c.last_name, c.first_name
+            """)
+            all_children = [dict(c) for c in cur.fetchall()]
+            latest_scores = load_latest_scores([c["id"] for c in all_children])
+            for c in all_children:
+                c["latest_avg_score"] = latest_scores.get(c["id"])
+            return ok({"children": all_children})
+
+        if view == "child" and child_id_param:
+            cur.execute(f"""
+                SELECT c.*, EXTRACT(YEAR FROM AGE(CURRENT_DATE, c.birth_date))::int AS current_age,
+                       p.id AS patient_id, p.last_name AS patient_last_name, p.first_name AS patient_first_name,
+                       p.middle_name AS patient_middle_name, p.alias AS patient_alias, p.discharge_date AS patient_discharge_date
+                FROM {SCHEMA}.patient_children c
+                JOIN {SCHEMA}.patients p ON p.id = c.patient_id
+                WHERE c.id = %s
+            """, (child_id_param,))
+            child = cur.fetchone()
+            if not child:
+                return err("Ребёнок не найден", 404)
+            child = dict(child)
+            child["latest_avg_score"] = load_latest_scores([child["id"]]).get(child["id"])
+            return ok({"child": child})
+
         if child_id_param:
             summaries = []
             try:
