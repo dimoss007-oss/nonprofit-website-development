@@ -4,7 +4,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import PatientDynamics from "@/components/admin/PatientDynamics";
 import PatientTasks from "@/components/admin/crm/PatientTasks";
 import PatientAiSummary from "@/components/admin/crm/PatientAiSummary";
-import { API, UPLOAD_API, Child, PatientFull, EMPTY_FORM, RiskBadge, fmt, fmtSize, stayDuration, CARE_STAGE_META } from "@/components/admin/crm/crmShared";
+import { API, UPLOAD_API, Child, PatientFull, EMPTY_FORM, RiskBadge, fmt, fmtDateTime, fmtSize, stayDuration, CARE_STAGE_META } from "@/components/admin/crm/crmShared";
 import { PatientForm, ChildForm, ChildRow, Row } from "@/components/admin/crm/PatientFormParts";
 
 export default function PatientCard({ patientId, onBack, onDeleted, isAdmin, authorName }: { patientId: number; onBack: () => void; onDeleted: () => void; isAdmin: boolean; authorName: string }) {
@@ -122,8 +122,9 @@ export default function PatientCard({ patientId, onBack, onDeleted, isAdmin, aut
   if (loading) return <div className="flex items-center justify-center h-64"><div className="w-6 h-6 border-2 border-ink border-t-transparent rounded-full animate-spin" /></div>;
   if (!data) return null;
 
-  const { patient, children, documents, latest_risk_level, tasks } = data;
+  const { patient, children, documents, latest_risk_level, tasks, saved_summaries } = data;
   const fullName = [patient.last_name, patient.first_name, patient.middle_name].filter(Boolean).join(" ");
+  const lastSummary = saved_summaries?.[0];
   const duration = stayDuration(patient.admission_date, patient.discharge_date);
   const isActive = !patient.discharge_date;
   const isPostTreatment = (patient.care_stage ?? "inpatient") === "posttreatment";
@@ -152,6 +153,12 @@ export default function PatientCard({ patientId, onBack, onDeleted, isAdmin, aut
               {CARE_STAGE_META[patient.care_stage ?? "inpatient"].label}
             </span>
             <RiskBadge level={latest_risk_level} />
+            {lastSummary && (
+              <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-purple-100 text-purple-700 flex items-center gap-1">
+                <Icon name="Sparkles" size={11} />
+                Сводка от {fmtDateTime(lastSummary.created_at)}
+              </span>
+            )}
           </div>
           <p className="text-ink/50 text-sm">
             {patient.alias && <span className="text-ink/70">Псевдоним: {patient.alias} · </span>}
