@@ -191,8 +191,11 @@ def handler(event: dict, context) -> dict:
 
         if action == "delete_patient":
             pid = body.get("patient_id")
+            # Сначала вычищаем все связанные данные, чтобы не было конфликтов внешних ключей
+            cur.execute(f"DELETE FROM {SCHEMA}.patient_ai_summaries WHERE patient_id = %s", (pid,))
             cur.execute(f"DELETE FROM {SCHEMA}.patient_documents WHERE patient_id = %s", (pid,))
             cur.execute(f"DELETE FROM {SCHEMA}.patient_children WHERE patient_id = %s", (pid,))
+            # Затем удаляем саму карточку пациента
             cur.execute(f"DELETE FROM {SCHEMA}.patients WHERE id = %s", (pid,))
             conn.commit()
             return ok({"success": True})
