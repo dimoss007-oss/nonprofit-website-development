@@ -300,7 +300,7 @@ export default function PatientCard({ patientId, onBack, onDeleted, isAdmin, aut
         </TabsContent>
 
         <TabsContent value="dynamics" className="mt-4">
-          <PatientDynamics patientId={patientId} authorName={authorName} />
+          <PatientDynamics patientId={patientId} authorName={authorName} isAdmin={isAdmin} />
         </TabsContent>
 
         <TabsContent value="tasks" className="mt-4">

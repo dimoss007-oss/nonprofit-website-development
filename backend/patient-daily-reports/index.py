@@ -9,7 +9,7 @@ SCHEMA = os.environ.get("MAIN_DB_SCHEMA", "public")
 
 CORS = {
     "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, X-User-Id, X-Auth-Token",
 }
 
@@ -169,6 +169,95 @@ def route_create(event: dict) -> dict:
     return ok({"report": report}, 201)
 
 
+def route_update(event: dict) -> dict:
+    """PUT /?id=N — обновить существующий отчёт (включая дату) и пересчитать маркеры риска."""
+    params = event.get("queryStringParameters") or {}
+    report_id = params.get("id")
+    if not report_id:
+        return err("Параметр id обязателен")
+
+    body = json.loads(event.get("body") or "{}")
+    author = (body.get("author") or "").strip()
+    if not author:
+        return err("Поле author обязательно")
+
+    scale_values = {}
+    for scale in SCALES:
+        v = body.get(scale)
+        if v is None or not isinstance(v, int) or not (0 <= v <= 10):
+            return err(f"Поле {scale} должно быть целым числом от 0 до 10")
+        scale_values[scale] = v
+
+    notes = (body.get("notes") or "").strip()
+    problems_identified = (body.get("problems_identified") or "").strip()
+    actions_taken = (body.get("actions_taken") or "").strip()
+    results = (body.get("results") or "").strip()
+
+    conn = get_conn()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+
+    cur.execute(f"SELECT * FROM {SCHEMA}.patient_daily_reports WHERE id = %s", (report_id,))
+    existing = cur.fetchone()
+    if not existing:
+        return err("Отчёт не найден", 404)
+
+    patient_id = existing["patient_id"]
+    report_date = body.get("report_date") or existing["report_date"].isoformat()
+
+    since = (date.fromisoformat(report_date) - timedelta(days=10)).isoformat()
+    cur.execute(
+        f"""SELECT * FROM {SCHEMA}.patient_daily_reports
+            WHERE patient_id = %s AND report_date >= %s AND report_date < %s AND id != %s
+            ORDER BY report_date ASC""",
+        (patient_id, since, report_date, report_id),
+    )
+    history = [dict(r) for r in cur.fetchall()]
+
+    markers, risk_level = calc_risk(scale_values, history)
+
+    cur.execute(
+        f"""UPDATE {SCHEMA}.patient_daily_reports SET
+            report_date=%s, overall_state=%s, contact_children=%s, contact_surroundings=%s, contact_staff=%s,
+            engagement_level=%s, negative_behavior_level=%s, positive_thinking_level=%s, tasks_completion=%s,
+            feelings_diary_usage=%s, self_analysis_usage=%s, notes=%s, risk_markers=%s, risk_level=%s,
+            problems_identified=%s, actions_taken=%s, results=%s
+            WHERE id=%s RETURNING *""",
+        (
+            report_date,
+            scale_values["overall_state"],
+            scale_values["contact_children"], scale_values["contact_surroundings"], scale_values["contact_staff"],
+            scale_values["engagement_level"], scale_values["negative_behavior_level"],
+            scale_values["positive_thinking_level"], scale_values["tasks_completion"],
+            scale_values["feelings_diary_usage"], scale_values["self_analysis_usage"],
+            notes, json.dumps(markers), risk_level, problems_identified, actions_taken, results,
+            report_id,
+        ),
+    )
+    report = dict(cur.fetchone())
+    conn.commit()
+    conn.close()
+
+    return ok({"report": report})
+
+
+def route_delete(event: dict) -> dict:
+    """DELETE /?id=N — удалить отчёт."""
+    params = event.get("queryStringParameters") or {}
+    report_id = params.get("id")
+    if not report_id:
+        return err("Параметр id обязателен")
+
+    conn = get_conn()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute(f"DELETE FROM {SCHEMA}.patient_daily_reports WHERE id=%s RETURNING id", (report_id,))
+    row = cur.fetchone()
+    conn.commit()
+    conn.close()
+    if not row:
+        return err("Отчёт не найден", 404)
+    return ok({"success": True})
+
+
 def route_list(event: dict, patient_id: str) -> dict:
     """GET /?patient_id=N — вся история отчётов по пациенту для дашборда динамики."""
     params = event.get("queryStringParameters") or {}
@@ -189,7 +278,7 @@ def route_list(event: dict, patient_id: str) -> dict:
 
 def handler(event: dict, context) -> dict:
     """База ежедневных психологических отчётов по резидентам. POST / — сохранить отчёт (расчёт маркеров риска по правилам, без внешних ИИ);
-    GET /?patient_id=N — история отчётов пациента для дашборда динамики."""
+    GET /?patient_id=N — история отчётов пациента для дашборда динамики; PUT /?id=N — обновить отчёт; DELETE /?id=N — удалить отчёт."""
     if event.get("httpMethod") == "OPTIONS":
         return {"statusCode": 200, "headers": CORS, "body": ""}
 
@@ -198,6 +287,12 @@ def handler(event: dict, context) -> dict:
 
     if method == "POST":
         return route_create(event)
+
+    if method == "PUT":
+        return route_update(event)
+
+    if method == "DELETE":
+        return route_delete(event)
 
     if method == "GET":
         patient_id = (params.get("patient_id") or "").strip()

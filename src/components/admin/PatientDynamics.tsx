@@ -85,10 +85,16 @@ function ScaleSlider({ label, value, onChange, gradient }: { label: string; valu
   );
 }
 
-export default function PatientDynamics({ patientId, authorName }: { patientId: number; authorName: string }) {
+function todayIso() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+export default function PatientDynamics({ patientId, authorName, isAdmin }: { patientId: number; authorName: string; isAdmin: boolean }) {
   const [reports, setReports] = useState<DailyReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [reportDate, setReportDate] = useState(todayIso());
   const [scales, setScales] = useState({ ...EMPTY_SCALES });
   const [notes, setNotes] = useState("");
   const [problemsIdentified, setProblemsIdentified] = useState("");
@@ -109,35 +115,62 @@ export default function PatientDynamics({ patientId, authorName }: { patientId: 
 
   useEffect(() => { load(); }, [patientId]);
 
+  const resetForm = () => {
+    setScales({ ...EMPTY_SCALES });
+    setNotes("");
+    setProblemsIdentified("");
+    setActionsTaken("");
+    setResults("");
+    setEditingId(null);
+    setReportDate(todayIso());
+  };
+
+  const startEdit = (r: DailyReport) => {
+    setScales({
+      overall_state: r.overall_state, contact_children: r.contact_children, contact_surroundings: r.contact_surroundings,
+      contact_staff: r.contact_staff, engagement_level: r.engagement_level, negative_behavior_level: r.negative_behavior_level,
+      positive_thinking_level: r.positive_thinking_level, tasks_completion: r.tasks_completion,
+      feelings_diary_usage: r.feelings_diary_usage, self_analysis_usage: r.self_analysis_usage,
+    });
+    setNotes(r.notes ?? "");
+    setProblemsIdentified(r.problems_identified ?? "");
+    setActionsTaken(r.actions_taken ?? "");
+    setResults(r.results ?? "");
+    setEditingId(r.id);
+    setReportDate(r.report_date?.slice(0, 10) ?? todayIso());
+  };
+
   const submit = async () => {
     setSaving(true);
     try {
-      const r = await fetch(API, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          patient_id: patientId,
-          author: authorName,
-          notes,
-          problems_identified: problemsIdentified,
-          actions_taken: actionsTaken,
-          results,
-          ...scales,
-        }),
-      });
+      const payload = {
+        patient_id: patientId,
+        author: authorName,
+        report_date: reportDate,
+        notes,
+        problems_identified: problemsIdentified,
+        actions_taken: actionsTaken,
+        results,
+        ...scales,
+      };
+      const r = editingId
+        ? await fetch(`${API}?id=${editingId}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
+        : await fetch(API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
       const d = await r.json();
       if (d.report) {
         setLastResult(d.report);
-        setNotes("");
-        setProblemsIdentified("");
-        setActionsTaken("");
-        setResults("");
-        setScales({ ...EMPTY_SCALES });
+        resetForm();
         await load();
       }
     } finally {
       setSaving(false);
     }
+  };
+
+  const deleteReport = async (id: number) => {
+    if (!confirm("Удалить отчёт?")) return;
+    await fetch(`${API}?id=${id}`, { method: "DELETE" });
+    load();
   };
 
   const chartData = reports.map((r) => ({
@@ -150,7 +183,14 @@ export default function PatientDynamics({ patientId, authorName }: { patientId: 
   return (
     <div className="flex flex-col gap-4">
       <div className="bg-white border border-beige-dark rounded-2xl p-5 space-y-4">
-        <h3 className="font-semibold text-ink text-sm uppercase tracking-wide">Ежедневный отчёт по динамике</h3>
+        <div className="flex items-center justify-between">
+          <h3 className="font-semibold text-ink text-sm uppercase tracking-wide">{editingId ? "Редактирование отчёта" : "Ежедневный отчёт по динамике"}</h3>
+          {editingId && <button onClick={resetForm} className="p-1 text-ink/40 hover:text-ink"><Icon name="X" size={16} /></button>}
+        </div>
+        <div>
+          <label className="text-xs text-ink/60 mb-1 block">Дата отчёта</label>
+          <input type="date" value={reportDate} onChange={(e) => setReportDate(e.target.value)} className="border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" />
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
           {SCALE_META.map((s) => (
             <ScaleSlider
@@ -204,14 +244,17 @@ export default function PatientDynamics({ patientId, authorName }: { patientId: 
             />
           </div>
         </div>
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-2">
+          {editingId && (
+            <button onClick={resetForm} className="px-4 py-2 text-sm rounded-lg border border-beige-dark hover:border-ink transition-colors">Отмена</button>
+          )}
           <button
             onClick={submit}
             disabled={saving}
             className="px-4 py-2 text-sm rounded-lg bg-ink text-beige hover:bg-ink/90 transition-colors disabled:opacity-60 flex items-center gap-1.5"
           >
             <Icon name={saving ? "Loader" : "Save"} size={14} className={saving ? "animate-spin" : ""} />
-            {saving ? "Сохранение..." : "Сохранить отчёт за сегодня"}
+            {saving ? "Сохранение..." : editingId ? "Сохранить изменения" : "Сохранить отчёт"}
           </button>
         </div>
 
@@ -268,11 +311,17 @@ export default function PatientDynamics({ patientId, authorName }: { patientId: 
           <h3 className="font-semibold text-ink text-sm uppercase tracking-wide mb-3">История отчётов</h3>
           <div className="space-y-2 max-h-[320px] overflow-y-auto pr-1">
             {[...reports].reverse().map((r) => (
-              <div key={r.id} className="rounded-xl p-3 bg-beige-mid">
-                <div className="flex items-center gap-2 mb-1 flex-wrap">
-                  <span className="text-xs font-medium text-ink">{fmtDate(r.report_date)}</span>
-                  <span className="text-xs text-ink/40">{r.author}</span>
-                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${RISK_META[r.risk_level].badge}`}>{RISK_META[r.risk_level].label}</span>
+              <div key={r.id} className="rounded-xl p-3 bg-beige-mid group">
+                <div className="flex items-center justify-between mb-1 flex-wrap gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs font-medium text-ink">{fmtDate(r.report_date)}</span>
+                    <span className="text-xs text-ink/40">{r.author}</span>
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${RISK_META[r.risk_level].badge}`}>{RISK_META[r.risk_level].label}</span>
+                  </div>
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button onClick={() => startEdit(r)} className="p-1 text-ink/40 hover:text-ink"><Icon name="Pencil" size={12} /></button>
+                    {isAdmin && <button onClick={() => deleteReport(r.id)} className="p-1 text-ink/30 hover:text-red-400"><Icon name="X" size={13} /></button>}
+                  </div>
                 </div>
                 {(r.problems_identified || r.actions_taken || r.results) && (
                   <div className="space-y-1 mb-1">
