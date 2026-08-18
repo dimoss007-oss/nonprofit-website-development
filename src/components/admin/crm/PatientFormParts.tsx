@@ -116,7 +116,17 @@ export function ChildRow({ child, onUpdate, onDelete, onUploadPhoto, isAdmin, au
           </button>
           <input ref={photoRef} type="file" accept="image/*" className="hidden" onChange={handlePhoto} />
           <div>
-            <span className="text-sm text-ink">{[child.last_name, child.first_name, child.middle_name].filter(Boolean).join(" ")}</span>
+            <span className="inline-flex items-center gap-1.5">
+              {typeof child.latest_avg_score === "number" && (
+                <span
+                  className={`inline-block w-2 h-2 rounded-full flex-shrink-0 ${
+                    child.latest_avg_score >= 8 ? "bg-green-500" : child.latest_avg_score >= 5 ? "bg-amber-500" : "bg-red-500"
+                  }`}
+                  title={`Средний балл последнего отчёта: ${child.latest_avg_score}`}
+                />
+              )}
+              <span className="text-sm text-ink">{[child.last_name, child.first_name, child.middle_name].filter(Boolean).join(" ")}</span>
+            </span>
             {typeof child.current_age === "number" && <span className="text-xs text-ink/40 ml-2">Возраст: {child.current_age} лет</span>}
             {child.birth_date && <span className="text-xs text-ink/40 ml-2">({fmt(child.birth_date)})</span>}
           </div>
