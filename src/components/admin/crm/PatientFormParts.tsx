@@ -37,8 +37,10 @@ export function PatientForm({ initial, onSave, onCancel, loading }: { initial?: 
   );
 }
 
+const EMPTY_CHILD_FORM = { last_name: "", first_name: "", middle_name: "", birth_date: "", previous_education: "", current_education: "", extracurriculars: "" };
+
 export function ChildForm({ onAdd, onCancel }: { onAdd: (c: Omit<Child, "id">) => void; onCancel: () => void }) {
-  const [form, setForm] = useState({ last_name: "", first_name: "", middle_name: "", birth_date: "" });
+  const [form, setForm] = useState(EMPTY_CHILD_FORM);
   const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) => setForm(f => ({ ...f, [k]: e.target.value }));
   return (
     <div className="bg-beige-mid rounded-xl p-4 space-y-3">
@@ -48,8 +50,13 @@ export function ChildForm({ onAdd, onCancel }: { onAdd: (c: Omit<Child, "id">) =
         <input placeholder="Имя *" value={form.first_name} onChange={set("first_name")} className="border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" />
         <input placeholder="Отчество" value={form.middle_name} onChange={set("middle_name")} className="border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" />
       </div>
+      <div><label className="text-xs text-ink/50 mb-1 block">Дата рождения</label><input type="date" value={form.birth_date} onChange={set("birth_date")} className="border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" /></div>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <div><label className="text-xs text-ink/50 mb-1 block">Школа/сад, откуда прибыл</label><input value={form.previous_education} onChange={set("previous_education")} className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" /></div>
+        <div><label className="text-xs text-ink/50 mb-1 block">Школа/сад на данный момент</label><input value={form.current_education} onChange={set("current_education")} className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" /></div>
+        <div><label className="text-xs text-ink/50 mb-1 block">Секция/кружок</label><input value={form.extracurriculars} onChange={set("extracurriculars")} className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" /></div>
+      </div>
       <div className="flex items-center gap-3">
-        <input type="date" value={form.birth_date} onChange={set("birth_date")} className="border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" />
         <button onClick={() => form.first_name && onAdd(form)} disabled={!form.first_name} className="px-4 py-2 bg-ink text-beige text-sm rounded-lg hover:bg-ink/90 disabled:opacity-60">Добавить</button>
         <button onClick={onCancel} className="px-4 py-2 text-sm rounded-lg border border-beige-dark hover:border-ink">Отмена</button>
       </div>
@@ -60,7 +67,10 @@ export function ChildForm({ onAdd, onCancel }: { onAdd: (c: Omit<Child, "id">) =
 export function ChildRow({ child, onUpdate, onDelete, onUploadPhoto, isAdmin }: { child: Child; onUpdate: (id: number, data: Omit<Child, "id">) => void; onDelete: (id: number) => void; onUploadPhoto: (childId: number, file: File) => void; isAdmin: boolean }) {
   const [editing, setEditing] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
-  const [form, setForm] = useState({ last_name: child.last_name ?? "", first_name: child.first_name, middle_name: child.middle_name ?? "", birth_date: child.birth_date?.slice(0, 10) ?? "" });
+  const [form, setForm] = useState({
+    last_name: child.last_name ?? "", first_name: child.first_name, middle_name: child.middle_name ?? "", birth_date: child.birth_date?.slice(0, 10) ?? "",
+    previous_education: child.previous_education ?? "", current_education: child.current_education ?? "", extracurriculars: child.extracurriculars ?? "",
+  });
   const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) => setForm(f => ({ ...f, [k]: e.target.value }));
   const photoRef = useRef<HTMLInputElement>(null);
   const save = () => { onUpdate(child.id, form); setEditing(false); };
@@ -78,33 +88,59 @@ export function ChildRow({ child, onUpdate, onDelete, onUploadPhoto, isAdmin }: 
         <input placeholder="Имя *" value={form.first_name} onChange={set("first_name")} className="border border-beige-dark bg-white rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-ink" />
         <input placeholder="Отчество" value={form.middle_name} onChange={set("middle_name")} className="border border-beige-dark bg-white rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-ink" />
       </div>
+      <div><label className="text-xs text-ink/50 mb-1 block">Дата рождения</label><input type="date" value={form.birth_date} onChange={set("birth_date")} className="border border-beige-dark bg-white rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-ink" /></div>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <div><label className="text-xs text-ink/50 mb-1 block">Школа/сад, откуда прибыл</label><input value={form.previous_education} onChange={set("previous_education")} className="w-full border border-beige-dark bg-white rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-ink" /></div>
+        <div><label className="text-xs text-ink/50 mb-1 block">Школа/сад на данный момент</label><input value={form.current_education} onChange={set("current_education")} className="w-full border border-beige-dark bg-white rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-ink" /></div>
+        <div><label className="text-xs text-ink/50 mb-1 block">Секция/кружок</label><input value={form.extracurriculars} onChange={set("extracurriculars")} className="w-full border border-beige-dark bg-white rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-ink" /></div>
+      </div>
       <div className="flex items-center gap-2">
-        <input type="date" value={form.birth_date} onChange={set("birth_date")} className="border border-beige-dark bg-white rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-ink" />
         <button onClick={save} disabled={!form.first_name} className="px-3 py-1.5 bg-ink text-beige text-sm rounded-lg hover:bg-ink/90 disabled:opacity-60">Сохранить</button>
         <button onClick={() => setEditing(false)} className="px-3 py-1.5 text-sm rounded-lg border border-beige-dark hover:border-ink">Отмена</button>
       </div>
     </div>
   );
   return (
-    <div className="flex items-center justify-between py-2 border-b border-beige-mid last:border-0 group">
-      <div className="flex items-center gap-3">
-        <button onClick={() => photoRef.current?.click()} className="relative w-9 h-9 rounded-full overflow-hidden bg-beige-mid flex items-center justify-center flex-shrink-0 border border-beige-dark hover:border-ink transition-colors">
-          {child.photo_url ? (
-            <img src={child.photo_url} alt="" className="w-full h-full object-cover" />
-          ) : (
-            <Icon name="User" size={14} className="text-ink/30" />
-          )}
-          {uploadingPhoto && <div className="absolute inset-0 bg-black/30 flex items-center justify-center"><Icon name="Loader" size={12} className="animate-spin text-white" /></div>}
-        </button>
-        <input ref={photoRef} type="file" accept="image/*" className="hidden" onChange={handlePhoto} />
-        <div>
-          <span className="text-sm text-ink">{[child.last_name, child.first_name, child.middle_name].filter(Boolean).join(" ")}</span>
-          {child.birth_date && <span className="text-xs text-ink/40 ml-2">{fmt(child.birth_date)}</span>}
+    <div className="py-3 border-b border-beige-mid last:border-0 group">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <button onClick={() => photoRef.current?.click()} className="relative w-9 h-9 rounded-full overflow-hidden bg-beige-mid flex items-center justify-center flex-shrink-0 border border-beige-dark hover:border-ink transition-colors">
+            {child.photo_url ? (
+              <img src={child.photo_url} alt="" className="w-full h-full object-cover" />
+            ) : (
+              <Icon name="User" size={14} className="text-ink/30" />
+            )}
+            {uploadingPhoto && <div className="absolute inset-0 bg-black/30 flex items-center justify-center"><Icon name="Loader" size={12} className="animate-spin text-white" /></div>}
+          </button>
+          <input ref={photoRef} type="file" accept="image/*" className="hidden" onChange={handlePhoto} />
+          <div>
+            <span className="text-sm text-ink">{[child.last_name, child.first_name, child.middle_name].filter(Boolean).join(" ")}</span>
+            {typeof child.current_age === "number" && <span className="text-xs text-ink/40 ml-2">Возраст: {child.current_age} лет</span>}
+            {child.birth_date && <span className="text-xs text-ink/40 ml-2">({fmt(child.birth_date)})</span>}
+          </div>
+        </div>
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <button onClick={() => setEditing(true)} className="p-1 text-ink/40 hover:text-ink transition-colors"><Icon name="Pencil" size={13} /></button>
+          {isAdmin && <button onClick={() => onDelete(child.id)} className="p-1 text-ink/30 hover:text-red-400 transition-colors"><Icon name="X" size={14} /></button>}
         </div>
       </div>
-      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-        <button onClick={() => setEditing(true)} className="p-1 text-ink/40 hover:text-ink transition-colors"><Icon name="Pencil" size={13} /></button>
-        {isAdmin && <button onClick={() => onDelete(child.id)} className="p-1 text-ink/30 hover:text-red-400 transition-colors"><Icon name="X" size={14} /></button>}
+      {(child.previous_education || child.current_education || child.extracurriculars) && (
+        <div className="flex flex-wrap gap-x-4 gap-y-0.5 mt-1.5 ml-12 text-xs text-ink/50">
+          {child.previous_education && <span>Прибыл из: {child.previous_education}</span>}
+          {child.current_education && <span>Сейчас: {child.current_education}</span>}
+          {child.extracurriculars && <span>Кружок: {child.extracurriculars}</span>}
+        </div>
+      )}
+      <div className="flex items-center gap-2 mt-2 ml-12">
+        <button disabled className="text-xs px-2.5 py-1 rounded-lg border border-beige-dark text-ink/40 flex items-center gap-1 cursor-not-allowed" title="Скоро">
+          <Icon name="ClipboardList" size={12} /> Ежедневные отчёты
+        </button>
+        <button disabled className="text-xs px-2.5 py-1 rounded-lg border border-beige-dark text-ink/40 flex items-center gap-1 cursor-not-allowed" title="Скоро">
+          <Icon name="ListChecks" size={12} /> Задачи
+        </button>
+        <button disabled className="text-xs px-2.5 py-1 rounded-lg border border-beige-dark text-ink/40 flex items-center gap-1 cursor-not-allowed" title="Скоро">
+          <Icon name="TrendingUp" size={12} /> Динамика
+        </button>
       </div>
     </div>
   );

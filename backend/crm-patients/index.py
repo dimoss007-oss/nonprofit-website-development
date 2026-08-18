@@ -119,7 +119,10 @@ def handler(event: dict, context) -> dict:
             patient = cur.fetchone()
             if not patient:
                 return err("Пациент не найден", 404)
-            cur.execute(f"SELECT * FROM {SCHEMA}.patient_children WHERE patient_id = %s ORDER BY birth_date", (patient_id,))
+            cur.execute(
+                f"SELECT *, EXTRACT(YEAR FROM AGE(CURRENT_DATE, birth_date))::int AS current_age FROM {SCHEMA}.patient_children WHERE patient_id = %s ORDER BY birth_date",
+                (patient_id,)
+            )
             children = cur.fetchall()
             cur.execute(f"SELECT * FROM {SCHEMA}.patient_documents WHERE patient_id = %s ORDER BY uploaded_at DESC", (patient_id,))
             documents = cur.fetchall()
@@ -197,6 +200,10 @@ def handler(event: dict, context) -> dict:
             cur.execute(f"DELETE FROM {SCHEMA}.patient_tasks WHERE patient_id = %s", (pid,))
             cur.execute(f"DELETE FROM {SCHEMA}.patient_daily_reports WHERE patient_id = %s", (pid,))
             cur.execute(f"DELETE FROM {SCHEMA}.patient_documents WHERE patient_id = %s", (pid,))
+            # Данные детей пациента тоже нужно зачистить перед удалением самих детей
+            cur.execute(f"DELETE FROM {SCHEMA}.child_ai_summaries WHERE child_id IN (SELECT id FROM {SCHEMA}.patient_children WHERE patient_id = %s)", (pid,))
+            cur.execute(f"DELETE FROM {SCHEMA}.child_tasks WHERE child_id IN (SELECT id FROM {SCHEMA}.patient_children WHERE patient_id = %s)", (pid,))
+            cur.execute(f"DELETE FROM {SCHEMA}.child_daily_reports WHERE child_id IN (SELECT id FROM {SCHEMA}.patient_children WHERE patient_id = %s)", (pid,))
             cur.execute(f"DELETE FROM {SCHEMA}.patient_children WHERE patient_id = %s", (pid,))
 
             # Теперь базу ничего не держит, и можно безопасно удалить саму карточку
@@ -214,8 +221,9 @@ def handler(event: dict, context) -> dict:
         if action == "add_child":
             pid = body.get("patient_id")
             cur.execute(
-                f"INSERT INTO {SCHEMA}.patient_children (patient_id, last_name, first_name, middle_name, birth_date) VALUES (%s,%s,%s,%s,%s) RETURNING *",
-                (pid, body.get("last_name"), body.get("first_name"), body.get("middle_name"), body.get("birth_date") or None)
+                f"INSERT INTO {SCHEMA}.patient_children (patient_id, last_name, first_name, middle_name, birth_date, previous_education, current_education, extracurriculars) VALUES (%s,%s,%s,%s,%s,%s,%s,%s) RETURNING *, EXTRACT(YEAR FROM AGE(CURRENT_DATE, birth_date))::int AS current_age",
+                (pid, body.get("last_name"), body.get("first_name"), body.get("middle_name"), body.get("birth_date") or None,
+                 body.get("previous_education"), body.get("current_education"), body.get("extracurriculars"))
             )
             child = cur.fetchone()
             conn.commit()
@@ -223,6 +231,10 @@ def handler(event: dict, context) -> dict:
 
         if action == "delete_child":
             child_id = body.get("child_id")
+            # Сначала вычищаем все связанные данные ребёнка, чтобы не было конфликтов внешних ключей
+            cur.execute(f"DELETE FROM {SCHEMA}.child_ai_summaries WHERE child_id = %s", (child_id,))
+            cur.execute(f"DELETE FROM {SCHEMA}.child_tasks WHERE child_id = %s", (child_id,))
+            cur.execute(f"DELETE FROM {SCHEMA}.child_daily_reports WHERE child_id = %s", (child_id,))
             cur.execute(f"DELETE FROM {SCHEMA}.patient_children WHERE id = %s", (child_id,))
             conn.commit()
             return ok({"success": True})
@@ -230,8 +242,9 @@ def handler(event: dict, context) -> dict:
         if action == "update_child":
             child_id = body.get("child_id")
             cur.execute(
-                f"UPDATE {SCHEMA}.patient_children SET last_name=%s, first_name=%s, middle_name=%s, birth_date=%s WHERE id=%s RETURNING *",
-                (body.get("last_name"), body.get("first_name"), body.get("middle_name"), body.get("birth_date") or None, child_id)
+                f"UPDATE {SCHEMA}.patient_children SET last_name=%s, first_name=%s, middle_name=%s, birth_date=%s, previous_education=%s, current_education=%s, extracurriculars=%s WHERE id=%s RETURNING *, EXTRACT(YEAR FROM AGE(CURRENT_DATE, birth_date))::int AS current_age",
+                (body.get("last_name"), body.get("first_name"), body.get("middle_name"), body.get("birth_date") or None,
+                 body.get("previous_education"), body.get("current_education"), body.get("extracurriculars"), child_id)
             )
             child = cur.fetchone()
             conn.commit()

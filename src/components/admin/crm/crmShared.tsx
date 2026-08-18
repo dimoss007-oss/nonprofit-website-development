@@ -1,7 +1,10 @@
 export const API = "https://functions.poehali.dev/c30060e8-222e-48b5-823a-3f1a5b44fbd5";
 export const UPLOAD_API = "https://functions.poehali.dev/8a6d9ba2-3c66-4604-bccf-68b50295e021";
 
-export type Child = { id: number; last_name?: string; first_name: string; middle_name?: string; birth_date?: string; photo_url?: string };
+export type Child = {
+  id: number; last_name?: string; first_name: string; middle_name?: string; birth_date?: string; photo_url?: string;
+  previous_education?: string; current_education?: string; extracurriculars?: string; current_age?: number;
+};
 export type Document = { id: number; file_name: string; file_url: string; file_type?: string; file_size?: number; uploaded_at: string };
 export type RiskLevel = "none" | "attention" | "high" | null | undefined;
 export type CareStage = "inpatient" | "posttreatment";
