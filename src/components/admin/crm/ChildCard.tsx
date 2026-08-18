@@ -39,6 +39,7 @@ export default function ChildCard({ childId, onBack, onDeleted, onOpenPatient, i
   const [reportsLoading, setReportsLoading] = useState(true);
   const [showReportForm, setShowReportForm] = useState(false);
   const [editingReportId, setEditingReportId] = useState<number | null>(null);
+  const [reportDate, setReportDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [scales, setScales] = useState<ChildScales>({ ...EMPTY_SCALES });
   const [identifiedProblems, setIdentifiedProblems] = useState("");
   const [takenActions, setTakenActions] = useState("");
@@ -125,7 +126,8 @@ export default function ChildCard({ childId, onBack, onDeleted, onOpenPatient, i
   };
 
   const resetReportForm = () => {
-    setScales({ ...EMPTY_SCALES }); setIdentifiedProblems(""); setTakenActions(""); setResults(""); setEditingReportId(null); setShowReportForm(false);
+    setScales({ ...EMPTY_SCALES }); setIdentifiedProblems(""); setTakenActions(""); setResults(""); setEditingReportId(null);
+    setReportDate(new Date().toISOString().slice(0, 10)); setShowReportForm(false);
   };
 
   const startEditReport = (r: ChildDailyReport) => {
@@ -135,13 +137,13 @@ export default function ChildCard({ childId, onBack, onDeleted, onOpenPatient, i
       scale_attention: r.scale_attention, scale_discipline: r.scale_discipline,
     });
     setIdentifiedProblems(r.identified_problems ?? ""); setTakenActions(r.taken_actions ?? ""); setResults(r.results ?? "");
-    setEditingReportId(r.id); setShowReportForm(true);
+    setEditingReportId(r.id); setReportDate(r.report_date?.slice(0, 10) ?? new Date().toISOString().slice(0, 10)); setShowReportForm(true);
   };
 
   const submitReport = async () => {
     setSavingReport(true);
     try {
-      const payload = { child_id: childId, author: authorName, identified_problems: identifiedProblems, taken_actions: takenActions, results, ...scales };
+      const payload = { child_id: childId, author: authorName, report_date: reportDate, identified_problems: identifiedProblems, taken_actions: takenActions, results, ...scales };
       if (editingReportId) {
         await fetch(`${CHILD_REPORTS_API}?id=${editingReportId}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
       } else {
@@ -274,6 +276,10 @@ export default function ChildCard({ childId, onBack, onDeleted, onOpenPatient, i
                 <p className="text-sm font-semibold text-ink">{editingReportId ? "Редактирование отчёта" : "Новый отчёт"}</p>
                 <button onClick={resetReportForm} className="p-1 text-ink/40 hover:text-ink"><Icon name="X" size={16} /></button>
               </div>
+              <div>
+                <label className="text-xs text-ink/60 mb-1 block">Дата отчёта</label>
+                <input type="date" value={reportDate} onChange={(e) => setReportDate(e.target.value)} className="border border-beige-dark rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-ink" />
+              </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
                 {CHILD_SCALE_META.map((s) => (
                   <ScaleInput key={s.key} label={s.label} value={scales[s.key]} onChange={(v) => setScales((prev) => ({ ...prev, [s.key]: v }))} />
@@ -308,7 +314,7 @@ export default function ChildCard({ childId, onBack, onDeleted, onOpenPatient, i
                       </div>
                       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button onClick={() => startEditReport(r)} className="p-1 text-ink/40 hover:text-ink"><Icon name="Pencil" size={12} /></button>
-                        <button onClick={() => deleteReport(r.id)} className="p-1 text-ink/30 hover:text-red-400"><Icon name="X" size={13} /></button>
+                        {isAdmin && <button onClick={() => deleteReport(r.id)} className="p-1 text-ink/30 hover:text-red-400"><Icon name="X" size={13} /></button>}
                       </div>
                     </div>
                     <div className="flex flex-wrap gap-1.5 mb-1.5">

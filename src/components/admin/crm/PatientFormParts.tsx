@@ -171,6 +171,7 @@ export function ChildRow({ child, onUpdate, onDelete, onUploadPhoto, isAdmin, au
         childId={child.id}
         childName={[child.last_name, child.first_name, child.middle_name].filter(Boolean).join(" ")}
         authorName={authorName}
+        isAdmin={isAdmin}
         open={reportsOpen}
         onClose={() => setReportsOpen(false)}
       />

@@ -29,12 +29,17 @@ function ScaleInput({ label, value, onChange }: { label: string; value: number |
   );
 }
 
-export default function ChildDailyReportsModal({ childId, childName, authorName, open, onClose }: { childId: number; childName: string; authorName: string; open: boolean; onClose: () => void }) {
+function todayIso() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+export default function ChildDailyReportsModal({ childId, childName, authorName, isAdmin, open, onClose }: { childId: number; childName: string; authorName: string; isAdmin: boolean; open: boolean; onClose: () => void }) {
   const [reports, setReports] = useState<ChildDailyReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [reportDate, setReportDate] = useState(todayIso());
   const [scales, setScales] = useState<ChildScales>({ ...EMPTY_SCALES });
   const [identifiedProblems, setIdentifiedProblems] = useState("");
   const [takenActions, setTakenActions] = useState("");
@@ -59,6 +64,7 @@ export default function ChildDailyReportsModal({ childId, childName, authorName,
     setTakenActions("");
     setResults("");
     setEditingId(null);
+    setReportDate(todayIso());
     setShowForm(false);
   };
 
@@ -72,6 +78,7 @@ export default function ChildDailyReportsModal({ childId, childName, authorName,
     setTakenActions(r.taken_actions ?? "");
     setResults(r.results ?? "");
     setEditingId(r.id);
+    setReportDate(r.report_date?.slice(0, 10) ?? todayIso());
     setShowForm(true);
   };
 
@@ -81,6 +88,7 @@ export default function ChildDailyReportsModal({ childId, childName, authorName,
       const payload = {
         child_id: childId,
         author: authorName,
+        report_date: reportDate,
         identified_problems: identifiedProblems,
         taken_actions: takenActions,
         results,
@@ -135,6 +143,10 @@ export default function ChildDailyReportsModal({ childId, childName, authorName,
                 <p className="text-sm font-semibold text-ink">{editingId ? "Редактирование отчёта" : "Новый отчёт"}</p>
                 <button onClick={resetForm} className="p-1 text-ink/40 hover:text-ink"><Icon name="X" size={16} /></button>
               </div>
+              <div>
+                <label className="text-xs text-ink/60 mb-1 block">Дата отчёта</label>
+                <input type="date" value={reportDate} onChange={(e) => setReportDate(e.target.value)} className="border border-beige-dark rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-ink" />
+              </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
                 {CHILD_SCALE_META.map((s) => (
                   <ScaleInput
@@ -188,7 +200,7 @@ export default function ChildDailyReportsModal({ childId, childName, authorName,
                       </div>
                       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button onClick={() => startEdit(r)} className="p-1 text-ink/40 hover:text-ink"><Icon name="Pencil" size={12} /></button>
-                        <button onClick={() => deleteReport(r.id)} className="p-1 text-ink/30 hover:text-red-400"><Icon name="X" size={13} /></button>
+                        {isAdmin && <button onClick={() => deleteReport(r.id)} className="p-1 text-ink/30 hover:text-red-400"><Icon name="X" size={13} /></button>}
                       </div>
                     </div>
                     <div className="flex flex-wrap gap-1.5 mb-1.5">
