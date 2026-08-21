@@ -15,6 +15,9 @@ export default function PatientCard({ patientId, onBack, onDeleted, isAdmin, aut
   const [addingChild, setAddingChild] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [editingCareStageSince, setEditingCareStageSince] = useState(false);
+  const [careStageSinceInput, setCareStageSinceInput] = useState("");
+  const [savingCareStageSince, setSavingCareStageSince] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const photoRef = useRef<HTMLInputElement>(null);
 
@@ -111,6 +114,18 @@ export default function PatientCard({ patientId, onBack, onDeleted, isAdmin, aut
   const setCareStage = async (stage: "inpatient" | "posttreatment") => {
     await fetch(API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "set_care_stage", patient_id: patientId, care_stage: stage }) });
     load();
+  };
+
+  const saveCareStageSince = async () => {
+    if (!careStageSinceInput) return;
+    setSavingCareStageSince(true);
+    try {
+      await fetch(API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "update_care_stage_since", patient_id: patientId, care_stage_since: careStageSinceInput }) });
+      setEditingCareStageSince(false);
+      await load();
+    } finally {
+      setSavingCareStageSince(false);
+    }
   };
 
   const deleteDoc = async (docId: number) => {
@@ -228,9 +243,23 @@ export default function PatientCard({ patientId, onBack, onDeleted, isAdmin, aut
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-blue-100">
                     <Icon name="Timer" size={18} className="text-blue-600" />
                   </div>
-                  <div>
+                  <div className="flex-1">
                     <p className="text-xs text-ink/40 uppercase tracking-wide mb-0.5">На амбулаторной программе</p>
                     <p className="font-semibold text-ink text-lg leading-tight">{postTreatmentDuration}</p>
+                    <p className="text-xs text-ink/50 mt-0.5">с {fmt(patient.care_stage_since)}</p>
+                    {editingCareStageSince ? (
+                      <div className="flex items-center gap-2 mt-2">
+                        <input type="date" value={careStageSinceInput} onChange={(e) => setCareStageSinceInput(e.target.value)} className="border border-beige-dark rounded-lg px-2 py-1 text-sm bg-white focus:outline-none focus:border-ink" />
+                        <button onClick={saveCareStageSince} disabled={savingCareStageSince} className="px-2.5 py-1 text-xs rounded-lg bg-ink text-beige hover:bg-ink/90 transition-colors disabled:opacity-60">
+                          {savingCareStageSince ? "..." : "Сохранить"}
+                        </button>
+                        <button onClick={() => setEditingCareStageSince(false)} className="p-1 text-ink/40 hover:text-ink"><Icon name="X" size={14} /></button>
+                      </div>
+                    ) : (
+                      <button onClick={() => { setCareStageSinceInput(patient.care_stage_since?.slice(0, 10) ?? ""); setEditingCareStageSince(true); }} className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1 mt-1">
+                        <Icon name="Pencil" size={11} /> Изменить дату
+                      </button>
+                    )}
                   </div>
                 </div>
               )}

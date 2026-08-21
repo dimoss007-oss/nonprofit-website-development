@@ -474,13 +474,31 @@ def handler(event: dict, context) -> dict:
             stage = body.get("care_stage")
             if stage not in ("inpatient", "posttreatment"):
                 return err("care_stage должен быть inpatient или posttreatment")
-            stage_since = date.today().isoformat() if stage == "posttreatment" else None
+            if stage == "posttreatment":
+                stage_since = body.get("care_stage_since") or date.today().isoformat()
+            else:
+                stage_since = None
             cur.execute(
                 f"UPDATE {SCHEMA}.patients SET care_stage=%s, care_stage_since=%s, updated_at=NOW() WHERE id=%s RETURNING *",
                 (stage, stage_since, pid)
             )
             patient = cur.fetchone()
             conn.commit()
+            return ok({"patient": dict(patient)})
+
+        if action == "update_care_stage_since":
+            pid = body.get("patient_id")
+            stage_since = body.get("care_stage_since")
+            if not stage_since:
+                return err("Поле care_stage_since обязательно")
+            cur.execute(
+                f"UPDATE {SCHEMA}.patients SET care_stage_since=%s, updated_at=NOW() WHERE id=%s AND care_stage='posttreatment' RETURNING *",
+                (stage_since, pid)
+            )
+            patient = cur.fetchone()
+            conn.commit()
+            if not patient:
+                return err("Пациент не найден или не находится на амбулаторной программе", 404)
             return ok({"patient": dict(patient)})
 
         if action == "save_local_summary":
