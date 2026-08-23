@@ -38,15 +38,17 @@ def err(msg, status=400):
     return {"statusCode": status, "headers": {**CORS, "Content-Type": "application/json"}, "body": json.dumps({"error": msg})}
 
 
-def send_message(chat_id: int, text: str, token: str):
-    """Отправляет ответное сообщение в Max, авторизуясь токеном бота."""
+def send_message(text: str, token: str, chat_id: int = None, user_id: int = None):
+    """Отправляет сообщение в Max. Если известен chat_id — сообщение уходит в чат и видно всем участникам,
+    иначе (fallback) — личным сообщением отправителю через user_id."""
+    params = {"chat_id": chat_id} if chat_id else {"user_id": user_id}
     r = requests.post(
         f"{MAX_API_URL}/messages",
-        params={"user_id": chat_id},
+        params=params,
         headers={"Authorization": token},
         json={"text": text},
     )
-    print(f"send_message chat_id={chat_id} status={r.status_code}")
+    print(f"send_message params={params} status={r.status_code} body={r.text[:200]}")
 
 
 def analyze_sentiment(text: str):
@@ -150,14 +152,17 @@ def handler(event: dict, context) -> dict:
     msg = body.get("message") or {}
     sender = msg.get("sender") or {}
     user_id = sender.get("user_id") or (body.get("user") or {}).get("user_id")
+    recipient = msg.get("recipient") or {}
+    chat_id = recipient.get("chat_id")
     text = (msg.get("body") or {}).get("text") or ""
 
-    print(f"incoming update_type={update_type} user_id={user_id} text_len={len(text)}")
+    print(f"incoming update_type={update_type} user_id={user_id} chat_id={chat_id} text_len={len(text)}")
 
     if update_type != "message_created" or not user_id or not text.strip():
         return ok({"ok": True})
 
-    chat_id = int(user_id)
+    user_id = int(user_id)
+    chat_id = int(chat_id) if chat_id else None
     intro, blocks = parse_shift_report(text)
 
     conn = get_conn()
@@ -173,7 +178,7 @@ def handler(event: dict, context) -> dict:
     if not blocks:
         conn.commit()
         conn.close()
-        send_message(chat_id, "⚠️ Не удалось распознать пациентов в отчёте. Формат: 1. Имя Ф. текст отчёта", token)
+        send_message("⚠️ Не удалось распознать пациентов в отчёте. Формат: 1. Имя Ф. текст отчёта", token, chat_id=chat_id, user_id=user_id)
         return ok({"ok": True, "recognized": 0})
 
     cur.execute(f"SELECT id, first_name, last_name, alias FROM {SCHEMA}.patients WHERE discharge_date IS NULL")
@@ -207,6 +212,6 @@ def handler(event: dict, context) -> dict:
     if unmatched:
         reply += "\n⚠️ Не распознаны: " + ", ".join(unmatched)
 
-    send_message(chat_id, reply, token)
+    send_message(reply, token, chat_id=chat_id, user_id=user_id)
 
     return ok({"ok": True, "recognized": recognized, "unmatched": unmatched})
