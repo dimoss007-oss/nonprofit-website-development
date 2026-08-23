@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS shift_logs (
+    id SERIAL PRIMARY KEY,
+    report_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    log_text TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);

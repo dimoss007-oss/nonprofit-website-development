@@ -1,0 +1,41 @@
+import json
+import os
+
+import requests
+
+MAX_API_URL = "https://platform-api.max.ru"
+
+
+def handler(event: dict, context) -> dict:
+    """Регистрирует webhook бота Max для приёма ежедневных отчётов смены (max-shift-report-bot)."""
+    cors = {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type",
+    }
+
+    if event.get("httpMethod") == "OPTIONS":
+        return {"statusCode": 200, "headers": cors, "body": ""}
+
+    token = os.environ.get("MAX_BOT_TOKEN", "")
+    webhook_url = "https://functions.poehali.dev/24f88fa1-d8fc-458b-9001-d1e8e5cb3e2c"
+
+    # secret передаётся Max в заголовке X-Max-Bot-Api-Secret с каждым webhook-запросом —
+    # используем сам токен бота, чтобы max-shift-report-bot мог свериться с MAX_BOT_TOKEN.
+    resp = requests.post(
+        f"{MAX_API_URL}/subscriptions",
+        headers={"Authorization": token},
+        json={"url": webhook_url, "secret": token},
+    )
+
+    print(f"Set shift-report webhook status: {resp.status_code}, body: {resp.text}")
+
+    return {
+        "statusCode": 200,
+        "headers": cors,
+        "body": json.dumps({
+            "ok": True,
+            "status": resp.status_code,
+            "response": resp.json() if resp.text else {},
+        }),
+    }

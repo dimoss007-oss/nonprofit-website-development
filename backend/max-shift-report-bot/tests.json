@@ -1,0 +1,17 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Missing webhook secret rejected",
+      "method": "POST",
+      "path": "/",
+      "body": {"update_type": "message", "message": {"sender": {"user_id": "1"}, "body": {"text": "1. Света Л молодец"}}},
+      "expectedStatus": 401
+    }
+  ]
+}
