@@ -152,7 +152,9 @@ def handler(event: dict, context) -> dict:
     user_id = sender.get("user_id") or (body.get("user") or {}).get("user_id")
     text = (msg.get("body") or {}).get("text") or ""
 
-    if update_type != "message" or not user_id or not text.strip():
+    print(f"incoming update_type={update_type} user_id={user_id} text_len={len(text)}")
+
+    if update_type != "message_created" or not user_id or not text.strip():
         return ok({"ok": True})
 
     chat_id = int(user_id)
