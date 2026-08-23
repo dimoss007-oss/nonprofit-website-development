@@ -1,4 +1,5 @@
 {
+  "shift-logs": "https://functions.poehali.dev/c324d1ab-fd21-4060-9ed0-584dad81416f",
   "max-shift-report-set-webhook": "https://functions.poehali.dev/944544d5-021a-4882-812c-075072238dc0",
   "max-shift-report-bot": "https://functions.poehali.dev/24f88fa1-d8fc-458b-9001-d1e8e5cb3e2c",
   "child-daily-reports": "https://functions.poehali.dev/5c7a56b7-8b5d-4577-aeb5-bc9c3f9aaad1",

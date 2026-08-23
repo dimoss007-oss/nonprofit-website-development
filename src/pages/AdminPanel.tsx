@@ -9,6 +9,7 @@ import AdminRequestsTab from "@/components/admin/AdminRequestsTab";
 import AdminGalleryTab from "@/components/admin/AdminGalleryTab";
 import AdminFundraisingTab from "@/components/admin/AdminFundraisingTab";
 import AdminGovTab from "@/components/admin/AdminGovTab";
+import AdminShiftLogsTab from "@/components/admin/AdminShiftLogsTab";
 import AdminTasksWidget from "@/components/admin/AdminTasksWidget";
 import type { Task } from "@/components/admin/taskTypes";
 
@@ -133,6 +134,7 @@ export default function AdminPanel() {
     { id: "gallery",     label: "Галерея",       icon: "Images",        active: "bg-orange-100 text-orange-700 shadow-sm", inactive: "text-orange-400 hover:bg-orange-50 hover:text-orange-600" },
     { id: "fundraising", label: "Фандрайзинг",   icon: "HandCoins",     active: "bg-green-100 text-green-700 shadow-sm",   inactive: "text-green-500 hover:bg-green-50 hover:text-green-700" },
     { id: "gov",         label: "Госорганы",     icon: "Landmark",      active: "bg-slate-100 text-slate-700 shadow-sm",   inactive: "text-slate-400 hover:bg-slate-50 hover:text-slate-600" },
+    { id: "shifts",      label: "Отчёты смены",  icon: "Clock",         active: "bg-cyan-100 text-cyan-700 shadow-sm",     inactive: "text-cyan-400 hover:bg-cyan-50 hover:text-cyan-600" },
   ];
 
   const visibleTabs = isAdmin
@@ -202,6 +204,7 @@ export default function AdminPanel() {
         {tab === "gallery" && <AdminGalleryTab />}
         {tab === "fundraising" && <AdminFundraisingTab adminUsers={adminUsers.map(u => u.full_name || u.login)} users={adminUsers} />}
         {tab === "gov" && <AdminGovTab focusAgencyId={focusGovId} onFocusHandled={() => setFocusGovId(null)} users={adminUsers} />}
+        {tab === "shifts" && <AdminShiftLogsTab />}
       </main>
     </div>
   );
