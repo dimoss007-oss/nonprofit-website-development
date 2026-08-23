@@ -131,7 +131,7 @@ def handler(event: dict, context) -> dict:
     if event.get("httpMethod") == "OPTIONS":
         return {"statusCode": 200, "headers": CORS, "body": ""}
 
-    token = os.environ.get("MAX_BOT_TOKEN", "")
+    token = os.environ.get("MAX_SHIFT_REPORT_BOT_TOKEN", "")
 
     headers = event.get("headers") or {}
     headers_lower = {k.lower(): v for k, v in headers.items()}

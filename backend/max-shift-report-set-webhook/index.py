@@ -17,11 +17,11 @@ def handler(event: dict, context) -> dict:
     if event.get("httpMethod") == "OPTIONS":
         return {"statusCode": 200, "headers": cors, "body": ""}
 
-    token = os.environ.get("MAX_BOT_TOKEN", "")
+    token = os.environ.get("MAX_SHIFT_REPORT_BOT_TOKEN", "")
     webhook_url = "https://functions.poehali.dev/24f88fa1-d8fc-458b-9001-d1e8e5cb3e2c"
 
     # secret передаётся Max в заголовке X-Max-Bot-Api-Secret с каждым webhook-запросом —
-    # используем сам токен бота, чтобы max-shift-report-bot мог свериться с MAX_BOT_TOKEN.
+    # используем сам токен бота, чтобы max-shift-report-bot мог свериться с MAX_SHIFT_REPORT_BOT_TOKEN.
     resp = requests.post(
         f"{MAX_API_URL}/subscriptions",
         headers={"Authorization": token},
