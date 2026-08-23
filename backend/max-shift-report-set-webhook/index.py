@@ -26,7 +26,13 @@ def handler(event: dict, context) -> dict:
     try:
         token.encode("latin-1")
     except UnicodeEncodeError:
-        return {"statusCode": 200, "headers": cors, "body": json.dumps({"ok": False, "error": "Токен содержит недопустимые символы (не ASCII). Проверьте, что скопирован именно API-токен бота, без лишних пробелов/кавычек."})}
+        bad_chars = sorted({c for c in token if ord(c) > 255})
+        return {"statusCode": 200, "headers": cors, "body": json.dumps({
+            "ok": False,
+            "error": "Токен содержит недопустимые символы (не ASCII). Проверьте, что скопирован именно API-токен бота, без лишних пробелов/кавычек.",
+            "debug_len": len(token),
+            "debug_bad_chars": [f"U+{ord(c):04X}" for c in bad_chars],
+        })}
 
     # secret передаётся Max в заголовке X-Max-Bot-Api-Secret с каждым webhook-запросом —
     # используем сам токен бота, чтобы max-shift-report-bot мог свериться с MAX_SHIFT_REPORT_BOT_TOKEN.
