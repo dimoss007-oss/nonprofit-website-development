@@ -7,7 +7,7 @@ MAX_API_URL = "https://platform-api.max.ru"
 
 
 def handler(event: dict, context) -> dict:
-    """Регистрирует webhook бота Max для приёма ежедневных отчётов смены (max-shift-report-bot). v2"""
+    """Регистрирует webhook бота Max для приёма ежедневных отчётов смены (max-shift-report-bot). v3"""
     cors = {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
