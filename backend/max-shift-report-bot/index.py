@@ -26,6 +26,19 @@ LINE_NAME_RE = re.compile(r"^(?:\d+\.\s*)?([А-ЯЁ][а-яё]+\s*[А-ЯЁа-яё
 DATE_RE = re.compile(r"(?m)^\s*(\d{1,2})[\./](\d{1,2})(?:[\./](\d{2,4}))?\s")
 NAME_MATCH_CUTOFF = 0.8
 
+# Уменьшительно-ласкательные имена -> полная форма. Помогает распознать пациента, если в тексте
+# указано короткое имя без фамилии/инициала (например "Аня" вместо "Анна Мерсеитова").
+RUSSIAN_DIMINUTIVES = {
+    "аня": "анна", "катя": "екатерина", "света": "светлана", "настя": "анастасия",
+    "таня": "татьяна", "наташа": "наталья", "саша": "александр", "лена": "елена",
+    "оля": "ольга", "женя": "евгений", "дима": "дмитрий", "маша": "мария",
+    "юля": "юлия", "надя": "надежда", "люда": "людмила", "вика": "виктория",
+    "ксюша": "ксения", "лиза": "елизавета", "даша": "дарья", "паша": "павел",
+    "коля": "николай", "миша": "михаил", "вова": "владимир", "гена": "геннадий",
+    "толя": "анатолий", "валя": "валентина", "галя": "галина", "тоня": "антонина",
+    "стас": "станислав", "сережа": "сергей",
+}
+
 
 def extract_report_date(text: str):
     """Ищет дату отчёта в начале текста (первые 150 символов). Форматы: ДД.ММ, ДД.ММ.ГГ, ДД.ММ.ГГГГ.
@@ -107,18 +120,40 @@ def build_patient_candidates(patients: list) -> dict:
     return candidates
 
 
+def expand_diminutive(name: str) -> str:
+    """Если имя (или его первое слово) — уменьшительно-ласкательная форма из RUSSIAN_DIMINUTIVES,
+    возвращает вариант с заменой на полную форму (например, "аня" -> "анна", "аня м" -> "анна м").
+    Если это не диминутив — возвращает исходную строку без изменений."""
+    parts = name.split(" ", 1)
+    first_word = parts[0]
+    full_form = RUSSIAN_DIMINUTIVES.get(first_word)
+    if not full_form:
+        return name
+    rest = parts[1] if len(parts) > 1 else ""
+    return f"{full_form} {rest}".strip()
+
+
 def match_patient(name: str, candidates: dict, cutoff: float = NAME_MATCH_CUTOFF):
-    """Fuzzy-сопоставление распознанного имени с пациентом по подготовленному словарю кандидатов."""
+    """Fuzzy-сопоставление распознанного имени с пациентом по подготовленному словарю кандидатов.
+    Учитывает уменьшительно-ласкательные формы имён (Аня -> Анна и т.п.)."""
     n = normalize_name(name)
     if not n:
         return None
 
-    if n in candidates:
-        return candidates[n]
+    variants = [n]
+    expanded = normalize_name(expand_diminutive(n))
+    if expanded != n:
+        variants.append(expanded)
 
-    close = difflib.get_close_matches(n, list(candidates.keys()), n=1, cutoff=cutoff)
-    if close:
-        return candidates[close[0]]
+    for variant in variants:
+        if variant in candidates:
+            return candidates[variant]
+
+    for variant in variants:
+        close = difflib.get_close_matches(variant, list(candidates.keys()), n=1, cutoff=cutoff)
+        if close:
+            return candidates[close[0]]
+
     return None
 
 
