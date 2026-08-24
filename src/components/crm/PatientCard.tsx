@@ -261,7 +261,7 @@ export default function PatientCard({ patientId, onBack, onDeleted }: { patientI
   if (!data) return null;
 
   const { patient, children, documents } = data;
-  const fullName = [patient.last_name, patient.first_name, patient.middle_name].filter(Boolean).join(" ");
+  const fullName = [patient.last_name, patient.first_name, patient.middle_name].map(s => s?.trim()).filter(Boolean).join(" ");
 
   return (
     <div className="space-y-6">

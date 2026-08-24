@@ -138,7 +138,7 @@ export default function PatientCard({ patientId, onBack, onDeleted, isAdmin, aut
   if (!data) return null;
 
   const { patient, children, documents, latest_risk_level, shift_reports_count, tasks, saved_summaries } = data;
-  const fullName = [patient.last_name, patient.first_name, patient.middle_name].filter(Boolean).join(" ");
+  const fullName = [patient.last_name, patient.first_name, patient.middle_name].map(s => s?.trim()).filter(Boolean).join(" ");
   const lastSummary = saved_summaries?.[0];
   const duration = stayDuration(patient.admission_date, patient.discharge_date);
   const isActive = !patient.discharge_date;
