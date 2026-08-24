@@ -24,6 +24,26 @@ NEGATIVE_WORDS = ["потухла", "вымоталась", "тяжко", "не�
 
 BLOCK_RE = re.compile(r"(\d+)\.\s*(.+?)(?=\n\s*\d+\.\s|\Z)", re.DOTALL)
 NAME_RE = re.compile(r"^([А-ЯЁ][а-яё]+(?:\s+[А-ЯЁ]\.?)?)\s+(.*)$", re.DOTALL)
+DATE_RE = re.compile(r"(?m)^\s*(\d{1,2})[\./](\d{1,2})(?:[\./](\d{2,4}))?\s")
+
+
+def extract_report_date(text: str):
+    """Ищет дату отчёта в начале текста (первые 150 символов). Форматы: ДД.ММ, ДД.ММ.ГГ, ДД.ММ.ГГГГ.
+    Если год не указан — берётся текущий. Если дата не найдена или некорректна — возвращается сегодняшняя дата."""
+    m = DATE_RE.search(text[:150])
+    if m:
+        day, month, year = int(m.group(1)), int(m.group(2)), m.group(3)
+        if year:
+            year = int(year)
+            if year < 100:
+                year += 2000
+        else:
+            year = date.today().year
+        try:
+            return date(year, month, day)
+        except ValueError:
+            pass
+    return date.today()
 
 
 def get_conn():
@@ -164,15 +184,16 @@ def handler(event: dict, context) -> dict:
     user_id = int(user_id)
     chat_id = int(chat_id) if chat_id else None
     intro, blocks = parse_shift_report(text)
+    report_date = extract_report_date(text)
+    report_date_iso = report_date.isoformat()
 
     conn = get_conn()
     cur = conn.cursor(cursor_factory=RealDictCursor)
-    today = date.today().isoformat()
 
     if intro:
         cur.execute(
             f"INSERT INTO {SCHEMA}.shift_logs (report_date, log_text) VALUES (%s, %s)",
-            (today, intro),
+            (report_date_iso, intro),
         )
 
     if not blocks:
@@ -201,14 +222,14 @@ def handler(event: dict, context) -> dict:
                 ON CONFLICT (patient_id, report_date, author) DO UPDATE SET
                     overall_state = EXCLUDED.overall_state,
                     problems_identified = EXCLUDED.problems_identified""",
-            (patient["id"], "Max-бот (смена)", today, overall_state, block["text"]),
+            (patient["id"], "Max-бот (смена)", report_date_iso, overall_state, block["text"]),
         )
         recognized += 1
 
     conn.commit()
     conn.close()
 
-    reply = f"✅ Отчёт принят. Распознано пациентов: {recognized}."
+    reply = f"✅ Отчёт за {report_date.strftime('%d.%m.%Y')} успешно принят. Распознано пациентов: {recognized}."
     if unmatched:
         reply += "\n⚠️ Не распознаны: " + ", ".join(unmatched)
 
