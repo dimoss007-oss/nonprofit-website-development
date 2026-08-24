@@ -7,7 +7,7 @@ import PatientAiSummary from "@/components/admin/crm/PatientAiSummary";
 import { API, UPLOAD_API, Child, PatientFull, EMPTY_FORM, RiskBadge, fmt, fmtDateTime, fmtSize, stayDuration, CARE_STAGE_META } from "@/components/admin/crm/crmShared";
 import { PatientForm, ChildForm, ChildRow, Row } from "@/components/admin/crm/PatientFormParts";
 
-export default function PatientCard({ patientId, onBack, onDeleted, isAdmin, authorName }: { patientId: number; onBack: () => void; onDeleted: () => void; isAdmin: boolean; authorName: string }) {
+export default function PatientCard({ patientId, onBack, onDeleted, isAdmin, authorName, onViewShiftHistory }: { patientId: number; onBack: () => void; onDeleted: () => void; isAdmin: boolean; authorName: string; onViewShiftHistory?: (patientId: number) => void }) {
   const [data, setData] = useState<PatientFull | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
@@ -183,6 +183,11 @@ export default function PatientCard({ patientId, onBack, onDeleted, isAdmin, aut
         <button onClick={() => setEditing(e => !e)} className="px-3 py-1.5 text-sm border border-beige-dark rounded-lg hover:border-ink transition-colors flex items-center gap-1.5">
           <Icon name="Pencil" size={14} /> Редактировать
         </button>
+        {onViewShiftHistory && (
+          <button onClick={() => onViewShiftHistory(patientId)} className="px-3 py-1.5 text-sm border border-cyan-200 text-cyan-700 rounded-lg hover:bg-cyan-50 transition-colors flex items-center gap-1.5">
+            <Icon name="Clock" size={14} /> Отчёты смены
+          </button>
+        )}
         {isActive ? (
           <button onClick={() => confirm("Выписать пациента? Будет установлена сегодняшняя дата.") && discharge()} className="px-3 py-1.5 text-sm border border-orange-200 text-orange-600 rounded-lg hover:bg-orange-50 transition-colors flex items-center gap-1.5">
             <Icon name="LogOut" size={14} /> Выписать

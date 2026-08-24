@@ -8,7 +8,7 @@ import ChildCard from "@/components/admin/crm/ChildCard";
 
 type Section = "patients" | "children";
 
-export default function AdminCrmTab({ isAdmin = true, authorName = "Сотрудник", focusPatientId, onFocusHandled }: { isAdmin?: boolean; authorName?: string; focusPatientId?: number | null; onFocusHandled?: () => void }) {
+export default function AdminCrmTab({ isAdmin = true, authorName = "Сотрудник", focusPatientId, onFocusHandled, onViewShiftHistory }: { isAdmin?: boolean; authorName?: string; focusPatientId?: number | null; onFocusHandled?: () => void; onViewShiftHistory?: (patientId: number) => void }) {
   const [section, setSection] = useState<Section>("patients");
 
   const [allPatients, setAllPatients] = useState<Patient[]>([]);
@@ -79,7 +79,7 @@ export default function AdminCrmTab({ isAdmin = true, authorName = "Сотруд
   };
 
   if (selectedId) return (
-    <PatientCard patientId={selectedId} onBack={() => setSelectedId(null)} onDeleted={() => { setSelectedId(null); loadPatients(); }} isAdmin={isAdmin} authorName={authorName} />
+    <PatientCard patientId={selectedId} onBack={() => setSelectedId(null)} onDeleted={() => { setSelectedId(null); loadPatients(); }} isAdmin={isAdmin} authorName={authorName} onViewShiftHistory={onViewShiftHistory} />
   );
 
   if (selectedChildId) return (
