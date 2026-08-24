@@ -22,9 +22,9 @@ POSITIVE_WORDS = ["молодец", "хорошо", "зашла", "ровная"
 NEUTRAL_WORDS = ["нормальное", "более менее", "устала", "прежней"]
 NEGATIVE_WORDS = ["потухла", "вымоталась", "тяжко", "неохотой", "недовольство", "неуверенности"]
 
-BLOCK_RE = re.compile(r"(\d+)\.\s*(.+?)(?=\n\s*\d+\.\s|\Z)", re.DOTALL)
-NAME_RE = re.compile(r"^([А-ЯЁ][а-яё]+(?:\s+[А-ЯЁ]\.?)?)\s+(.*)$", re.DOTALL)
+LINE_NAME_RE = re.compile(r"^(?:\d+\.\s*)?([А-ЯЁ][а-яё]+\s*[А-ЯЁа-яё]*\.?)\s*(?:[-—–:]\s*|\s+)")
 DATE_RE = re.compile(r"(?m)^\s*(\d{1,2})[\./](\d{1,2})(?:[\./](\d{2,4}))?\s")
+NAME_MATCH_CUTOFF = 0.8
 
 
 def extract_report_date(text: str):
@@ -86,48 +86,12 @@ def analyze_sentiment(text: str):
     return None
 
 
-def parse_shift_report(text: str):
-    """Разбирает текст отчёта смены на вступительную сводку (всё до "1. ") и пронумерованные блоки по пациентам."""
-    intro = ""
-    body_text = text
-
-    m = re.search(r"(?m)^\s*1\.\s", text)
-    if m:
-        intro = text[:m.start()].strip()
-        body_text = text[m.start():]
-    elif text.strip().startswith("День"):
-        intro = text.strip()
-        body_text = ""
-
-    blocks = []
-    for match in BLOCK_RE.finditer(body_text):
-        chunk = match.group(2).strip()
-        if not chunk:
-            continue
-        name_match = NAME_RE.match(chunk)
-        if name_match:
-            name = name_match.group(1).strip()
-            report_text = name_match.group(2).strip()
-        else:
-            parts = chunk.split(maxsplit=1)
-            name = parts[0] if parts else ""
-            report_text = parts[1] if len(parts) > 1 else ""
-        if name:
-            blocks.append({"name": name, "text": report_text})
-
-    return intro, blocks
-
-
 def normalize_name(s: str) -> str:
     return re.sub(r"[.\s]+", " ", (s or "").strip().lower()).strip()
 
 
-def match_patient(name: str, patients: list):
-    """Fuzzy-сопоставление распознанного имени с пациентом: по alias или связке first_name + первая буква last_name."""
-    n = normalize_name(name)
-    if not n:
-        return None
-
+def build_patient_candidates(patients: list) -> dict:
+    """Строит словарь всех возможных вариаций имён пациентов (alias, Имя + первая буква фамилии) для fuzzy-поиска."""
     candidates = {}
     for p in patients:
         alias_n = normalize_name(p.get("alias") or "")
@@ -137,14 +101,74 @@ def match_patient(name: str, patients: list):
         last_initial = (p.get("last_name") or "")[:1].strip()
         if first and last_initial:
             candidates[normalize_name(f"{first} {last_initial}")] = p
+        if first:
+            candidates.setdefault(normalize_name(first), p)
+
+    return candidates
+
+
+def match_patient(name: str, candidates: dict, cutoff: float = NAME_MATCH_CUTOFF):
+    """Fuzzy-сопоставление распознанного имени с пациентом по подготовленному словарю кандидатов."""
+    n = normalize_name(name)
+    if not n:
+        return None
 
     if n in candidates:
         return candidates[n]
 
-    close = difflib.get_close_matches(n, list(candidates.keys()), n=1, cutoff=0.72)
+    close = difflib.get_close_matches(n, list(candidates.keys()), n=1, cutoff=cutoff)
     if close:
         return candidates[close[0]]
     return None
+
+
+def parse_shift_report(text: str, patients: list):
+    """Построчный разбор текста отчёта смены. Устойчив к любым форматам: нумерованным спискам,
+    тире, двоеточиям, свободному тексту без разметки, датам прописью и т.п.
+
+    Для каждой строки проверяется, начинается ли она с имени, похожего на пациента из базы
+    (fuzzy-сопоставление). Если да — начинается новый блок по этому пациенту, остаток строки
+    идёт в его текст. Если нет — строка добавляется в текущий открытый блок пациента,
+    либо (если пациент ещё не найден) в общую сводку смены (general_log)."""
+    candidates = build_patient_candidates(patients)
+
+    general_lines = []
+    patient_blocks = {}
+    current_patient_id = None
+
+    for raw_line in text.split("\n"):
+        line = raw_line.strip()
+        if not line:
+            continue
+
+        matched_patient = None
+        remainder = line
+        m = LINE_NAME_RE.match(line)
+        if m:
+            candidate_name = m.group(1).strip()
+            found = match_patient(candidate_name, candidates)
+            if found:
+                matched_patient = found
+                remainder = line[m.end():].strip()
+
+        if matched_patient:
+            current_patient_id = matched_patient["id"]
+            block = patient_blocks.setdefault(current_patient_id, {"patient": matched_patient, "lines": []})
+            if remainder:
+                block["lines"].append(remainder)
+        elif current_patient_id is not None:
+            patient_blocks[current_patient_id]["lines"].append(line)
+        else:
+            general_lines.append(line)
+
+    general_log = "\n".join(general_lines).strip()
+    blocks = [
+        {"patient": b["patient"], "text": "\n".join(b["lines"]).strip()}
+        for b in patient_blocks.values()
+        if b["lines"]
+    ]
+
+    return general_log, blocks
 
 
 def handler(event: dict, context) -> dict:
@@ -183,37 +207,36 @@ def handler(event: dict, context) -> dict:
 
     user_id = int(user_id)
     chat_id = int(chat_id) if chat_id else None
-    intro, blocks = parse_shift_report(text)
     report_date = extract_report_date(text)
     report_date_iso = report_date.isoformat()
 
     conn = get_conn()
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
-    if intro:
+    cur.execute(f"SELECT id, first_name, last_name, alias FROM {SCHEMA}.patients WHERE discharge_date IS NULL")
+    patients = [dict(r) for r in cur.fetchall()]
+
+    general_log, blocks = parse_shift_report(text, patients)
+
+    if general_log:
         cur.execute(
             f"INSERT INTO {SCHEMA}.shift_logs (report_date, log_text) VALUES (%s, %s)",
-            (report_date_iso, intro),
+            (report_date_iso, general_log),
         )
 
     if not blocks:
         conn.commit()
         conn.close()
-        send_message("⚠️ Не удалось распознать пациентов в отчёте. Формат: 1. Имя Ф. текст отчёта", token, chat_id=chat_id, user_id=user_id)
+        send_message(
+            f"⚠️ Отчёт за {report_date.strftime('%d.%m.%Y')} принят, но пациентов в тексте распознать не удалось.",
+            token, chat_id=chat_id, user_id=user_id,
+        )
         return ok({"ok": True, "recognized": 0})
 
-    cur.execute(f"SELECT id, first_name, last_name, alias FROM {SCHEMA}.patients WHERE discharge_date IS NULL")
-    patients = [dict(r) for r in cur.fetchall()]
-
     recognized = 0
-    unmatched = []
 
     for block in blocks:
-        patient = match_patient(block["name"], patients)
-        if not patient:
-            unmatched.append(block["name"])
-            continue
-
+        patient = block["patient"]
         overall_state = analyze_sentiment(block["text"])
 
         cur.execute(
@@ -230,9 +253,7 @@ def handler(event: dict, context) -> dict:
     conn.close()
 
     reply = f"✅ Отчёт за {report_date.strftime('%d.%m.%Y')} успешно принят. Распознано пациентов: {recognized}."
-    if unmatched:
-        reply += "\n⚠️ Не распознаны: " + ", ".join(unmatched)
 
     send_message(reply, token, chat_id=chat_id, user_id=user_id)
 
-    return ok({"ok": True, "recognized": recognized, "unmatched": unmatched})
+    return ok({"ok": True, "recognized": recognized})
