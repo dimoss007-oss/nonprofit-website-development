@@ -3,7 +3,16 @@ import Icon from "@/components/ui/icon";
 
 const API = "https://functions.poehali.dev/c324d1ab-fd21-4060-9ed0-584dad81416f";
 
-type ShiftLog = { id: number; report_date: string; log_text: string; created_at: string };
+type ShiftPatient = {
+  id: number;
+  last_name: string;
+  first_name: string;
+  alias?: string;
+  overall_state: number | null;
+  identified_problems: string;
+};
+
+type ShiftLog = { id: number; report_date: string; log_text: string; created_at: string; patients: ShiftPatient[] };
 
 function fmt(d?: string) {
   if (!d) return "—";
@@ -14,7 +23,14 @@ function fmtDateTime(d?: string) {
   return new Date(d).toLocaleString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 
-export default function AdminShiftLogsTab() {
+function stateColor(state: number | null) {
+  if (state == null) return "bg-beige-mid text-ink/50 border-beige-dark";
+  if (state <= 4) return "bg-red-50 text-red-600 border-red-200";
+  if (state <= 6) return "bg-amber-50 text-amber-600 border-amber-200";
+  return "bg-green-50 text-green-600 border-green-200";
+}
+
+export default function AdminShiftLogsTab({ onSelectPatient }: { onSelectPatient?: (id: number) => void }) {
   const [logs, setLogs] = useState<ShiftLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -80,6 +96,36 @@ export default function AdminShiftLogsTab() {
                 <span className="text-xs text-ink/40">Получено: {fmtDateTime(log.created_at)}</span>
               </div>
               <p className="text-sm text-ink/80 whitespace-pre-wrap break-words">{log.log_text || "—"}</p>
+
+              {log.patients.length > 0 && (
+                <div className="mt-4 pt-4 border-t border-beige-dark/60">
+                  <p className="text-xs font-semibold text-ink/50 uppercase tracking-wider mb-2.5">
+                    Распознанные отчёты по пациентам ({log.patients.length})
+                  </p>
+                  <div className="grid sm:grid-cols-2 gap-2.5">
+                    {log.patients.map((p) => (
+                      <button
+                        key={p.id}
+                        onClick={() => onSelectPatient?.(p.id)}
+                        className="text-left bg-beige/40 hover:bg-beige border border-beige-dark rounded-xl px-3.5 py-3 transition-colors group"
+                      >
+                        <div className="flex items-center justify-between gap-2 mb-1.5">
+                          <span className="text-sm font-semibold text-ink group-hover:underline flex items-center gap-1.5">
+                            <Icon name="User" size={13} className="text-ink/40" />
+                            {p.alias || `${p.last_name} ${p.first_name}`}
+                          </span>
+                          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border flex-shrink-0 ${stateColor(p.overall_state)}`}>
+                            {p.overall_state ?? "—"}
+                          </span>
+                        </div>
+                        {p.identified_problems && (
+                          <p className="text-xs text-ink/60 line-clamp-2">{p.identified_problems}</p>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           ))}
         </div>

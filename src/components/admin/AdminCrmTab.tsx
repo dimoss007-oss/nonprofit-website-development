@@ -8,7 +8,7 @@ import ChildCard from "@/components/admin/crm/ChildCard";
 
 type Section = "patients" | "children";
 
-export default function AdminCrmTab({ isAdmin = true, authorName = "Сотрудник" }: { isAdmin?: boolean; authorName?: string }) {
+export default function AdminCrmTab({ isAdmin = true, authorName = "Сотрудник", focusPatientId, onFocusHandled }: { isAdmin?: boolean; authorName?: string; focusPatientId?: number | null; onFocusHandled?: () => void }) {
   const [section, setSection] = useState<Section>("patients");
 
   const [allPatients, setAllPatients] = useState<Patient[]>([]);
@@ -42,6 +42,13 @@ export default function AdminCrmTab({ isAdmin = true, authorName = "Сотруд
 
   useEffect(() => { loadPatients(); }, []);
   useEffect(() => { if (section === "children") loadChildren(); }, [section]);
+
+  useEffect(() => {
+    if (!focusPatientId) return;
+    setSection("patients");
+    setSelectedId(focusPatientId);
+    onFocusHandled?.();
+  }, [focusPatientId]);
 
   const stagePatients = allPatients.filter(p => (p.care_stage ?? "inpatient") === careStage);
   const postTreatmentCount = allPatients.filter(p => p.care_stage === "posttreatment").length;

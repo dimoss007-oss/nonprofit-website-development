@@ -90,6 +90,12 @@ export default function AdminPanel() {
   const [tab, setTab] = useState<Tab>("tasks");
   const [adminUsers, setAdminUsers] = useState<AdminUser[]>([]);
   const [focusGovId, setFocusGovId] = useState<number | null>(null);
+  const [focusPatientId, setFocusPatientId] = useState<number | null>(null);
+
+  const goToPatient = (patientId: number) => {
+    setFocusPatientId(patientId);
+    setTab("crm");
+  };
 
   const goToTaskLink = (task: Task) => {
     if (task.link_type === "gov_agency" && task.link_id) {
@@ -180,7 +186,7 @@ export default function AdminPanel() {
       </header>
 
       <main className="pt-28 pb-16 max-w-6xl mx-auto px-4">
-        {tab === "crm" && <AdminCrmTab isAdmin={isAdmin} authorName={session.full_name || session.login} />}
+        {tab === "crm" && <AdminCrmTab isAdmin={isAdmin} authorName={session.full_name || session.login} focusPatientId={focusPatientId} onFocusHandled={() => setFocusPatientId(null)} />}
         {tab === "sop" && <AdminSopTab isAdmin={isAdmin} />}
         {tab === "news" && <AdminNewsTab isAdmin={isAdmin} />}
         {tab === "tasks" && (
@@ -204,7 +210,7 @@ export default function AdminPanel() {
         {tab === "gallery" && <AdminGalleryTab />}
         {tab === "fundraising" && <AdminFundraisingTab adminUsers={adminUsers.map(u => u.full_name || u.login)} users={adminUsers} />}
         {tab === "gov" && <AdminGovTab focusAgencyId={focusGovId} onFocusHandled={() => setFocusGovId(null)} users={adminUsers} />}
-        {tab === "shifts" && <AdminShiftLogsTab />}
+        {tab === "shifts" && <AdminShiftLogsTab onSelectPatient={goToPatient} />}
       </main>
     </div>
   );
