@@ -325,6 +325,12 @@ def handler(event: dict, context) -> dict:
             cur.execute(f"SELECT * FROM {SCHEMA}.patient_tasks WHERE patient_id = %s ORDER BY created_at DESC", (patient_id,))
             tasks = cur.fetchall()
 
+            cur.execute(
+                f"SELECT COUNT(*) AS cnt FROM {SCHEMA}.patient_daily_reports WHERE patient_id = %s AND author = %s",
+                (patient_id, "Max-бот (смена)")
+            )
+            shift_reports_count = cur.fetchone()["cnt"]
+
             alias = patient.get("alias") or f"{patient.get('first_name', '')} {patient.get('last_name', '')}".strip() or "Пациент"
             advanced_local_summary = analyze_patient_data(cur, patient_id, SCHEMA, alias, days=7)
 
@@ -340,6 +346,7 @@ def handler(event: dict, context) -> dict:
                 "children": children,
                 "documents": [dict(d) for d in documents],
                 "latest_risk_level": latest_dynamics["risk_level"] if latest_dynamics else None,
+                "shift_reports_count": shift_reports_count,
                 "tasks": [dict(t) for t in tasks],
                 "advanced_local_summary": advanced_local_summary,
                 "saved_summaries": [dict(s) for s in saved_summaries]

@@ -137,7 +137,7 @@ export default function PatientCard({ patientId, onBack, onDeleted, isAdmin, aut
   if (loading) return <div className="flex items-center justify-center h-64"><div className="w-6 h-6 border-2 border-ink border-t-transparent rounded-full animate-spin" /></div>;
   if (!data) return null;
 
-  const { patient, children, documents, latest_risk_level, tasks, saved_summaries } = data;
+  const { patient, children, documents, latest_risk_level, shift_reports_count, tasks, saved_summaries } = data;
   const fullName = [patient.last_name, patient.first_name, patient.middle_name].filter(Boolean).join(" ");
   const lastSummary = saved_summaries?.[0];
   const duration = stayDuration(patient.admission_date, patient.discharge_date);
@@ -184,8 +184,13 @@ export default function PatientCard({ patientId, onBack, onDeleted, isAdmin, aut
           <Icon name="Pencil" size={14} /> Редактировать
         </button>
         {onViewShiftHistory && (
-          <button onClick={() => onViewShiftHistory(patientId)} className="px-3 py-1.5 text-sm border border-cyan-200 text-cyan-700 rounded-lg hover:bg-cyan-50 transition-colors flex items-center gap-1.5">
+          <button onClick={() => onViewShiftHistory(patientId)} className="relative px-3 py-1.5 text-sm border border-cyan-200 text-cyan-700 rounded-lg hover:bg-cyan-50 transition-colors flex items-center gap-1.5">
             <Icon name="Clock" size={14} /> Отчёты смены
+            {!!shift_reports_count && (
+              <span className="flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-semibold bg-cyan-600 text-white">
+                {shift_reports_count}
+              </span>
+            )}
           </button>
         )}
         {isActive ? (

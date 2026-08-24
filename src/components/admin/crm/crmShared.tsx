@@ -26,7 +26,7 @@ export type TaskStatus = "active" | "completed";
 export type TaskType = "main" | "additional";
 export type PatientTask = { id: number; patient_id: number; description: string; deadline?: string; status: TaskStatus; created_at: string; completed_at?: string; task_type: TaskType };
 export type AiSummary = { id: number; patient_id: number; summary_text: string; created_at: string };
-export type PatientFull = { patient: Patient; children: Child[]; documents: Document[]; latest_risk_level?: RiskLevel; tasks?: PatientTask[]; advanced_local_summary?: string; saved_summaries?: AiSummary[] };
+export type PatientFull = { patient: Patient; children: Child[]; documents: Document[]; latest_risk_level?: RiskLevel; shift_reports_count?: number; tasks?: PatientTask[]; advanced_local_summary?: string; saved_summaries?: AiSummary[] };
 
 export type ChildScales = {
   scale_emotional: number | null; scale_stress: number | null; scale_sociability: number | null; scale_activity: number | null;
