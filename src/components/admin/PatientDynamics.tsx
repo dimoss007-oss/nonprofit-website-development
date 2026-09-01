@@ -64,6 +64,18 @@ function fmtDate(d: string) {
   return new Date(d).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" });
 }
 
+function stateColor(v: number) {
+  if (v <= 4) return "#ef4444";
+  if (v <= 6) return "#eab308";
+  return "#22c55e";
+}
+
+function StateDot(props: { cx?: number; cy?: number; payload?: { overall_state: number | null } }) {
+  const { cx, cy, payload } = props;
+  if (cx == null || cy == null || payload?.overall_state == null) return null;
+  return <circle cx={cx} cy={cy} r={5} fill={stateColor(payload.overall_state)} stroke="#fff" strokeWidth={1.5} />;
+}
+
 function ScaleSlider({ label, value, onChange, gradient }: { label: string; value: number; onChange: (v: number) => void; gradient?: "yellow-red" | "blue-green" }) {
   const gradientClass = gradient === "yellow-red" ? "gradient-yellow-red" : gradient === "blue-green" ? "gradient-blue-green" : "";
   return (
@@ -178,6 +190,10 @@ export default function PatientDynamics({ patientId, authorName, isAdmin }: { pa
     ...SCALE_META.reduce((acc, s) => ({ ...acc, [s.key]: r[s.key] }), {}),
   }));
 
+  const stateChartData = reports
+    .filter((r) => r.overall_state != null)
+    .map((r) => ({ date: fmtDate(r.report_date), overall_state: r.overall_state }));
+
   const latestRisk = reports.length > 0 ? reports[reports.length - 1] : null;
 
   return (
@@ -277,6 +293,28 @@ export default function PatientDynamics({ patientId, authorName, isAdmin }: { pa
           <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${RISK_META[latestRisk.risk_level].badge}`}>
             {RISK_META[latestRisk.risk_level].label}
           </span>
+        </div>
+      )}
+
+      {stateChartData.length > 0 && (
+        <div className="bg-white border border-beige-dark rounded-2xl p-5">
+          <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+            <h3 className="font-semibold text-ink text-sm uppercase tracking-wide">Динамика общего состояния</h3>
+            <div className="flex items-center gap-3 text-xs text-ink/50">
+              <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-[#ef4444] inline-block" />Кризис</span>
+              <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-[#eab308] inline-block" />Нестабильно</span>
+              <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-[#22c55e] inline-block" />Стабильно</span>
+            </div>
+          </div>
+          <ResponsiveContainer width="100%" height={220}>
+            <LineChart data={stateChartData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e1d8" />
+              <XAxis dataKey="date" tick={{ fontSize: 11 }} />
+              <YAxis domain={[0, 10]} ticks={[0, 3, 6, 8, 10]} tick={{ fontSize: 11 }} />
+              <Tooltip />
+              <Line type="monotone" dataKey="overall_state" name="Общее состояние" stroke="#a3a3a3" strokeWidth={2} dot={<StateDot />} connectNulls />
+            </LineChart>
+          </ResponsiveContainer>
         </div>
       )}
 
