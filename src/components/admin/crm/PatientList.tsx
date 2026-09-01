@@ -2,6 +2,7 @@ import Icon from "@/components/ui/icon";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Patient, EMPTY_FORM, RiskBadge, fmt, stayDuration, plural, CareStage } from "@/components/admin/crm/crmShared";
 import { PatientForm } from "@/components/admin/crm/PatientFormParts";
+import StateSparkline from "@/components/admin/crm/StateSparkline";
 
 export default function PatientList({
   allPatients, patients, loading, search, setSearch, adding, setAdding, saving,
@@ -119,6 +120,7 @@ export default function PatientList({
                     </div>
                   </div>
                 </div>
+                <StateSparkline history={p.state_history} />
                 <Icon name="ChevronRight" size={16} className="text-ink/30 group-hover:text-ink transition-colors flex-shrink-0" />
               </div>
             </button>

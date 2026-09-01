@@ -358,12 +358,24 @@ def handler(event: dict, context) -> dict:
                     SELECT DISTINCT ON (patient_id) patient_id, risk_level
                     FROM {SCHEMA}.patient_daily_reports
                     ORDER BY patient_id, report_date DESC, created_at DESC
+                ),
+                recent_states AS (
+                    SELECT patient_id, json_agg(json_build_object('date', report_date, 'value', overall_state) ORDER BY report_date) AS state_history
+                    FROM (
+                        SELECT patient_id, report_date, overall_state,
+                               ROW_NUMBER() OVER (PARTITION BY patient_id ORDER BY report_date DESC, created_at DESC) AS rn
+                        FROM {SCHEMA}.patient_daily_reports
+                        WHERE overall_state IS NOT NULL
+                    ) t
+                    WHERE rn <= 10
+                    GROUP BY patient_id
                 )
             """
             if search:
                 cur.execute(
                     f"""WITH {latest_risk_cte}
-                        SELECT p.*, COUNT(c.id) as children_count, lr.risk_level
+                        SELECT p.*, COUNT(c.id) as children_count, lr.risk_level,
+                               (SELECT state_history FROM recent_states rs WHERE rs.patient_id = p.id) AS state_history
                         FROM {SCHEMA}.patients p
                         LEFT JOIN {SCHEMA}.patient_children c ON c.patient_id = p.id
                         LEFT JOIN latest_risk lr ON lr.patient_id = p.id
@@ -375,7 +387,8 @@ def handler(event: dict, context) -> dict:
             else:
                 cur.execute(
                     f"""WITH {latest_risk_cte}
-                        SELECT p.*, COUNT(c.id) as children_count, lr.risk_level
+                        SELECT p.*, COUNT(c.id) as children_count, lr.risk_level,
+                               (SELECT state_history FROM recent_states rs WHERE rs.patient_id = p.id) AS state_history
                         FROM {SCHEMA}.patients p
                         LEFT JOIN {SCHEMA}.patient_children c ON c.patient_id = p.id
                         LEFT JOIN latest_risk lr ON lr.patient_id = p.id

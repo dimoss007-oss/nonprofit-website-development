@@ -14,6 +14,7 @@ export type ChildWithPatient = Child & {
 export type Document = { id: number; file_name: string; file_url: string; file_type?: string; file_size?: number; uploaded_at: string };
 export type RiskLevel = "none" | "attention" | "high" | null | undefined;
 export type CareStage = "inpatient" | "posttreatment";
+export type StatePoint = { date: string; value: number | null };
 export type Patient = {
   id: number; last_name: string; first_name: string; middle_name?: string; alias?: string;
   birth_date?: string; address?: string; admission_date?: string; discharge_date?: string;
@@ -21,6 +22,7 @@ export type Patient = {
   passport_series?: string; passport_number?: string;
   passport_issued_date?: string; passport_issued_by?: string;
   photo_url?: string; risk_level?: RiskLevel; care_stage?: CareStage; care_stage_since?: string;
+  state_history?: StatePoint[];
 };
 export type TaskStatus = "active" | "completed";
 export type TaskType = "main" | "additional";
@@ -67,6 +69,12 @@ export function RiskBadge({ level }: { level: RiskLevel }) {
   if (!level || !RISK_META[level]) return null;
   const m = RISK_META[level];
   return <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium flex-shrink-0 ${m.badge}`}>{m.label}</span>;
+}
+
+export function stateColor(v: number) {
+  if (v <= 4) return "#ef4444";
+  if (v <= 6) return "#eab308";
+  return "#22c55e";
 }
 
 export function fmt(d?: string) {
