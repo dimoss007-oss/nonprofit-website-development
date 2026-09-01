@@ -99,6 +99,37 @@ def get_conn():
     return psycopg2.connect(os.environ["DATABASE_URL"])
 
 
+def find_employee_by_max_id(cur, max_user_id: int):
+    """Ищет сотрудника в admin_users по привязанному max_chat_id (Max user_id отправителя).
+    Возвращает dict {id, full_name} или None, если отправитель не является зарегистрированным сотрудником."""
+    cur.execute(
+        f"SELECT id, full_name, login FROM {SCHEMA}.admin_users WHERE max_chat_id = %s",
+        (max_user_id,),
+    )
+    row = cur.fetchone()
+    return dict(row) if row else None
+
+
+def bind_employee_by_phone(cur, conn, max_user_id: int, phone: str) -> bool:
+    """Привязывает max_chat_id (Max user_id) к сотруднику из admin_users по номеру телефона.
+    Сравнение — по последним 10 цифрам (без учёта кода страны)."""
+    digits = "".join(c for c in phone if c.isdigit())
+    if len(digits) < 7:
+        return False
+    cur.execute(f"SELECT id, phone FROM {SCHEMA}.admin_users WHERE phone IS NOT NULL")
+    matched_id = None
+    for row in cur.fetchall():
+        row_digits = "".join(c for c in (row["phone"] or "") if c.isdigit())
+        if len(row_digits) >= 7 and row_digits[-10:] == digits[-10:]:
+            matched_id = row["id"]
+            break
+    if not matched_id:
+        return False
+    cur.execute(f"UPDATE {SCHEMA}.admin_users SET max_chat_id = %s WHERE id = %s", (max_user_id, matched_id))
+    conn.commit()
+    return True
+
+
 def ok(data, status=200):
     return {"statusCode": status, "headers": {**CORS, "Content-Type": "application/json"}, "body": json.dumps(data, default=str)}
 
@@ -245,7 +276,9 @@ def parse_shift_report(text: str, patients: list):
 
 def handler(event: dict, context) -> dict:
     """Webhook-эндпоинт для приёма ежедневных отчётов смены из бота Max. Проверяет секрет вебхука (заголовок X-Max-Bot-Api-Secret),
-    парсит текст отчёта (rule-based NLP), сопоставляет пациентов по alias/ФИО и сохраняет оценку состояния + сводку смены."""
+    авторизует отправителя по привязанному номеру телефона (сотрудник из admin_users; чужие/незарегистрированные
+    номера игнорируются — бот "глухой" для внешних), парсит текст отчёта (rule-based NLP), сопоставляет пациентов
+    по alias/ФИО и сохраняет оценку состояния + автора (employee_id) + сводку смены. Ответ уходит в chat_id общего чата смены."""
     if event.get("httpMethod") == "OPTIONS":
         return {"statusCode": 200, "headers": CORS, "body": ""}
 
@@ -279,11 +312,35 @@ def handler(event: dict, context) -> dict:
 
     user_id = int(user_id)
     chat_id = int(chat_id) if chat_id else None
-    report_date = extract_report_date(text)
-    report_date_iso = report_date.isoformat()
+    text = text.strip()
 
     conn = get_conn()
     cur = conn.cursor(cursor_factory=RealDictCursor)
+
+    # Команда привязки: сотрудник один раз пишет /bind +7ХХХХХХХХХХ, чтобы Max-аккаунт узнавался в будущем
+    # (номер телефона отправителя недоступен в самом вебхуке — только через ручную привязку по chat_id/user_id).
+    if text.startswith("/bind"):
+        parts = text.split(maxsplit=1)
+        phone = parts[1].strip() if len(parts) > 1 else ""
+        if phone and bind_employee_by_phone(cur, conn, user_id, phone):
+            conn.close()
+            send_message("✅ Аккаунт привязан. Теперь ваши отчёты будут приниматься.", token, chat_id=chat_id, user_id=user_id)
+        else:
+            conn.close()
+            send_message("Не удалось привязать номер. Укажите: /bind +79001234567", token, chat_id=chat_id, user_id=user_id)
+        return ok({"ok": True})
+
+    # Динамическая проверка прав: отправитель должен быть зарегистрированным сотрудником (привязан по телефону).
+    # Если номер/аккаунт не найден в базе — бот "глухой" для внешних: молча игнорируем сообщение.
+    employee = find_employee_by_max_id(cur, user_id)
+    if not employee:
+        conn.close()
+        print(f"ignored: user_id={user_id} is not a registered employee")
+        return ok({"ok": True})
+
+    author_name = employee.get("full_name") or employee.get("login") or "Сотрудник"
+    report_date = extract_report_date(text)
+    report_date_iso = report_date.isoformat()
 
     cur.execute(f"SELECT id, first_name, last_name, alias FROM {SCHEMA}.patients WHERE discharge_date IS NULL")
     patients = [dict(r) for r in cur.fetchall()]
@@ -300,7 +357,7 @@ def handler(event: dict, context) -> dict:
         conn.commit()
         conn.close()
         send_message(
-            f"⚠️ Отчёт за {report_date.strftime('%d.%m.%Y')} принят, но пациентов в тексте распознать не удалось.",
+            f"⚠️ Отчёт за {report_date.strftime('%d.%m.%Y')} принят, но пациентов в тексте распознать не удалось. Автор: {author_name}.",
             token, chat_id=chat_id, user_id=user_id,
         )
         return ok({"ok": True, "recognized": 0})
@@ -312,20 +369,23 @@ def handler(event: dict, context) -> dict:
         overall_state = analyze_sentiment(block["text"])
 
         cur.execute(
-            f"""INSERT INTO {SCHEMA}.patient_daily_reports (patient_id, author, report_date, overall_state, problems_identified)
-                VALUES (%s, %s, %s, %s, %s)
+            f"""INSERT INTO {SCHEMA}.patient_daily_reports (patient_id, author, employee_id, report_date, overall_state, problems_identified)
+                VALUES (%s, %s, %s, %s, %s, %s)
                 ON CONFLICT (patient_id, report_date, author) DO UPDATE SET
                     overall_state = EXCLUDED.overall_state,
-                    problems_identified = EXCLUDED.problems_identified""",
-            (patient["id"], "Max-бот (смена)", report_date_iso, overall_state, block["text"]),
+                    problems_identified = EXCLUDED.problems_identified,
+                    employee_id = EXCLUDED.employee_id""",
+            (patient["id"], author_name, employee["id"], report_date_iso, overall_state, block["text"]),
         )
         recognized += 1
 
     conn.commit()
     conn.close()
 
-    reply = f"✅ Отчёт за {report_date.strftime('%d.%m.%Y')} успешно принят. Распознано пациентов: {recognized}."
+    reply = f"✅ Отчёт за {report_date.strftime('%d.%m.%Y')} успешно принят. Автор: {author_name}. Распознано пациентов: {recognized}."
 
+    # Ответ уходит в chat_id — если сообщение пришло из общего группового чата смены, туда же и отвечаем,
+    # чтобы результат видела вся смена; иначе (личка) — тем же способом отправителю.
     send_message(reply, token, chat_id=chat_id, user_id=user_id)
 
     return ok({"ok": True, "recognized": recognized})
