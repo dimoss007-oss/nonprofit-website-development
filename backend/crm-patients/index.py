@@ -13,6 +13,103 @@ CORS = {
     "Access-Control-Allow-Headers": "Content-Type, X-User-Id, X-Auth-Token",
 }
 
+# Словари корней слов для алгоритмической текстовой сводки (без внешних ИИ-сервисов).
+# Совпадают со словарями в max-shift-report-bot/index.py, используемыми для расчёта overall_state.
+GREEN_WORDS = [
+    "молодец", "справил", "стабильн", "ресурс", "бодрячк",
+    "включен", "активн", "помог", "честн", "ровн",
+    "умниц", "прогресс", "втягива", "движени", "уверен",
+]
+YELLOW_WORDS = [
+    "устал", "подустал", "вымотал", "сует", "отвлека",
+    "нестабильн", "инфантильн", "детск", "качел", "ручник",
+    "напряжен", "поникш", "задумчив", "пассивн",
+]
+RED_WORDS = [
+    "жертв", "чёрн", "тёмн", "нечестност", "оправдан",
+    "маск", "тяг", "обид", "провал", "агресс",
+    "срыв", "корон", "хитр", "грузит", "закрыт",
+    "отрицани", "презрени", "угодничеств", "бардак",
+    "глухонем", "безответствен",
+]
+DISCIPLINE_MARKERS = [
+    "х2", "пхд", "режим тишины", "последстви", "верёвк",
+]
+
+
+def generate_text_summary(cur, patient_id: int, schema: str, days: int) -> dict:
+    """Алгоритмическая (rule-based) текстовая сводка по пациенту за период: без внешних ИИ-сервисов.
+    Считает % дней в красной/жёлтой/зелёной зоне по overall_state, находит топ-3 самых частых
+    корней-триггеров в текстах отчётов и формирует Markdown-текст (Динамика / Паттерны / Дисциплина)."""
+    cur.execute(
+        f"""SELECT report_date, overall_state, problems_identified, actions_taken, results, notes
+            FROM {schema}.patient_daily_reports
+            WHERE patient_id = %s AND report_date >= CURRENT_DATE - %s::interval
+            ORDER BY report_date ASC""",
+        (patient_id, f"{days} days"),
+    )
+    reports = cur.fetchall()
+
+    red_count = yellow_count = green_count = 0
+    for r in reports:
+        score = r.get("overall_state")
+        if score is None:
+            continue
+        if score <= 4:
+            red_count += 1
+        elif score <= 6:
+            yellow_count += 1
+        else:
+            green_count += 1
+
+    total_scored = red_count + yellow_count + green_count
+    red_pct = (red_count / total_scored * 100) if total_scored else 0
+    green_pct = (green_count / total_scored * 100) if total_scored else 0
+
+    combined_text = " ".join(
+        (r.get("problems_identified") or "") + " " + (r.get("actions_taken") or "") + " " +
+        (r.get("results") or "") + " " + (r.get("notes") or "")
+        for r in reports
+    ).lower()
+
+    word_counts = []
+    for w in RED_WORDS + YELLOW_WORDS + GREEN_WORDS + DISCIPLINE_MARKERS:
+        c = combined_text.count(w)
+        if c > 0:
+            word_counts.append((w, c))
+    word_counts.sort(key=lambda x: x[1], reverse=True)
+    top3 = word_counts[:3]
+
+    discipline_found = any(combined_text.count(w) > 0 for w in DISCIPLINE_MARKERS)
+
+    if total_scored == 0:
+        dynamics_block = "🟡 **Динамика:** Недостаточно данных за период для оценки."
+    elif red_pct >= 40:
+        dynamics_block = "🔴 **Динамика:** Негативная. Преобладает эмоциональный спад, высок риск срыва или саботажа."
+    elif green_pct >= 50 and red_pct < 20:
+        dynamics_block = "🟢 **Динамика:** Положительная. Пациент стабилен, показывает вовлечённость."
+    else:
+        dynamics_block = "🟡 **Динамика:** Нестабильная (эмоциональные качели)."
+
+    if top3:
+        patterns_str = ", ".join(f"{w} ({c} раз)" for w, c in top3)
+        patterns_block = f"⚠️ **Доминирующие паттерны:** {patterns_str}."
+    else:
+        patterns_block = "⚠️ **Доминирующие паттерны:** Ярко выраженных паттернов не зафиксировано."
+
+    if discipline_found:
+        discipline_block = "🛑 **Дисциплина:** Имеются системные нарушения (получены последствия)."
+    else:
+        discipline_block = "✅ **Дисциплина:** Грубых нарушений не зафиксировано."
+
+    summary_text = "\n\n".join([dynamics_block, patterns_block, discipline_block])
+
+    return {
+        "summary_text": summary_text,
+        "counts": {"red": red_count, "yellow": yellow_count, "green": green_count},
+        "days": days,
+    }
+
 def get_conn():
     return psycopg2.connect(os.environ["DATABASE_URL"])
 
@@ -196,7 +293,8 @@ def analyze_child_data(cur, child_id, schema, days=7):
 
 
 def handler(event: dict, context) -> dict:
-    """CRM: управление пациентами. GET /? — список, GET /?id=N — карточка, POST / — создать, PUT /?id=N — обновить"""
+    """CRM: управление пациентами. GET /? — список, GET /?id=N — карточка, POST / — создать, PUT /?id=N — обновить,
+    GET /?id=N&view=text_summary&days=7 — алгоритмическая текстовая сводка за период (без внешних ИИ-сервисов)."""
     if event.get("httpMethod") == "OPTIONS":
         return {"statusCode": 200, "headers": CORS, "body": ""}
 
@@ -235,6 +333,15 @@ def handler(event: dict, context) -> dict:
         return scores
 
     if method == "GET":
+        if view == "text_summary" and patient_id:
+            try:
+                days = int(params.get("days", 7))
+            except (TypeError, ValueError):
+                days = 7
+            days = max(1, min(days, 90))
+            result = generate_text_summary(cur, patient_id, SCHEMA, days)
+            return ok(result)
+
         if view == "children":
             cur.execute(f"""
                 SELECT c.*, EXTRACT(YEAR FROM AGE(CURRENT_DATE, c.birth_date))::int AS current_age,
