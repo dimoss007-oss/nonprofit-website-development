@@ -13,7 +13,8 @@ CORS = {
     "Access-Control-Allow-Headers": "Content-Type",
 }
 
-YANDEX_GPT_URL = "https://llm.api.cloud.yandex.net/foundationModels/v1/completion"
+YANDEX_RESPONSES_URL = "https://ai.api.cloud.yandex.net/v1/responses"
+YANDEX_AGENT_ID = "fvti6fm1qmd437gba827"
 
 YANDEX_SYSTEM_PROMPT = (
     "Ты — опытный клинический психолог в реабилитационном центре АНО «Спасение надежды». "
@@ -78,32 +79,40 @@ def get_system_prompt(cur, schema: str) -> str:
 
 
 def ask_yandex_gpt(prompt: str, system_prompt: str = YANDEX_SYSTEM_PROMPT) -> str | None:
-    """Запрос к YandexGPT Pro для генерации аналитической сводки по анонимизированному тексту.
-    Возвращает None при ошибке, чтобы не засорять историю сводок текстами с ошибками."""
-    folder_id = (os.environ.get("YANDEX_FOLDER_ID") or "").strip()
-    api_key = (os.environ.get("YANDEX_API_KEY") or "").strip()
-    if not folder_id or not api_key:
-        print("YandexGPT cron: ключи не настроены")
+    """Запрос к Агенту Yandex AI Studio (Agent Atelier, с подключённой базой знаний RAG) через Responses API.
+    Текст анонимизированного отчёта подставляется в переменную промпта {{report_text}} и одновременно
+    передаётся как input, чтобы модель гарантированно его увидела. Инструкции берутся из настроек
+    самого агента в Agent Atelier. Возвращает None при ошибке, чтобы не засорять историю сводок."""
+    api_key = (os.environ.get("YANDEX_AGENT_API_KEY") or "").strip()
+    if not api_key:
+        print("YandexAgent cron: ключ не настроен")
         return None
 
     payload = {
-        "modelUri": f"gpt://{folder_id}/yandexgpt/latest",
-        "completionOptions": {"stream": False, "temperature": 0.3, "maxTokens": 250},
-        "messages": [
-            {"role": "system", "text": system_prompt},
-            {"role": "user", "text": prompt},
-        ],
+        "prompt": {
+            "id": YANDEX_AGENT_ID,
+            "variables": {"report_text": prompt},
+        },
+        "input": prompt,
     }
     headers = {"Content-Type": "application/json", "Authorization": f"Api-Key {api_key}"}
 
     try:
-        response = requests.post(YANDEX_GPT_URL, headers=headers, json=payload, timeout=25)
+        response = requests.post(YANDEX_RESPONSES_URL, headers=headers, json=payload, timeout=25)
         if not response.ok:
-            print(f"YandexGPT HTTP {response.status_code}: {response.text[:500]}")
+            print(f"YandexAgent HTTP {response.status_code}: {response.text[:500]}")
             return None
-        return response.json()["result"]["alternatives"][0]["message"]["text"]
+        data = response.json()
+        text = data.get("output_text")
+        if text:
+            return text
+        for item in data.get("output", []):
+            for c in item.get("content", []):
+                if c.get("text"):
+                    return c["text"]
+        return None
     except requests.exceptions.RequestException as e:
-        print(f"YandexGPT error: {e}")
+        print(f"YandexAgent error: {e}")
         return None
 
 

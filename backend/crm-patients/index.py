@@ -114,7 +114,8 @@ def generate_text_summary(cur, patient_id: int, schema: str, days: int) -> dict:
         "days": days,
     }
 
-YANDEX_GPT_URL = "https://llm.api.cloud.yandex.net/foundationModels/v1/completion"
+YANDEX_RESPONSES_URL = "https://ai.api.cloud.yandex.net/v1/responses"
+YANDEX_AGENT_ID = "fvti6fm1qmd437gba827"
 
 
 def hash_password(password: str) -> str:
@@ -202,23 +203,20 @@ def get_system_prompt(cur, schema: str) -> str:
 
 
 def ask_yandex_gpt(prompt: str, system_prompt: str = YANDEX_SYSTEM_PROMPT) -> str:
-    """Запрос к YandexGPT Pro (llm.api.cloud.yandex.net) для генерации аналитической сводки по анонимизированному тексту."""
-    folder_id = (os.environ.get("YANDEX_FOLDER_ID") or "").strip()
-    api_key = (os.environ.get("YANDEX_API_KEY") or "").strip()
-    if not folder_id or not api_key:
-        return "ИИ временно недоступен: не настроены ключи YandexGPT."
+    """Запрос к Агенту Yandex AI Studio (Agent Atelier, с подключённой базой знаний RAG) через Responses API.
+    Текст анонимизированного отчёта подставляется в переменную промпта {{report_text}} и одновременно
+    передаётся как input (реальное сообщение), чтобы модель гарантированно его увидела. Инструкции берутся
+    из настроек самого агента в Agent Atelier — свой system_prompt поверх них не передаём."""
+    api_key = (os.environ.get("YANDEX_AGENT_API_KEY") or "").strip()
+    if not api_key:
+        return "ИИ временно недоступен: не настроен ключ доступа к Агенту YandexGPT."
 
     payload = {
-        "modelUri": f"gpt://{folder_id}/yandexgpt/latest",
-        "completionOptions": {
-            "stream": False,
-            "temperature": 0.3,
-            "maxTokens": 250,
+        "prompt": {
+            "id": YANDEX_AGENT_ID,
+            "variables": {"report_text": prompt},
         },
-        "messages": [
-            {"role": "system", "text": system_prompt},
-            {"role": "user", "text": prompt},
-        ],
+        "input": prompt,
     }
     headers = {
         "Content-Type": "application/json",
@@ -226,14 +224,22 @@ def ask_yandex_gpt(prompt: str, system_prompt: str = YANDEX_SYSTEM_PROMPT) -> st
     }
 
     try:
-        response = requests.post(YANDEX_GPT_URL, headers=headers, json=payload, timeout=25)
+        response = requests.post(YANDEX_RESPONSES_URL, headers=headers, json=payload, timeout=25)
         if not response.ok:
-            print(f"YandexGPT HTTP {response.status_code}: {response.text[:500]}")
-            return f"Ошибка при обращении к YandexGPT ({response.status_code}): {response.text[:300]}"
-        return response.json()["result"]["alternatives"][0]["message"]["text"]
+            print(f"YandexAgent HTTP {response.status_code}: {response.text[:500]}")
+            return f"Ошибка при обращении к Агенту YandexGPT ({response.status_code}): {response.text[:300]}"
+        data = response.json()
+        text = data.get("output_text")
+        if text:
+            return text
+        for item in data.get("output", []):
+            for c in item.get("content", []):
+                if c.get("text"):
+                    return c["text"]
+        return "Агент не вернул текстовый ответ."
     except requests.exceptions.RequestException as e:
-        print(f"YandexGPT error: {e}")
-        return f"Ошибка при обращении к YandexGPT: {e}"
+        print(f"YandexAgent error: {e}")
+        return f"Ошибка при обращении к Агенту YandexGPT: {e}"
 
 
 def generate_yandex_summary(cur, patient_id: int, schema: str, days: int) -> dict:
