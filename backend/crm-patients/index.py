@@ -410,7 +410,8 @@ def analyze_child_data(cur, child_id, schema, days=7):
 def handler(event: dict, context) -> dict:
     """CRM: управление пациентами. GET /? — список, GET /?id=N — карточка, POST / — создать, PUT /?id=N — обновить,
     GET /?id=N&view=text_summary&days=7 — алгоритмическая текстовая сводка за период (без внешних ИИ-сервисов),
-    GET /?id=N&view=yandex_summary&days=7 — сводка через YandexGPT Pro (ФИО анонимизируются перед отправкой)."""
+    GET /?id=N&view=yandex_summary&days=7 — сводка через YandexGPT Pro (ФИО анонимизируются перед отправкой),
+    POST action=generate_and_save_yandex_summary — экстренная генерация + сохранение сводки YandexGPT в историю."""
     if event.get("httpMethod") == "OPTIONS":
         return {"statusCode": 200, "headers": CORS, "body": ""}
 
@@ -752,6 +753,29 @@ def handler(event: dict, context) -> dict:
             if not patient:
                 return err("Пациент не найден или не находится на амбулаторной программе", 404)
             return ok({"patient": dict(patient)})
+
+        if action == "generate_and_save_yandex_summary":
+            pid = body.get("patient_id")
+            if not pid:
+                return err("Поле patient_id обязательно")
+            try:
+                days = int(body.get("days", 3))
+            except (TypeError, ValueError):
+                days = 3
+            days = max(1, min(days, 90))
+
+            result = generate_yandex_summary(cur, pid, SCHEMA, days)
+            summary_text = result.get("summary_text")
+            if not summary_text:
+                return err(result.get("error") or "Не удалось сформировать сводку", 502)
+
+            cur.execute(
+                f"INSERT INTO {SCHEMA}.patient_ai_summaries (patient_id, summary_text, source) VALUES (%s, %s, 'yandex_gpt') RETURNING id, patient_id, summary_text, source, created_at",
+                (pid, summary_text)
+            )
+            summary = cur.fetchone()
+            conn.commit()
+            return ok({"summary": dict(summary)}, 201)
 
         if action == "save_local_summary":
             pid = body.get("patient_id")

@@ -42,6 +42,8 @@ export default function PatientAiSummary({ patientId, currentSummary, savedSumma
   const [source, setSource] = useState<Source>("rule_based");
   const [textSummary, setTextSummary] = useState<TextSummary | null>(null);
   const [loadingSummary, setLoadingSummary] = useState(false);
+  const [emergencyLoading, setEmergencyLoading] = useState(false);
+  const [emergencyError, setEmergencyError] = useState<string | null>(null);
 
   const loadSummary = async (period: number, src: Source) => {
     setLoadingSummary(true);
@@ -74,6 +76,30 @@ export default function PatientAiSummary({ patientId, currentSummary, savedSumma
     }
   };
 
+  const emergencyUpdate = async () => {
+    setEmergencyLoading(true);
+    setEmergencyError(null);
+    try {
+      const r = await fetch(API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "generate_and_save_yandex_summary", patient_id: patientId, days: 3 }),
+      });
+      const d = await r.json();
+      if (!r.ok) {
+        setEmergencyError(d.error || "Не удалось получить свежую сводку");
+        return;
+      }
+      setSource("yandex_gpt");
+      setTextSummary({ summary_text: d.summary.summary_text, days: 3 });
+      onChanged();
+    } catch {
+      setEmergencyError("Ошибка соединения с сервером");
+    } finally {
+      setEmergencyLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="bg-white border border-beige-dark rounded-2xl p-5 space-y-4">
@@ -95,18 +121,34 @@ export default function PatientAiSummary({ patientId, currentSummary, savedSumma
           </div>
         </div>
 
-        <div className="flex items-center gap-1 bg-beige-mid rounded-lg p-1 w-fit">
-          {SOURCES.map((s) => (
-            <button
-              key={s.value}
-              onClick={() => setSource(s.value)}
-              className={`px-3 py-1.5 text-xs rounded-md font-medium transition-colors flex items-center gap-1.5 ${source === s.value ? "bg-white text-ink shadow-sm" : "text-ink/50 hover:text-ink"}`}
-            >
-              <Icon name={s.icon} size={13} />
-              {s.label}
-            </button>
-          ))}
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <div className="flex items-center gap-1 bg-beige-mid rounded-lg p-1 w-fit">
+            {SOURCES.map((s) => (
+              <button
+                key={s.value}
+                onClick={() => setSource(s.value)}
+                className={`px-3 py-1.5 text-xs rounded-md font-medium transition-colors flex items-center gap-1.5 ${source === s.value ? "bg-white text-ink shadow-sm" : "text-ink/50 hover:text-ink"}`}
+              >
+                <Icon name={s.icon} size={13} />
+                {s.label}
+              </button>
+            ))}
+          </div>
+
+          <button
+            onClick={emergencyUpdate}
+            disabled={emergencyLoading}
+            title="Экстренная генерация свежей сводки YandexGPT по отчётам за последние 3 дня, минуя ночной автообновление"
+            className="px-3 py-1.5 text-xs rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors disabled:opacity-60 flex items-center gap-1.5 font-medium"
+          >
+            <Icon name={emergencyLoading ? "Loader" : "Siren"} size={14} className={emergencyLoading ? "animate-spin" : ""} />
+            {emergencyLoading ? "Обновляю..." : "Экстренно обновить"}
+          </button>
         </div>
+
+        {emergencyError && (
+          <p className="text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2">{emergencyError}</p>
+        )}
 
         {textSummary?.counts && (
           <div className="flex items-center gap-2 flex-wrap">

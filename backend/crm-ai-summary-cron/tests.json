@@ -1,0 +1,12 @@
+{
+  "tests": [
+    {
+      "name": "Ночной прогон AI-сводок",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": {"generated": 0},
+      "bodyMatcher": "partial"
+    }
+  ]
+}
