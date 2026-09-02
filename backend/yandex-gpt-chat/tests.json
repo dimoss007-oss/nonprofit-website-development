@@ -1,0 +1,13 @@
+{
+  "tests": [
+    {
+      "name": "Отказ без прав администратора",
+      "method": "POST",
+      "path": "/",
+      "body": {"auth_login": "wrong", "auth_password": "wrong", "messages": [{"role": "user", "text": "Привет"}]},
+      "expectedStatus": 403,
+      "expectedBody": {"error": "string"},
+      "bodyMatcher": "partial"
+    }
+  ]
+}

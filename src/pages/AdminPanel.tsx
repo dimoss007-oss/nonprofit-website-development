@@ -12,6 +12,7 @@ import AdminGovTab from "@/components/admin/AdminGovTab";
 import AdminShiftLogsTab from "@/components/admin/AdminShiftLogsTab";
 import AdminTasksWidget from "@/components/admin/AdminTasksWidget";
 import AdminAiSettingsTab from "@/components/admin/AdminAiSettingsTab";
+import AiChatModal from "@/components/admin/AiChatModal";
 import type { Task } from "@/components/admin/taskTypes";
 
 const AUTH_URL = "https://functions.poehali.dev/e6567f16-b3db-4b0d-9c1f-abed808c2ac8";
@@ -93,6 +94,7 @@ export default function AdminPanel() {
   const [focusGovId, setFocusGovId] = useState<number | null>(null);
   const [focusPatientId, setFocusPatientId] = useState<number | null>(null);
   const [shiftFilterPatientId, setShiftFilterPatientId] = useState<number | null>(null);
+  const [aiChatOpen, setAiChatOpen] = useState(false);
 
   const goToPatient = (patientId: number) => {
     setFocusPatientId(patientId);
@@ -178,6 +180,15 @@ export default function AdminPanel() {
                 {isAdmin ? "Администратор" : "Пользователь"}
               </span>
             </div>
+            {isAdmin && (
+              <button
+                onClick={() => setAiChatOpen(true)}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium bg-purple-100 text-purple-700 hover:bg-purple-200 transition-colors"
+              >
+                <Icon name="Sparkles" size={14} />
+                <span className="hidden sm:inline">Спросить ИИ</span>
+              </button>
+            )}
             <button onClick={logout} className="flex items-center gap-2 text-ink/50 hover:text-ink text-sm transition-colors">
               <Icon name="LogOut" size={15} />
               <span className="hidden sm:inline">Выйти</span>
@@ -226,6 +237,10 @@ export default function AdminPanel() {
         {tab === "shifts" && <AdminShiftLogsTab onSelectPatient={goToPatient} filterPatientId={shiftFilterPatientId} onClearFilter={() => setShiftFilterPatientId(null)} />}
         {tab === "ai_settings" && <AdminAiSettingsTab isAdmin={isAdmin} authLogin={session.login} authPassword={session.password} />}
       </main>
+
+      {isAdmin && (
+        <AiChatModal open={aiChatOpen} onClose={() => setAiChatOpen(false)} authLogin={session.login} authPassword={session.password} />
+      )}
     </div>
   );
 }
