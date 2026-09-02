@@ -1,6 +1,8 @@
 import json
 import os
 import re
+import hashlib
+import hmac
 from datetime import date
 import psycopg2
 import requests
@@ -114,6 +116,37 @@ def generate_text_summary(cur, patient_id: int, schema: str, days: int) -> dict:
 
 YANDEX_GPT_URL = "https://llm.api.cloud.yandex.net/foundationModels/v1/completion"
 
+
+def hash_password(password: str) -> str:
+    return hashlib.sha256(password.encode()).hexdigest()
+
+
+def is_admin(cur, schema: str, login: str, password: str) -> bool:
+    """Проверяет права администратора: сначала мастер-аккаунт (ADMIN_LOGIN/ADMIN_PASSWORD),
+    затем обычные пользователи admin_users с role='admin'. Используется для защиты
+    редактирования системного промпта YandexGPT от рядовых сотрудников."""
+    if not login or not password:
+        return False
+
+    master_login = os.environ.get("ADMIN_LOGIN", "")
+    master_password = os.environ.get("ADMIN_PASSWORD", "")
+    if master_login and hmac.compare_digest(login, master_login) and hmac.compare_digest(password, master_password):
+        return True
+
+    try:
+        cur.execute(f"SELECT password_hash, role FROM {schema}.admin_users WHERE login = %s", (login,))
+        user = cur.fetchone()
+        if not user:
+            return False
+        stored_hash = user["password_hash"] if isinstance(user, dict) else user[0]
+        role = user["role"] if isinstance(user, dict) else user[1]
+        if role != "admin":
+            return False
+        return hmac.compare_digest(hash_password(password), stored_hash)
+    except Exception as e:
+        print(f"is_admin check error: {e}")
+        return False
+
 YANDEX_SYSTEM_PROMPT = (
     "Ты — опытный клинический психолог в реабилитационном центре АНО «Спасение надежды». "
     "Твоя задача: проанализировать ежедневный отчёт дежурного о поведении резидента. "
@@ -153,7 +186,22 @@ def anonymize_names(text: str, patient: dict, children: list) -> str:
     return result
 
 
-def ask_yandex_gpt(prompt: str) -> str:
+def get_system_prompt(cur, schema: str) -> str:
+    """Достаёт актуальный системный промпт для YandexGPT из настроек CRM.
+    Если в БД пусто (не настроено администратором) — используется промпт по умолчанию."""
+    try:
+        cur.execute(f"SELECT yandexgpt_system_prompt FROM {schema}.crm_settings WHERE id = 1")
+        row = cur.fetchone()
+        if row:
+            value = row["yandexgpt_system_prompt"] if isinstance(row, dict) else row[0]
+            if value and value.strip():
+                return value.strip()
+    except Exception as e:
+        print(f"get_system_prompt error: {e}")
+    return YANDEX_SYSTEM_PROMPT
+
+
+def ask_yandex_gpt(prompt: str, system_prompt: str = YANDEX_SYSTEM_PROMPT) -> str:
     """Запрос к YandexGPT Pro (llm.api.cloud.yandex.net) для генерации аналитической сводки по анонимизированному тексту."""
     folder_id = (os.environ.get("YANDEX_FOLDER_ID") or "").strip()
     api_key = (os.environ.get("YANDEX_API_KEY") or "").strip()
@@ -168,7 +216,7 @@ def ask_yandex_gpt(prompt: str) -> str:
             "maxTokens": 250,
         },
         "messages": [
-            {"role": "system", "text": YANDEX_SYSTEM_PROMPT},
+            {"role": "system", "text": system_prompt},
             {"role": "user", "text": prompt},
         ],
     }
@@ -221,7 +269,8 @@ def generate_yandex_summary(cur, patient_id: int, schema: str, days: int) -> dic
     raw_text = "\n".join(lines)
     anonymized_text = anonymize_names(raw_text, patient, children)
 
-    summary_text = ask_yandex_gpt(anonymized_text)
+    system_prompt = get_system_prompt(cur, schema)
+    summary_text = ask_yandex_gpt(anonymized_text, system_prompt)
     return {"summary_text": summary_text, "days": days}
 
 
@@ -411,7 +460,9 @@ def handler(event: dict, context) -> dict:
     """CRM: управление пациентами. GET /? — список, GET /?id=N — карточка, POST / — создать, PUT /?id=N — обновить,
     GET /?id=N&view=text_summary&days=7 — алгоритмическая текстовая сводка за период (без внешних ИИ-сервисов),
     GET /?id=N&view=yandex_summary&days=7 — сводка через YandexGPT Pro (ФИО анонимизируются перед отправкой),
-    POST action=generate_and_save_yandex_summary — экстренная генерация + сохранение сводки YandexGPT в историю."""
+    POST action=generate_and_save_yandex_summary — экстренная генерация + сохранение сводки YandexGPT в историю,
+    GET ?view=ai_settings — текущий системный промпт YandexGPT,
+    POST action=update_ai_settings (auth_login/auth_password admin) — обновить системный промпт YandexGPT."""
     if event.get("httpMethod") == "OPTIONS":
         return {"statusCode": 200, "headers": CORS, "body": ""}
 
@@ -467,6 +518,10 @@ def handler(event: dict, context) -> dict:
             days = max(1, min(days, 90))
             result = generate_yandex_summary(cur, patient_id, SCHEMA, days)
             return ok(result)
+
+        if view == "ai_settings":
+            system_prompt = get_system_prompt(cur, SCHEMA)
+            return ok({"yandexgpt_system_prompt": system_prompt})
 
         if view == "children":
             cur.execute(f"""
@@ -753,6 +808,28 @@ def handler(event: dict, context) -> dict:
             if not patient:
                 return err("Пациент не найден или не находится на амбулаторной программе", 404)
             return ok({"patient": dict(patient)})
+
+        if action == "update_ai_settings":
+            auth_login = body.get("auth_login", "")
+            auth_password = body.get("auth_password", "")
+            if not is_admin(cur, SCHEMA, auth_login, auth_password):
+                return err("Нет прав: изменение промпта доступно только администраторам", 403)
+
+            new_prompt = (body.get("yandexgpt_system_prompt") or "").strip()
+            if not new_prompt:
+                return err("Текст системного промпта не может быть пустым")
+
+            cur.execute(
+                f"""INSERT INTO {SCHEMA}.crm_settings (id, yandexgpt_system_prompt, updated_by, updated_at)
+                    VALUES (1, %s, %s, NOW())
+                    ON CONFLICT (id) DO UPDATE SET yandexgpt_system_prompt = EXCLUDED.yandexgpt_system_prompt,
+                        updated_by = EXCLUDED.updated_by, updated_at = NOW()
+                    RETURNING yandexgpt_system_prompt, updated_at, updated_by""",
+                (new_prompt, auth_login)
+            )
+            settings = cur.fetchone()
+            conn.commit()
+            return ok({"settings": dict(settings)})
 
         if action == "generate_and_save_yandex_summary":
             pid = body.get("patient_id")

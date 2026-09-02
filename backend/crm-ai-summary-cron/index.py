@@ -62,7 +62,22 @@ def anonymize_names(text: str, patient: dict, children: list) -> str:
     return result
 
 
-def ask_yandex_gpt(prompt: str) -> str | None:
+def get_system_prompt(cur, schema: str) -> str:
+    """Достаёт актуальный системный промпт для YandexGPT из настроек CRM (редактируется админом в UI).
+    Если в БД пусто — используется промпт по умолчанию."""
+    try:
+        cur.execute(f"SELECT yandexgpt_system_prompt FROM {schema}.crm_settings WHERE id = 1")
+        row = cur.fetchone()
+        if row:
+            value = row["yandexgpt_system_prompt"] if isinstance(row, dict) else row[0]
+            if value and value.strip():
+                return value.strip()
+    except Exception as e:
+        print(f"get_system_prompt error: {e}")
+    return YANDEX_SYSTEM_PROMPT
+
+
+def ask_yandex_gpt(prompt: str, system_prompt: str = YANDEX_SYSTEM_PROMPT) -> str | None:
     """Запрос к YandexGPT Pro для генерации аналитической сводки по анонимизированному тексту.
     Возвращает None при ошибке, чтобы не засорять историю сводок текстами с ошибками."""
     folder_id = (os.environ.get("YANDEX_FOLDER_ID") or "").strip()
@@ -75,7 +90,7 @@ def ask_yandex_gpt(prompt: str) -> str | None:
         "modelUri": f"gpt://{folder_id}/yandexgpt/latest",
         "completionOptions": {"stream": False, "temperature": 0.3, "maxTokens": 250},
         "messages": [
-            {"role": "system", "text": YANDEX_SYSTEM_PROMPT},
+            {"role": "system", "text": system_prompt},
             {"role": "user", "text": prompt},
         ],
     }
@@ -103,6 +118,8 @@ def handler(event: dict, context) -> dict:
 
     cur.execute(f"SELECT * FROM {SCHEMA}.patients WHERE discharge_date IS NULL ORDER BY id")
     patients = cur.fetchall()
+
+    system_prompt = get_system_prompt(cur, SCHEMA)
 
     generated = 0
     skipped = 0
@@ -141,7 +158,7 @@ def handler(event: dict, context) -> dict:
         raw_text = "\n".join(lines)
         anonymized_text = anonymize_names(raw_text, patient, children)
 
-        summary_text = ask_yandex_gpt(anonymized_text)
+        summary_text = ask_yandex_gpt(anonymized_text, system_prompt)
         if not summary_text:
             errors += 1
             continue
