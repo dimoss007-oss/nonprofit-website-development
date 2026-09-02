@@ -179,7 +179,9 @@ def ask_yandex_gpt(prompt: str) -> str:
 
     try:
         response = requests.post(YANDEX_GPT_URL, headers=headers, json=payload, timeout=25)
-        response.raise_for_status()
+        if not response.ok:
+            print(f"YandexGPT HTTP {response.status_code}: {response.text[:500]}")
+            return f"Ошибка при обращении к YandexGPT ({response.status_code}): {response.text[:300]}"
         return response.json()["result"]["alternatives"][0]["message"]["text"]
     except requests.exceptions.RequestException as e:
         print(f"YandexGPT error: {e}")
