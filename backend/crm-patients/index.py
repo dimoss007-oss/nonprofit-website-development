@@ -1,7 +1,9 @@
 import json
 import os
+import re
 from datetime import date
 import psycopg2
+import requests
 from psycopg2.extras import RealDictCursor
 from psycopg2 import errors
 
@@ -109,6 +111,117 @@ def generate_text_summary(cur, patient_id: int, schema: str, days: int) -> dict:
         "counts": {"red": red_count, "yellow": yellow_count, "green": green_count},
         "days": days,
     }
+
+YANDEX_GPT_URL = "https://llm.api.cloud.yandex.net/foundationModels/v1/completion"
+
+YANDEX_SYSTEM_PROMPT = (
+    "Ты — опытный клинический психолог в реабилитационном центре АНО «Спасение надежды». "
+    "Твоя задача: проанализировать ежедневный отчёт дежурного о поведении резидента. "
+    "Выдели скрытые паттерны поведения, признаки надвигающегося кризиса, эмоциональные качели или, "
+    "наоборот, позитивную динамику. Не ставь медицинских диагнозов. Сформируй краткую аналитическую "
+    "сводку строго в 3–4 предложениях. Используй Markdown для выделения ключевых тезисов."
+)
+
+
+def anonymize_names(text: str, patient: dict, children: list) -> str:
+    """Вырезает из текста реальные ФИО пациента и его детей перед отправкой во внешний API,
+    заменяя их на нейтральные шаблоны [Резидент] / [Ребёнок], чтобы персональные данные не покидали контур."""
+    if not text:
+        return text
+
+    result = text
+    names = set()
+
+    for field in ("first_name", "last_name", "middle_name", "alias"):
+        v = (patient or {}).get(field)
+        if v and len(v.strip()) > 1:
+            names.add(v.strip())
+
+    for child in children or []:
+        for field in ("first_name", "last_name", "middle_name"):
+            v = child.get(field)
+            if v and len(v.strip()) > 1:
+                names.add(v.strip())
+
+    # Сортируем по убыванию длины, чтобы сначала заменялись полные ФИО, потом отдельные части
+    for name in sorted(names, key=len, reverse=True):
+        result = re.sub(re.escape(name), "[Резидент]", result, flags=re.IGNORECASE)
+
+    # Дополнительно — общий шаблон "Имя Фамилия" / "Имя Ф." с заглавной буквы, на случай других лиц в тексте
+    result = re.sub(r"\b[А-ЯЁ][а-яё]+\s+[А-ЯЁ][а-яё]*\.?", "[Резидент]", result)
+
+    return result
+
+
+def ask_yandex_gpt(prompt: str) -> str:
+    """Запрос к YandexGPT Pro (llm.api.cloud.yandex.net) для генерации аналитической сводки по анонимизированному тексту."""
+    folder_id = (os.environ.get("YANDEX_FOLDER_ID") or "").strip()
+    api_key = (os.environ.get("YANDEX_API_KEY") or "").strip()
+    if not folder_id or not api_key:
+        return "ИИ временно недоступен: не настроены ключи YandexGPT."
+
+    payload = {
+        "modelUri": f"gpt://{folder_id}/yandexgpt/latest",
+        "completionOptions": {
+            "stream": False,
+            "temperature": 0.3,
+            "maxTokens": 250,
+        },
+        "messages": [
+            {"role": "system", "text": YANDEX_SYSTEM_PROMPT},
+            {"role": "user", "text": prompt},
+        ],
+    }
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Api-Key {api_key}",
+    }
+
+    try:
+        response = requests.post(YANDEX_GPT_URL, headers=headers, json=payload, timeout=25)
+        response.raise_for_status()
+        return response.json()["result"]["alternatives"][0]["message"]["text"]
+    except requests.exceptions.RequestException as e:
+        print(f"YandexGPT error: {e}")
+        return f"Ошибка при обращении к YandexGPT: {e}"
+
+
+def generate_yandex_summary(cur, patient_id: int, schema: str, days: int) -> dict:
+    """Формирует промпт из текстов ежедневных отчётов за период, анонимизирует ФИО и отправляет
+    в YandexGPT Pro для генерации краткой аналитической сводки (3-4 предложения, Markdown)."""
+    cur.execute(f"SELECT * FROM {schema}.patients WHERE id = %s", (patient_id,))
+    patient = cur.fetchone()
+    if not patient:
+        return {"error": "Пациент не найден"}
+    patient = dict(patient)
+
+    cur.execute(f"SELECT * FROM {schema}.patient_children WHERE patient_id = %s", (patient_id,))
+    children = [dict(c) for c in cur.fetchall()]
+
+    cur.execute(
+        f"""SELECT report_date, problems_identified, actions_taken, results, notes
+            FROM {schema}.patient_daily_reports
+            WHERE patient_id = %s AND report_date >= CURRENT_DATE - %s::interval
+            ORDER BY report_date ASC""",
+        (patient_id, f"{days} days"),
+    )
+    reports = [dict(r) for r in cur.fetchall()]
+
+    if not reports:
+        return {"summary_text": "Недостаточно данных за выбранный период для формирования аналитической сводки."}
+
+    lines = []
+    for r in reports:
+        parts = [p for p in (r.get("problems_identified"), r.get("actions_taken"), r.get("results"), r.get("notes")) if p]
+        if parts:
+            lines.append(f"{r['report_date']}: " + " ".join(parts))
+
+    raw_text = "\n".join(lines)
+    anonymized_text = anonymize_names(raw_text, patient, children)
+
+    summary_text = ask_yandex_gpt(anonymized_text)
+    return {"summary_text": summary_text, "days": days}
+
 
 def get_conn():
     return psycopg2.connect(os.environ["DATABASE_URL"])
@@ -294,7 +407,8 @@ def analyze_child_data(cur, child_id, schema, days=7):
 
 def handler(event: dict, context) -> dict:
     """CRM: управление пациентами. GET /? — список, GET /?id=N — карточка, POST / — создать, PUT /?id=N — обновить,
-    GET /?id=N&view=text_summary&days=7 — алгоритмическая текстовая сводка за период (без внешних ИИ-сервисов)."""
+    GET /?id=N&view=text_summary&days=7 — алгоритмическая текстовая сводка за период (без внешних ИИ-сервисов),
+    GET /?id=N&view=yandex_summary&days=7 — сводка через YandexGPT Pro (ФИО анонимизируются перед отправкой)."""
     if event.get("httpMethod") == "OPTIONS":
         return {"statusCode": 200, "headers": CORS, "body": ""}
 
@@ -340,6 +454,15 @@ def handler(event: dict, context) -> dict:
                 days = 7
             days = max(1, min(days, 90))
             result = generate_text_summary(cur, patient_id, SCHEMA, days)
+            return ok(result)
+
+        if view == "yandex_summary" and patient_id:
+            try:
+                days = int(params.get("days", 7))
+            except (TypeError, ValueError):
+                days = 7
+            days = max(1, min(days, 90))
+            result = generate_yandex_summary(cur, patient_id, SCHEMA, days)
             return ok(result)
 
         if view == "children":
@@ -443,7 +566,7 @@ def handler(event: dict, context) -> dict:
 
             saved_summaries = []
             try:
-                cur.execute(f"SELECT id, summary_text, created_at FROM {SCHEMA}.patient_ai_summaries WHERE patient_id = %s ORDER BY created_at DESC", (patient_id,))
+                cur.execute(f"SELECT id, summary_text, source, created_at FROM {SCHEMA}.patient_ai_summaries WHERE patient_id = %s ORDER BY created_at DESC", (patient_id,))
                 saved_summaries = cur.fetchall()
             except errors.UndefinedTable:
                 conn.rollback()
@@ -631,12 +754,15 @@ def handler(event: dict, context) -> dict:
         if action == "save_local_summary":
             pid = body.get("patient_id")
             summary_text = (body.get("summary_text") or "").strip()
+            source = body.get("source") or "rule_based"
+            if source not in ("rule_based", "yandex_gpt"):
+                source = "rule_based"
             if not pid or not summary_text:
                 return err("Поля patient_id и summary_text обязательны")
 
             cur.execute(
-                f"INSERT INTO {SCHEMA}.patient_ai_summaries (patient_id, summary_text) VALUES (%s, %s) RETURNING id, patient_id, summary_text, created_at",
-                (pid, summary_text)
+                f"INSERT INTO {SCHEMA}.patient_ai_summaries (patient_id, summary_text, source) VALUES (%s, %s, %s) RETURNING id, patient_id, summary_text, source, created_at",
+                (pid, summary_text, source)
             )
             summary = cur.fetchone()
             conn.commit()

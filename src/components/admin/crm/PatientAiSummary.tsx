@@ -8,7 +8,14 @@ const PERIODS = [
   { value: 30, label: "30 дней" },
 ];
 
-type TextSummary = { summary_text: string; counts: { red: number; yellow: number; green: number }; days: number };
+type Source = "rule_based" | "yandex_gpt";
+
+const SOURCES: { value: Source; label: string; icon: string }[] = [
+  { value: "rule_based", label: "Алгоритм", icon: "ListChecks" },
+  { value: "yandex_gpt", label: "YandexGPT Pro", icon: "Sparkles" },
+];
+
+type TextSummary = { summary_text: string; counts?: { red: number; yellow: number; green: number }; days: number };
 
 function renderMarkdownLine(line: string, key: number) {
   const parts = line.split(/(\*\*[^*]+\*\*)/g);
@@ -32,13 +39,16 @@ function MarkdownText({ text }: { text: string }) {
 export default function PatientAiSummary({ patientId, currentSummary, savedSummaries, onChanged }: { patientId: number; currentSummary?: string; savedSummaries: AiSummary[]; onChanged: () => void }) {
   const [saving, setSaving] = useState(false);
   const [days, setDays] = useState(7);
+  const [source, setSource] = useState<Source>("rule_based");
   const [textSummary, setTextSummary] = useState<TextSummary | null>(null);
   const [loadingSummary, setLoadingSummary] = useState(false);
 
-  const loadTextSummary = async (period: number) => {
+  const loadSummary = async (period: number, src: Source) => {
     setLoadingSummary(true);
+    setTextSummary(null);
     try {
-      const r = await fetch(`${API}?id=${patientId}&view=text_summary&days=${period}`);
+      const view = src === "yandex_gpt" ? "yandex_summary" : "text_summary";
+      const r = await fetch(`${API}?id=${patientId}&view=${view}&days=${period}`);
       const d = await r.json();
       if (d.summary_text) setTextSummary(d);
     } finally {
@@ -46,7 +56,7 @@ export default function PatientAiSummary({ patientId, currentSummary, savedSumma
     }
   };
 
-  useEffect(() => { loadTextSummary(days); }, [patientId, days]);
+  useEffect(() => { loadSummary(days, source); }, [patientId, days, source]);
 
   const saveSummary = async () => {
     const text = textSummary?.summary_text || currentSummary;
@@ -56,7 +66,7 @@ export default function PatientAiSummary({ patientId, currentSummary, savedSumma
       await fetch(API, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "save_local_summary", patient_id: patientId, summary_text: text }),
+        body: JSON.stringify({ action: "save_local_summary", patient_id: patientId, summary_text: text, source }),
       });
       onChanged();
     } finally {
@@ -85,7 +95,20 @@ export default function PatientAiSummary({ patientId, currentSummary, savedSumma
           </div>
         </div>
 
-        {textSummary && (
+        <div className="flex items-center gap-1 bg-beige-mid rounded-lg p-1 w-fit">
+          {SOURCES.map((s) => (
+            <button
+              key={s.value}
+              onClick={() => setSource(s.value)}
+              className={`px-3 py-1.5 text-xs rounded-md font-medium transition-colors flex items-center gap-1.5 ${source === s.value ? "bg-white text-ink shadow-sm" : "text-ink/50 hover:text-ink"}`}
+            >
+              <Icon name={s.icon} size={13} />
+              {s.label}
+            </button>
+          ))}
+        </div>
+
+        {textSummary?.counts && (
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-xs px-2.5 py-1 rounded-full font-medium bg-green-100 text-green-700">🟢 {textSummary.counts.green}</span>
             <span className="text-xs px-2.5 py-1 rounded-full font-medium bg-amber-100 text-amber-700">🟡 {textSummary.counts.yellow}</span>
@@ -107,7 +130,7 @@ export default function PatientAiSummary({ patientId, currentSummary, savedSumma
 
         <div className="flex justify-between items-center">
           <button
-            onClick={() => loadTextSummary(days)}
+            onClick={() => loadSummary(days, source)}
             disabled={loadingSummary}
             className="px-4 py-2 text-sm rounded-lg border border-beige-dark hover:border-ink transition-colors disabled:opacity-60 flex items-center gap-1.5"
           >
@@ -131,8 +154,15 @@ export default function PatientAiSummary({ patientId, currentSummary, savedSumma
         <div className="space-y-2 max-h-[320px] overflow-y-auto pr-1">
           {savedSummaries.map(s => (
             <div key={s.id} className="rounded-xl p-3 bg-beige-mid">
-              <p className="text-sm text-ink whitespace-pre-wrap mb-1">{s.summary_text}</p>
-              <span className="text-xs text-ink/50">{fmtDateTime(s.created_at)}</span>
+              <div className="flex items-center justify-between gap-2 mb-1">
+                <span className="text-sm text-ink whitespace-pre-wrap flex-1">{s.summary_text}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-ink/50">{fmtDateTime(s.created_at)}</span>
+                {s.source === "yandex_gpt" && (
+                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-purple-100 text-purple-700 font-medium">YandexGPT</span>
+                )}
+              </div>
             </div>
           ))}
         </div>
