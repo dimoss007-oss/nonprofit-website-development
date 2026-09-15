@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useLayoutEffect } from "react";
 import Icon from "@/components/ui/icon";
 import AdminNewsTab from "@/components/admin/AdminNewsTab";
 import AdminCrmTab from "@/components/admin/AdminCrmTab";
@@ -95,6 +95,8 @@ export default function AdminPanel() {
   const [focusPatientId, setFocusPatientId] = useState<number | null>(null);
   const [shiftFilterPatientId, setShiftFilterPatientId] = useState<number | null>(null);
   const [aiChatOpen, setAiChatOpen] = useState(false);
+  const headerRef = useRef<HTMLElement>(null);
+  const [headerHeight, setHeaderHeight] = useState(112);
 
   const goToPatient = (patientId: number) => {
     setFocusPatientId(patientId);
@@ -137,6 +139,17 @@ export default function AdminPanel() {
       .catch(() => setAdminUsers([{ login: session.login, full_name: session.full_name }]));
   }, [session?.login]);
 
+  useLayoutEffect(() => {
+    const el = headerRef.current;
+    if (!el) return;
+    const update = () => setHeaderHeight(el.offsetHeight);
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    window.addEventListener("resize", update);
+    return () => { ro.disconnect(); window.removeEventListener("resize", update); };
+  }, [session]);
+
   if (!session) return <LoginScreen onAuth={s => setSession(s)} />;
 
   const logout = () => { sessionStorage.removeItem(SESSION_KEY); setSession(null); };
@@ -164,7 +177,7 @@ export default function AdminPanel() {
 
   return (
     <div className="min-h-screen bg-beige-mid font-golos">
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-beige-dark">
+      <header ref={headerRef} className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-beige-dark">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
           <a href="/" className="flex items-center gap-3 flex-shrink-0">
             <img src={LOGO_IMG} alt="Спасение надежды" style={{ borderRadius: "50%", width: 40, height: 40, objectFit: "cover" }} />
@@ -209,7 +222,7 @@ export default function AdminPanel() {
         </div>
       </header>
 
-      <main className="pt-32 sm:pt-28 pb-16 max-w-6xl mx-auto px-4">
+      <main className="pb-16 max-w-6xl mx-auto px-4" style={{ paddingTop: headerHeight + 16 }}>
         {tab === "crm" && <AdminCrmTab isAdmin={isAdmin} authorName={session.full_name || session.login} focusPatientId={focusPatientId} onFocusHandled={() => setFocusPatientId(null)} onViewShiftHistory={goToShiftHistory} />}
         {tab === "sop" && <AdminSopTab isAdmin={isAdmin} />}
         {tab === "news" && <AdminNewsTab isAdmin={isAdmin} />}
