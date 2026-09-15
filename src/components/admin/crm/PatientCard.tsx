@@ -146,9 +146,9 @@ export default function PatientCard({ patientId, onBack, onDeleted, isAdmin, aut
   const postTreatmentDuration = isPostTreatment ? stayDuration(patient.care_stage_since) : null;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-3 flex-wrap">
-        <button onClick={onBack} className="p-2 rounded-lg hover:bg-beige-mid transition-colors"><Icon name="ArrowLeft" size={18} /></button>
+    <div className="space-y-6 pt-2">
+      <div className="flex items-start gap-3 flex-wrap">
+        <button onClick={onBack} className="p-2 rounded-lg hover:bg-beige-mid transition-colors flex-shrink-0"><Icon name="ArrowLeft" size={18} /></button>
         <button onClick={() => photoRef.current?.click()} className="relative w-12 h-12 rounded-full overflow-hidden bg-beige-mid flex items-center justify-center flex-shrink-0 border border-beige-dark hover:border-ink transition-colors">
           {patient.photo_url ? (
             <img src={patient.photo_url} alt="" className="w-full h-full object-cover" />
@@ -158,9 +158,9 @@ export default function PatientCard({ patientId, onBack, onDeleted, isAdmin, aut
           {uploadingPhoto && <div className="absolute inset-0 bg-black/30 flex items-center justify-center"><Icon name="Loader" size={14} className="animate-spin text-white" /></div>}
         </button>
         <input ref={photoRef} type="file" accept="image/*" className="hidden" onChange={uploadPatientPhoto} />
-        <div className="flex-1">
+        <div className="flex-1 min-w-[200px] pt-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <h2 className="font-cormorant text-ink text-2xl font-semibold">{fullName}</h2>
+            <h2 className="font-cormorant text-ink text-2xl font-semibold leading-snug">{fullName}</h2>
             <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${isActive ? "bg-green-100 text-green-700" : "bg-beige-dark text-ink/50"}`}>
               {isActive ? "В центре" : "Выписана"}
             </span>
