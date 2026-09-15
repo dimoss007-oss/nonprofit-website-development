@@ -273,6 +273,9 @@ def generate_yandex_summary(cur, patient_id: int, schema: str, days: int) -> dic
             lines.append(f"{r['report_date']}: " + " ".join(parts))
 
     raw_text = "\n".join(lines)
+    if not raw_text.strip():
+        return {"summary_text": "За выбранный период дежурные заполнили только числовые оценки, без текстовых заметок (проблемы/действия/результаты/заметки). Для анализа ИИ нужен хотя бы один текстовый комментарий в отчёте.", "days": days}
+
     anonymized_text = anonymize_names(raw_text, patient, children)
 
     system_prompt = get_system_prompt(cur, schema)
