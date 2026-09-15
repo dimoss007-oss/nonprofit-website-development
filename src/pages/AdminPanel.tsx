@@ -11,6 +11,7 @@ import AdminFundraisingTab from "@/components/admin/AdminFundraisingTab";
 import AdminGovTab from "@/components/admin/AdminGovTab";
 import AdminShiftLogsTab from "@/components/admin/AdminShiftLogsTab";
 import AdminTasksWidget from "@/components/admin/AdminTasksWidget";
+import AdminResidentsYearWidget from "@/components/admin/AdminResidentsYearWidget";
 import AdminAiSettingsTab from "@/components/admin/AdminAiSettingsTab";
 import AiChatModal from "@/components/admin/AiChatModal";
 import type { Task } from "@/components/admin/taskTypes";
@@ -228,6 +229,7 @@ export default function AdminPanel() {
         {tab === "news" && <AdminNewsTab isAdmin={isAdmin} />}
         {tab === "tasks" && (
           <div className="space-y-6">
+            <AdminResidentsYearWidget />
             {isAdmin && (
               <AdminTasksWidget
                 onGoToTasks={() => setTab("tasks")}

@@ -486,7 +486,8 @@ def handler(event: dict, context) -> dict:
     GET /?id=N&view=yandex_summary&days=7 — сводка через YandexGPT Pro (ФИО анонимизируются перед отправкой),
     POST action=generate_and_save_yandex_summary — экстренная генерация + сохранение сводки YandexGPT в историю,
     GET ?view=ai_settings — текущий системный промпт YandexGPT,
-    POST action=update_ai_settings (auth_login/auth_password admin) — обновить системный промпт YandexGPT."""
+    POST action=update_ai_settings (auth_login/auth_password admin) — обновить системный промпт YandexGPT,
+    GET ?view=stats — счётчик "Всего резидентов за текущий год" (динамически по календарному году)."""
     if event.get("httpMethod") == "OPTIONS":
         return {"statusCode": 200, "headers": CORS, "body": ""}
 
@@ -546,6 +547,31 @@ def handler(event: dict, context) -> dict:
         if view == "ai_settings":
             system_prompt = get_system_prompt(cur, SCHEMA)
             return ok({"yandexgpt_system_prompt": system_prompt})
+
+        if view == "stats":
+            # "Всего резидентов за текущий год" = поступившие в этом году (admission_date >= 1 января)
+            # + переходящие с прошлых лет, кто ещё числится в этом году (admission_date < 1 января ТЕКУЩЕГО года
+            # И (discharge_date IS NULL ИЛИ discharge_date >= 1 января текущего года)). Год берётся динамически
+            # от текущей даты сервера, пересчитывается на лету при каждом запросе.
+            cur.execute(f"""
+                SELECT
+                    COUNT(*) FILTER (WHERE admission_date >= date_trunc('year', CURRENT_DATE)) AS admitted_this_year,
+                    COUNT(*) FILTER (
+                        WHERE admission_date < date_trunc('year', CURRENT_DATE)
+                          AND (discharge_date IS NULL OR discharge_date >= date_trunc('year', CURRENT_DATE))
+                    ) AS carried_over
+                FROM {SCHEMA}.patients
+                WHERE admission_date IS NOT NULL
+            """)
+            row = dict(cur.fetchone())
+            admitted = row["admitted_this_year"] or 0
+            carried = row["carried_over"] or 0
+            return ok({
+                "year": date.today().year,
+                "admitted_this_year": admitted,
+                "carried_over": carried,
+                "total_residents_this_year": admitted + carried,
+            })
 
         if view == "children":
             cur.execute(f"""
