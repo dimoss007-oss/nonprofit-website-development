@@ -220,6 +220,7 @@ def ask_yandex_gpt(prompt: str, system_prompt: str = YANDEX_SYSTEM_PROMPT) -> st
             "variables": {"report_text": prompt},
         },
         "input": prompt,
+        "max_output_tokens": 2000,
     }
     headers = {
         "Content-Type": "application/json",
@@ -227,7 +228,7 @@ def ask_yandex_gpt(prompt: str, system_prompt: str = YANDEX_SYSTEM_PROMPT) -> st
     }
 
     try:
-        response = requests.post(YANDEX_RESPONSES_URL, headers=headers, json=payload, timeout=25)
+        response = requests.post(YANDEX_RESPONSES_URL, headers=headers, json=payload, timeout=55)
         if not response.ok:
             print(f"YandexAgent HTTP {response.status_code}: {response.text[:500]}")
             return f"Ошибка при обращении к Агенту YandexGPT ({response.status_code}): {response.text[:300]}"
