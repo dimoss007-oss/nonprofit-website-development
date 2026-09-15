@@ -1,6 +1,8 @@
 import json
 import os
 import re
+import io
+import base64
 import hashlib
 import hmac
 from datetime import date
@@ -8,6 +10,7 @@ import psycopg2
 import requests
 from psycopg2.extras import RealDictCursor
 from psycopg2 import errors
+from docx import Document as DocxDocument
 
 SCHEMA = os.environ.get("MAIN_DB_SCHEMA", "public")
 
@@ -298,6 +301,141 @@ def generate_yandex_summary(cur, patient_id: int, schema: str, days: int) -> dic
     return {"summary_text": summary_text, "days": days}
 
 
+def fmt_ru_date(d) -> str:
+    if not d:
+        return ""
+    try:
+        return d.strftime("%d.%m.%Y")
+    except AttributeError:
+        return str(d)
+
+
+def generate_official_characteristic(cur, patient_id: int, schema: str) -> dict:
+    """Собирает весь массив отчётов (ежедневные + shift_logs) за период пребывания резидента и отправляет
+    Агенту YandexGPT с системной припиской, содержащей ФИО/дату рождения/детей/даты пребывания, для генерации
+    официальной характеристики. Данные отчётов анонимизируются перед отправкой (как и в аналитической сводке),
+    а итоговый текст возвращается уже с подставленным настоящим ФИО резидента для оформления документа."""
+    cur.execute(f"SELECT * FROM {schema}.patients WHERE id = %s", (patient_id,))
+    patient = cur.fetchone()
+    if not patient:
+        return {"error": "Пациент не найден"}
+    patient = dict(patient)
+
+    cur.execute(f"SELECT * FROM {schema}.patient_children WHERE patient_id = %s", (patient_id,))
+    children = [dict(c) for c in cur.fetchall()]
+
+    admission_date = patient.get("admission_date")
+    discharge_date = patient.get("discharge_date")
+    stay_from = fmt_ru_date(admission_date) or "не указана"
+    stay_to = fmt_ru_date(discharge_date) if discharge_date else "по настоящее время"
+
+    if admission_date:
+        cur.execute(
+            f"""SELECT report_date, problems_identified, actions_taken, results, notes
+                FROM {schema}.patient_daily_reports
+                WHERE patient_id = %s AND report_date >= %s
+                ORDER BY report_date ASC""",
+            (patient_id, admission_date),
+        )
+    else:
+        cur.execute(
+            f"""SELECT report_date, problems_identified, actions_taken, results, notes
+                FROM {schema}.patient_daily_reports
+                WHERE patient_id = %s
+                ORDER BY report_date ASC""",
+            (patient_id,),
+        )
+    reports = [dict(r) for r in cur.fetchall()]
+
+    if admission_date:
+        cur.execute(
+            f"""SELECT report_date, log_text FROM {schema}.shift_logs
+                WHERE report_date >= %s AND log_text IS NOT NULL AND log_text != ''
+                ORDER BY report_date ASC""",
+            (admission_date,),
+        )
+    else:
+        cur.execute(
+            f"""SELECT report_date, log_text FROM {schema}.shift_logs
+                WHERE log_text IS NOT NULL AND log_text != ''
+                ORDER BY report_date ASC""",
+        )
+    shift_logs = [dict(r) for r in cur.fetchall()]
+
+    if not reports and not shift_logs:
+        return {"error": "Недостаточно данных за период пребывания для формирования характеристики"}
+
+    lines = []
+    for r in reports:
+        parts = [p for p in (r.get("problems_identified"), r.get("actions_taken"), r.get("results"), r.get("notes")) if p]
+        if parts:
+            lines.append(f"{r['report_date']}: " + " ".join(parts))
+    for s in shift_logs:
+        lines.append(f"{s['report_date']} (общая сводка смены): {s['log_text']}")
+
+    raw_text = "\n".join(lines)
+    if not raw_text.strip():
+        return {"error": "За период пребывания дежурные заполнили только числовые оценки, без текстовых заметок. Для формирования характеристики нужен хотя бы один текстовый комментарий в отчётах"}
+
+    full_name = " ".join(p for p in (patient.get("last_name"), patient.get("first_name"), patient.get("middle_name")) if p).strip()
+
+    if children:
+        children_info = ", ".join(
+            " ".join(p for p in (c.get("last_name"), c.get("first_name")) if p).strip() +
+            (f" ({fmt_ru_date(c['birth_date'])})" if c.get("birth_date") else "")
+            for c in children
+        )
+    else:
+        children_info = "нет"
+
+    anonymized_reports = anonymize_names(raw_text, patient, children)
+
+    instruction = (
+        "Сформируй официальную характеристику на резидента.\n"
+        f"ФИО: {full_name}\n"
+        f"Дата рождения: {fmt_ru_date(patient.get('birth_date')) or 'не указана'}\n"
+        f"Дети: {children_info}\n"
+        f"Даты пребывания: {stay_from} — {stay_to}\n\n"
+        f"{anonymized_reports}"
+    )
+
+    characteristic_text = ask_yandex_gpt(instruction)
+    # Итоговый документ должен содержать настоящее ФИО, а не плейсхолдер анонимизации
+    characteristic_text = characteristic_text.replace("[Резидент]", full_name)
+
+    return {
+        "characteristic_text": characteristic_text,
+        "full_name": full_name,
+        "birth_date": fmt_ru_date(patient.get("birth_date")),
+        "children_info": children_info,
+        "stay_from": stay_from,
+        "stay_to": stay_to,
+    }
+
+
+def build_characteristic_docx(result: dict) -> bytes:
+    """Оборачивает текст характеристики от Агента в готовый .docx файл для скачивания."""
+    doc = DocxDocument()
+    doc.add_heading("Характеристика", level=1)
+
+    meta = doc.add_paragraph()
+    meta.add_run(f"ФИО: {result['full_name']}\n").bold = True
+    meta.add_run(f"Дата рождения: {result['birth_date'] or '—'}\n")
+    meta.add_run(f"Дети: {result['children_info']}\n")
+    meta.add_run(f"Даты пребывания: {result['stay_from']} — {result['stay_to']}")
+
+    doc.add_paragraph("")
+
+    for para in result["characteristic_text"].split("\n"):
+        text = para.strip().replace("**", "").replace("##", "").replace("#", "")
+        if text:
+            doc.add_paragraph(text)
+
+    buf = io.BytesIO()
+    doc.save(buf)
+    return buf.getvalue()
+
+
 def get_conn():
     return psycopg2.connect(os.environ["DATABASE_URL"])
 
@@ -487,7 +625,9 @@ def handler(event: dict, context) -> dict:
     POST action=generate_and_save_yandex_summary — экстренная генерация + сохранение сводки YandexGPT в историю,
     GET ?view=ai_settings — текущий системный промпт YandexGPT,
     POST action=update_ai_settings (auth_login/auth_password admin) — обновить системный промпт YandexGPT,
-    GET ?view=stats — счётчик "Всего резидентов за текущий год" (динамически по календарному году)."""
+    GET ?view=stats — счётчик "Всего резидентов за текущий год" (динамически по календарному году),
+    POST action=generate_characteristic_docx — генерация официальной характеристики Агентом по всем
+    отчётам за период пребывания резидента, сразу упакованная в .docx (возвращается как base64)."""
     if event.get("httpMethod") == "OPTIONS":
         return {"statusCode": 200, "headers": CORS, "body": ""}
 
@@ -916,6 +1056,25 @@ def handler(event: dict, context) -> dict:
             summary = cur.fetchone()
             conn.commit()
             return ok({"summary": dict(summary)}, 201)
+
+        if action == "generate_characteristic_docx":
+            pid = body.get("patient_id")
+            if not pid:
+                return err("Поле patient_id обязательно")
+
+            result = generate_official_characteristic(cur, pid, SCHEMA)
+            if result.get("error"):
+                return err(result["error"], 502)
+
+            docx_bytes = build_characteristic_docx(result)
+            file_b64 = base64.b64encode(docx_bytes).decode("ascii")
+            file_name = f"Характеристика_{result['full_name'].replace(' ', '_')}.docx"
+
+            return ok({
+                "file_name": file_name,
+                "file_base64": file_b64,
+                "content_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            })
 
         if action == "save_local_summary":
             pid = body.get("patient_id")

@@ -44,6 +44,8 @@ export default function PatientAiSummary({ patientId, currentSummary, savedSumma
   const [loadingSummary, setLoadingSummary] = useState(false);
   const [emergencyLoading, setEmergencyLoading] = useState(false);
   const [emergencyError, setEmergencyError] = useState<string | null>(null);
+  const [docxLoading, setDocxLoading] = useState(false);
+  const [docxError, setDocxError] = useState<string | null>(null);
 
   const loadSummary = async (period: number, src: Source) => {
     setLoadingSummary(true);
@@ -100,6 +102,35 @@ export default function PatientAiSummary({ patientId, currentSummary, savedSumma
     }
   };
 
+  const downloadCharacteristic = async () => {
+    setDocxLoading(true);
+    setDocxError(null);
+    try {
+      const r = await fetch(API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "generate_characteristic_docx", patient_id: patientId }),
+      });
+      const d = await r.json();
+      if (!r.ok) {
+        setDocxError(d.error || "Не удалось сформировать характеристику");
+        return;
+      }
+      const byteChars = atob(d.file_base64);
+      const byteNumbers = new Array(byteChars.length);
+      for (let i = 0; i < byteChars.length; i++) byteNumbers[i] = byteChars.charCodeAt(i);
+      const blob = new Blob([new Uint8Array(byteNumbers)], { type: d.content_type });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = d.file_name; a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      setDocxError("Ошибка соединения с сервером");
+    } finally {
+      setDocxLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="bg-white border border-beige-dark rounded-2xl p-5 space-y-4">
@@ -135,19 +166,33 @@ export default function PatientAiSummary({ patientId, currentSummary, savedSumma
             ))}
           </div>
 
-          <button
-            onClick={emergencyUpdate}
-            disabled={emergencyLoading}
-            title="Экстренная генерация свежей сводки YandexGPT по отчётам за последние 3 дня, минуя ночной автообновление"
-            className="px-3 py-1.5 text-xs rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors disabled:opacity-60 flex items-center gap-1.5 font-medium"
-          >
-            <Icon name={emergencyLoading ? "Loader" : "Siren"} size={14} className={emergencyLoading ? "animate-spin" : ""} />
-            {emergencyLoading ? "Обновляю..." : "Экстренно обновить"}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={downloadCharacteristic}
+              disabled={docxLoading}
+              title="Сформировать официальную характеристику по всем отчётам за период пребывания и скачать в формате Word"
+              className="px-3 py-1.5 text-xs rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors disabled:opacity-60 flex items-center gap-1.5 font-medium"
+            >
+              <Icon name={docxLoading ? "Loader" : "FileText"} size={14} className={docxLoading ? "animate-spin" : ""} />
+              {docxLoading ? "Формирую..." : "Скачать характеристику (Word)"}
+            </button>
+            <button
+              onClick={emergencyUpdate}
+              disabled={emergencyLoading}
+              title="Экстренная генерация свежей сводки YandexGPT по отчётам за последние 3 дня, минуя ночной автообновление"
+              className="px-3 py-1.5 text-xs rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors disabled:opacity-60 flex items-center gap-1.5 font-medium"
+            >
+              <Icon name={emergencyLoading ? "Loader" : "Siren"} size={14} className={emergencyLoading ? "animate-spin" : ""} />
+              {emergencyLoading ? "Обновляю..." : "Экстренно обновить"}
+            </button>
+          </div>
         </div>
 
         {emergencyError && (
           <p className="text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2">{emergencyError}</p>
+        )}
+        {docxError && (
+          <p className="text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2">{docxError}</p>
         )}
 
         {textSummary?.counts && (
