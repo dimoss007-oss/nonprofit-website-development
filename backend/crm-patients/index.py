@@ -553,24 +553,37 @@ def handler(event: dict, context) -> dict:
             # + переходящие с прошлых лет, кто ещё числится в этом году (admission_date < 1 января ТЕКУЩЕГО года
             # И (discharge_date IS NULL ИЛИ discharge_date >= 1 января текущего года)). Год берётся динамически
             # от текущей даты сервера, пересчитывается на лету при каждом запросе.
+            # Дети хранятся как вложенный список без собственных дат поступления/выписки (только patient_id) —
+            # поэтому считаем детей у тех же резидентов, что попали в выборку "за текущий год" по датам родителя.
             cur.execute(f"""
                 SELECT
-                    COUNT(*) FILTER (WHERE admission_date >= date_trunc('year', CURRENT_DATE)) AS admitted_this_year,
-                    COUNT(*) FILTER (
-                        WHERE admission_date < date_trunc('year', CURRENT_DATE)
-                          AND (discharge_date IS NULL OR discharge_date >= date_trunc('year', CURRENT_DATE))
-                    ) AS carried_over
-                FROM {SCHEMA}.patients
-                WHERE admission_date IS NOT NULL
+                    COUNT(DISTINCT p.id) FILTER (WHERE p.admission_date >= date_trunc('year', CURRENT_DATE)) AS admitted_this_year,
+                    COUNT(DISTINCT p.id) FILTER (
+                        WHERE p.admission_date < date_trunc('year', CURRENT_DATE)
+                          AND (p.discharge_date IS NULL OR p.discharge_date >= date_trunc('year', CURRENT_DATE))
+                    ) AS carried_over,
+                    COUNT(c.id) FILTER (WHERE p.admission_date >= date_trunc('year', CURRENT_DATE)) AS children_admitted_this_year,
+                    COUNT(c.id) FILTER (
+                        WHERE p.admission_date < date_trunc('year', CURRENT_DATE)
+                          AND (p.discharge_date IS NULL OR p.discharge_date >= date_trunc('year', CURRENT_DATE))
+                    ) AS children_carried_over
+                FROM {SCHEMA}.patients p
+                LEFT JOIN {SCHEMA}.patient_children c ON c.patient_id = p.id
+                WHERE p.admission_date IS NOT NULL
             """)
             row = dict(cur.fetchone())
             admitted = row["admitted_this_year"] or 0
             carried = row["carried_over"] or 0
+            children_admitted = row["children_admitted_this_year"] or 0
+            children_carried = row["children_carried_over"] or 0
             return ok({
                 "year": date.today().year,
                 "admitted_this_year": admitted,
                 "carried_over": carried,
                 "total_residents_this_year": admitted + carried,
+                "children_admitted_this_year": children_admitted,
+                "children_carried_over": children_carried,
+                "total_children_this_year": children_admitted + children_carried,
             })
 
         if view == "children":
