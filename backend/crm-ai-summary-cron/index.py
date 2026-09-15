@@ -130,6 +130,17 @@ def handler(event: dict, context) -> dict:
 
     system_prompt = get_system_prompt(cur, SCHEMA)
 
+    # Часть текста дежурного бот Max не смог привязать к конкретному пациенту по имени (общие
+    # события смены) — он лежит отдельно в shift_logs.log_text. Загружаем один раз на весь прогон
+    # (период одинаков для всех пациентов) и подмешиваем каждому как общий контекст смены.
+    cur.execute(
+        f"""SELECT report_date, log_text FROM {SCHEMA}.shift_logs
+            WHERE report_date >= CURRENT_DATE - %s::interval AND log_text IS NOT NULL AND log_text != ''
+            ORDER BY report_date ASC""",
+        (f"{DAYS_WINDOW} days",),
+    )
+    shift_logs = [dict(r) for r in cur.fetchall()]
+
     generated = 0
     skipped = 0
     errors = 0
@@ -150,7 +161,7 @@ def handler(event: dict, context) -> dict:
         )
         reports = [dict(r) for r in cur.fetchall()]
 
-        if not reports:
+        if not reports and not shift_logs:
             skipped += 1
             continue
 
@@ -159,6 +170,9 @@ def handler(event: dict, context) -> dict:
             parts = [p for p in (r.get("problems_identified"), r.get("actions_taken"), r.get("results"), r.get("notes")) if p]
             if parts:
                 lines.append(f"{r['report_date']}: " + " ".join(parts))
+
+        for s in shift_logs:
+            lines.append(f"{s['report_date']} (общая сводка смены): {s['log_text']}")
 
         if not lines:
             skipped += 1

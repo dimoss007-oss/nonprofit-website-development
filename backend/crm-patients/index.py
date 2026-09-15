@@ -263,7 +263,19 @@ def generate_yandex_summary(cur, patient_id: int, schema: str, days: int) -> dic
     )
     reports = [dict(r) for r in cur.fetchall()]
 
-    if not reports:
+    # Часть текста дежурного бот Max не смог привязать к конкретному пациенту по имени (общие
+    # события смены, групповые активности) — этот текст лежит отдельно в shift_logs.log_text.
+    # Подмешиваем его как общий контекст смены за тот же период, он может содержать наблюдения,
+    # которые распознавание не сумело сопоставить с этим пациентом по имени/алиасу.
+    cur.execute(
+        f"""SELECT report_date, log_text FROM {schema}.shift_logs
+            WHERE report_date >= CURRENT_DATE - %s::interval AND log_text IS NOT NULL AND log_text != ''
+            ORDER BY report_date ASC""",
+        (f"{days} days",),
+    )
+    shift_logs = [dict(r) for r in cur.fetchall()]
+
+    if not reports and not shift_logs:
         return {"summary_text": "Недостаточно данных за выбранный период для формирования аналитической сводки."}
 
     lines = []
@@ -271,6 +283,9 @@ def generate_yandex_summary(cur, patient_id: int, schema: str, days: int) -> dic
         parts = [p for p in (r.get("problems_identified"), r.get("actions_taken"), r.get("results"), r.get("notes")) if p]
         if parts:
             lines.append(f"{r['report_date']}: " + " ".join(parts))
+
+    for s in shift_logs:
+        lines.append(f"{s['report_date']} (общая сводка смены): {s['log_text']}")
 
     raw_text = "\n".join(lines)
     if not raw_text.strip():
