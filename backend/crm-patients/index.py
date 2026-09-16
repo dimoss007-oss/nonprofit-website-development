@@ -160,6 +160,28 @@ YANDEX_SYSTEM_PROMPT = (
 )
 
 
+def build_social_status_block(patient: dict) -> str:
+    """Формирует текстовый блок с соц.статусом резидента (пособия, бытовые трудности, учёт в ПДН/СОП)
+    для подмешивания в промпт Агента, чтобы аналитика и характеристики учитывали эти маркеры и стресс-факторы.
+    Имена в этом блоке не встречаются, анонимизация не требуется."""
+    parts = []
+    if patient.get("benefits_status"):
+        parts.append(f"Статус пособий: {patient['benefits_status']}")
+    if patient.get("urgent_needs"):
+        parts.append(f"Насущные бытовые трудности: {patient['urgent_needs']}")
+        if patient.get("needs_resolution_stage"):
+            parts.append(f"Стадия решения вопроса: {patient['needs_resolution_stage']}")
+    if patient.get("is_pdn"):
+        details = f" ({patient['pdn_details']})" if patient.get("pdn_details") else ""
+        parts.append(f"Состоит на учёте в ПДН{details}")
+    if patient.get("is_sop"):
+        details = f" ({patient['sop_details']})" if patient.get("sop_details") else ""
+        parts.append(f"Семья в социально опасном положении (СОП){details}")
+    if not parts:
+        return ""
+    return "Социальный статус и потребности резидента:\n" + "\n".join(f"- {p}" for p in parts)
+
+
 def anonymize_names(text: str, patient: dict, children: list) -> str:
     """Вырезает из текста реальные ФИО пациента и его детей перед отправкой во внешний API,
     заменяя их на нейтральные шаблоны [Резидент] / [Ребёнок], чтобы персональные данные не покидали контур."""
@@ -297,6 +319,10 @@ def generate_yandex_summary(cur, patient_id: int, schema: str, days: int) -> dic
 
     anonymized_text = anonymize_names(raw_text, patient, children)
 
+    social_block = build_social_status_block(patient)
+    if social_block:
+        anonymized_text = f"{social_block}\n\n{anonymized_text}"
+
     system_prompt = get_system_prompt(cur, schema)
     summary_text = ask_yandex_gpt(anonymized_text, system_prompt)
     return {"summary_text": summary_text, "days": days}
@@ -390,14 +416,16 @@ def generate_official_characteristic(cur, patient_id: int, schema: str) -> dict:
         children_info = "нет"
 
     anonymized_reports = anonymize_names(raw_text, patient, children)
+    social_block = build_social_status_block(patient)
 
     instruction = (
         "Сформируй официальную характеристику на резидента.\n"
         f"ФИО: {full_name}\n"
         f"Дата рождения: {fmt_ru_date(patient.get('birth_date')) or 'не указана'}\n"
         f"Дети: {children_info}\n"
-        f"Даты пребывания: {stay_from} — {stay_to}\n\n"
-        f"{anonymized_reports}"
+        f"Даты пребывания: {stay_from} — {stay_to}\n"
+        + (f"{social_block}\n" if social_block else "")
+        + f"\n{anonymized_reports}"
     )
 
     characteristic_text = ask_yandex_gpt(instruction)
@@ -1116,12 +1144,15 @@ def handler(event: dict, context) -> dict:
             return ok({"summary": dict(summary)}, 201)
 
         cur.execute(
-            f"INSERT INTO {SCHEMA}.patients (last_name, first_name, middle_name, alias, birth_date, address, admission_date, discharge_date, case_description, passport_series, passport_number, passport_issued_date, passport_issued_by) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING *",
+            f"""INSERT INTO {SCHEMA}.patients (last_name, first_name, middle_name, alias, birth_date, address, admission_date, discharge_date, case_description, passport_series, passport_number, passport_issued_date, passport_issued_by, benefits_status, urgent_needs, needs_resolution_stage, is_pdn, pdn_details, is_sop, sop_details)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING *""",
             (body.get("last_name"), body.get("first_name"), body.get("middle_name"), body.get("alias"),
              body.get("birth_date") or None, body.get("address"), body.get("admission_date") or None,
              body.get("discharge_date") or None, body.get("case_description"),
              body.get("passport_series"), body.get("passport_number"),
-             body.get("passport_issued_date") or None, body.get("passport_issued_by"))
+             body.get("passport_issued_date") or None, body.get("passport_issued_by"),
+             body.get("benefits_status") or None, body.get("urgent_needs"), body.get("needs_resolution_stage") or None,
+             bool(body.get("is_pdn")), body.get("pdn_details"), bool(body.get("is_sop")), body.get("sop_details"))
         )
         patient = cur.fetchone()
         conn.commit()
@@ -1129,12 +1160,15 @@ def handler(event: dict, context) -> dict:
 
     if method == "PUT" and patient_id:
         cur.execute(
-            f"UPDATE {SCHEMA}.patients SET last_name=%s, first_name=%s, middle_name=%s, alias=%s, birth_date=%s, address=%s, admission_date=%s, discharge_date=%s, case_description=%s, passport_series=%s, passport_number=%s, passport_issued_date=%s, passport_issued_by=%s, updated_at=NOW() WHERE id=%s RETURNING *",
+            f"""UPDATE {SCHEMA}.patients SET last_name=%s, first_name=%s, middle_name=%s, alias=%s, birth_date=%s, address=%s, admission_date=%s, discharge_date=%s, case_description=%s, passport_series=%s, passport_number=%s, passport_issued_date=%s, passport_issued_by=%s,
+                benefits_status=%s, urgent_needs=%s, needs_resolution_stage=%s, is_pdn=%s, pdn_details=%s, is_sop=%s, sop_details=%s, updated_at=NOW() WHERE id=%s RETURNING *""",
             (body.get("last_name"), body.get("first_name"), body.get("middle_name"), body.get("alias"),
              body.get("birth_date") or None, body.get("address"), body.get("admission_date") or None,
              body.get("discharge_date") or None, body.get("case_description"),
              body.get("passport_series"), body.get("passport_number"),
-             body.get("passport_issued_date") or None, body.get("passport_issued_by"), patient_id)
+             body.get("passport_issued_date") or None, body.get("passport_issued_by"),
+             body.get("benefits_status") or None, body.get("urgent_needs"), body.get("needs_resolution_stage") or None,
+             bool(body.get("is_pdn")), body.get("pdn_details"), bool(body.get("is_sop")), body.get("sop_details"), patient_id)
         )
         patient = cur.fetchone()
         conn.commit()

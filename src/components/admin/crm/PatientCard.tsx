@@ -221,7 +221,7 @@ export default function PatientCard({ patientId, onBack, onDeleted, isAdmin, aut
       {editing && (
         <div className="bg-white border border-beige-dark rounded-2xl p-6">
           <h3 className="font-semibold text-ink mb-4">Редактирование</h3>
-          <PatientForm initial={{ last_name: patient.last_name, first_name: patient.first_name, middle_name: patient.middle_name ?? "", alias: patient.alias ?? "", birth_date: patient.birth_date?.slice(0, 10) ?? "", address: patient.address ?? "", admission_date: patient.admission_date?.slice(0, 10) ?? "", discharge_date: patient.discharge_date?.slice(0, 10) ?? "", case_description: patient.case_description ?? "", passport_series: patient.passport_series ?? "", passport_number: patient.passport_number ?? "", passport_issued_date: patient.passport_issued_date?.slice(0, 10) ?? "", passport_issued_by: patient.passport_issued_by ?? "" }} onSave={save} onCancel={() => setEditing(false)} loading={saving} />
+          <PatientForm initial={{ last_name: patient.last_name, first_name: patient.first_name, middle_name: patient.middle_name ?? "", alias: patient.alias ?? "", birth_date: patient.birth_date?.slice(0, 10) ?? "", address: patient.address ?? "", admission_date: patient.admission_date?.slice(0, 10) ?? "", discharge_date: patient.discharge_date?.slice(0, 10) ?? "", case_description: patient.case_description ?? "", passport_series: patient.passport_series ?? "", passport_number: patient.passport_number ?? "", passport_issued_date: patient.passport_issued_date?.slice(0, 10) ?? "", passport_issued_by: patient.passport_issued_by ?? "", benefits_status: patient.benefits_status ?? "", urgent_needs: patient.urgent_needs ?? "", needs_resolution_stage: patient.needs_resolution_stage ?? "", is_pdn: patient.is_pdn ?? false, pdn_details: patient.pdn_details ?? "", is_sop: patient.is_sop ?? false, sop_details: patient.sop_details ?? "" }} onSave={save} onCancel={() => setEditing(false)} loading={saving} />
         </div>
       )}
 
@@ -296,6 +296,28 @@ export default function PatientCard({ patientId, onBack, onDeleted, isAdmin, aut
           <div className="bg-white border border-beige-dark rounded-2xl p-5">
             <h3 className="font-semibold text-ink text-sm uppercase tracking-wide mb-3">Описание случая</h3>
             <p className="text-sm text-ink/70 whitespace-pre-wrap">{patient.case_description || "Не заполнено"}</p>
+          </div>
+
+          <div className="bg-white border border-beige-dark rounded-2xl p-5 space-y-3">
+            <h3 className="font-semibold text-ink text-sm uppercase tracking-wide">Социальный статус и потребности</h3>
+            <Row label="Статус пособий" value={patient.benefits_status || "—"} />
+            <Row label="Насущные бытовые трудности" value={patient.urgent_needs || "—"} />
+            <Row label="Стадия решения вопроса" value={patient.needs_resolution_stage || "—"} />
+            <div className="flex items-center gap-2 flex-wrap pt-1">
+              {patient.is_pdn && (
+                <span className="text-xs px-2.5 py-1 rounded-full font-medium bg-amber-100 text-amber-700" title={patient.pdn_details || ""}>
+                  На учёте в ПДН
+                </span>
+              )}
+              {patient.is_sop && (
+                <span className="text-xs px-2.5 py-1 rounded-full font-medium bg-red-100 text-red-700" title={patient.sop_details || ""}>
+                  СОП
+                </span>
+              )}
+              {!patient.is_pdn && !patient.is_sop && <span className="text-sm text-ink/40">Учёт в ПДН/СОП не зафиксирован</span>}
+            </div>
+            {patient.is_pdn && patient.pdn_details && <p className="text-xs text-ink/50">ПДН: {patient.pdn_details}</p>}
+            {patient.is_sop && patient.sop_details && <p className="text-xs text-ink/50">СОП: {patient.sop_details}</p>}
           </div>
 
           <div className="bg-white border border-beige-dark rounded-2xl p-5">

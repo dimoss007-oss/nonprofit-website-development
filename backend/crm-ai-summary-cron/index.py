@@ -35,6 +35,28 @@ def ok(data, status=200):
     return {"statusCode": status, "headers": {**CORS, "Content-Type": "application/json"}, "body": json.dumps(data, default=str)}
 
 
+def build_social_status_block(patient: dict) -> str:
+    """Формирует текстовый блок с соц.статусом резидента (пособия, бытовые трудности, учёт в ПДН/СОП)
+    для подмешивания в промпт Агента, чтобы ночная аналитика учитывала эти маркеры и стресс-факторы.
+    Имена в этом блоке не встречаются, анонимизация не требуется."""
+    parts = []
+    if patient.get("benefits_status"):
+        parts.append(f"Статус пособий: {patient['benefits_status']}")
+    if patient.get("urgent_needs"):
+        parts.append(f"Насущные бытовые трудности: {patient['urgent_needs']}")
+        if patient.get("needs_resolution_stage"):
+            parts.append(f"Стадия решения вопроса: {patient['needs_resolution_stage']}")
+    if patient.get("is_pdn"):
+        details = f" ({patient['pdn_details']})" if patient.get("pdn_details") else ""
+        parts.append(f"Состоит на учёте в ПДН{details}")
+    if patient.get("is_sop"):
+        details = f" ({patient['sop_details']})" if patient.get("sop_details") else ""
+        parts.append(f"Семья в социально опасном положении (СОП){details}")
+    if not parts:
+        return ""
+    return "Социальный статус и потребности резидента:\n" + "\n".join(f"- {p}" for p in parts)
+
+
 def anonymize_names(text: str, patient: dict, children: list) -> str:
     """Вырезает из текста реальные ФИО пациента и его детей перед отправкой во внешний API,
     заменяя их на нейтральный шаблон [Резидент], чтобы персональные данные не покидали контур."""
@@ -180,6 +202,10 @@ def handler(event: dict, context) -> dict:
 
         raw_text = "\n".join(lines)
         anonymized_text = anonymize_names(raw_text, patient, children)
+
+        social_block = build_social_status_block(patient)
+        if social_block:
+            anonymized_text = f"{social_block}\n\n{anonymized_text}"
 
         summary_text = ask_yandex_gpt(anonymized_text, system_prompt)
         if not summary_text:

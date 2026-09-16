@@ -15,6 +15,8 @@ export type Document = { id: number; file_name: string; file_url: string; file_t
 export type RiskLevel = "none" | "attention" | "high" | null | undefined;
 export type CareStage = "inpatient" | "posttreatment";
 export type StatePoint = { date: string; value: number | null };
+export type BenefitsStatus = "Получает" | "Не получает" | "В процессе";
+export type NeedsResolutionStage = "Ожидает решения" | "В работе" | "Вопрос закрыт";
 export type Patient = {
   id: number; last_name: string; first_name: string; middle_name?: string; alias?: string;
   birth_date?: string; address?: string; admission_date?: string; discharge_date?: string;
@@ -23,6 +25,8 @@ export type Patient = {
   passport_issued_date?: string; passport_issued_by?: string;
   photo_url?: string; risk_level?: RiskLevel; care_stage?: CareStage; care_stage_since?: string;
   state_history?: StatePoint[];
+  benefits_status?: BenefitsStatus | "" | null; urgent_needs?: string; needs_resolution_stage?: NeedsResolutionStage | "" | null;
+  is_pdn?: boolean; pdn_details?: string; is_sop?: boolean; sop_details?: string;
 };
 export type TaskStatus = "active" | "completed";
 export type TaskType = "main" | "additional";
@@ -109,7 +113,7 @@ export function stayDuration(admission?: string, discharge?: string): string | n
   return parts.join(" ");
 }
 
-export const EMPTY_FORM = { last_name: "", first_name: "", middle_name: "", alias: "", birth_date: "", address: "", admission_date: "", discharge_date: "", case_description: "", passport_series: "", passport_number: "", passport_issued_date: "", passport_issued_by: "" };
+export const EMPTY_FORM = { last_name: "", first_name: "", middle_name: "", alias: "", birth_date: "", address: "", admission_date: "", discharge_date: "", case_description: "", passport_series: "", passport_number: "", passport_issued_date: "", passport_issued_by: "", benefits_status: "", urgent_needs: "", needs_resolution_stage: "", is_pdn: false, pdn_details: "", is_sop: false, sop_details: "" };
 
 export function elapsedTime(createdAt: string, completedAt?: string | null): string {
   const from = new Date(createdAt);

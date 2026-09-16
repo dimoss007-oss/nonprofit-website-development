@@ -6,7 +6,7 @@ import ChildDynamicsModal from "@/components/admin/crm/ChildDynamicsModal";
 
 export function PatientForm({ initial, onSave, onCancel, loading }: { initial?: Partial<typeof EMPTY_FORM>; onSave: (data: typeof EMPTY_FORM) => void; onCancel: () => void; loading: boolean }) {
   const [form, setForm] = useState({ ...EMPTY_FORM, ...initial });
-  const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setForm(f => ({ ...f, [k]: e.target.value }));
+  const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => setForm(f => ({ ...f, [k]: e.target.value }));
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -31,6 +31,56 @@ export function PatientForm({ initial, onSave, onCancel, loading }: { initial?: 
         <div className="mt-3"><label className="text-xs text-ink/50 mb-1 block">Кем выдан</label><input value={form.passport_issued_by} onChange={set("passport_issued_by")} placeholder="Отделом УФМС России..." className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" /></div>
       </div>
       <div><label className="text-xs text-ink/50 mb-1 block">Описание случая</label><textarea value={form.case_description} onChange={set("case_description")} rows={4} className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink resize-none" /></div>
+
+      <div className="pt-1">
+        <p className="text-xs font-semibold text-ink/40 uppercase tracking-wide mb-2">Социальный статус и потребности</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label className="text-xs text-ink/50 mb-1 block">Статус пособий</label>
+            <select value={form.benefits_status} onChange={set("benefits_status")} className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-ink">
+              <option value="">Не указано</option>
+              <option value="Получает">Получает</option>
+              <option value="Не получает">Не получает</option>
+              <option value="В процессе">В процессе</option>
+            </select>
+          </div>
+          <div>
+            <label className="text-xs text-ink/50 mb-1 block">Стадия решения вопроса</label>
+            <select value={form.needs_resolution_stage} onChange={set("needs_resolution_stage")} className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-ink">
+              <option value="">Не указано</option>
+              <option value="Ожидает решения">Ожидает решения</option>
+              <option value="В работе">В работе</option>
+              <option value="Вопрос закрыт">Вопрос закрыт</option>
+            </select>
+          </div>
+        </div>
+        <div className="mt-3">
+          <label className="text-xs text-ink/50 mb-1 block">Насущные бытовые трудности</label>
+          <textarea value={form.urgent_needs} onChange={set("urgent_needs")} rows={2} placeholder="Например: нужен ремонт отопления, одеть детей к зиме" className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink resize-none" />
+        </div>
+
+        <div className="mt-4 space-y-3">
+          <div>
+            <label className="flex items-center gap-2 text-sm text-ink">
+              <input type="checkbox" checked={form.is_pdn} onChange={e => setForm(f => ({ ...f, is_pdn: e.target.checked }))} className="w-4 h-4 accent-ink" />
+              Состоит на учёте в ПДН
+            </label>
+            {form.is_pdn && (
+              <textarea value={form.pdn_details} onChange={set("pdn_details")} rows={2} placeholder="С какого числа, кем поставлен" className="w-full mt-2 border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink resize-none" />
+            )}
+          </div>
+          <div>
+            <label className="flex items-center gap-2 text-sm text-ink">
+              <input type="checkbox" checked={form.is_sop} onChange={e => setForm(f => ({ ...f, is_sop: e.target.checked }))} className="w-4 h-4 accent-ink" />
+              Семья в социально опасном положении (СОП)
+            </label>
+            {form.is_sop && (
+              <textarea value={form.sop_details} onChange={set("sop_details")} rows={2} placeholder="Детали статуса СОП" className="w-full mt-2 border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink resize-none" />
+            )}
+          </div>
+        </div>
+      </div>
+
       <div className="flex gap-2 justify-end">
         <button onClick={onCancel} className="px-4 py-2 text-sm rounded-lg border border-beige-dark hover:border-ink transition-colors">Отмена</button>
         <button onClick={() => onSave(form)} disabled={loading || !form.last_name || !form.first_name} className="px-4 py-2 text-sm rounded-lg bg-ink text-beige hover:bg-ink/90 transition-colors disabled:opacity-60">{loading ? "Сохранение..." : "Сохранить"}</button>
