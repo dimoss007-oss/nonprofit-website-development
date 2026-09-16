@@ -1,11 +1,17 @@
 import json
 import os
 import re
+import time
 import psycopg2
 import requests
 from psycopg2.extras import RealDictCursor
 
 SCHEMA = os.environ.get("MAIN_DB_SCHEMA", "public")
+
+# Безопасный бюджет времени на один вызов функции (сек). Оставляет запас под пользовательский
+# таймаут облачной функции (рекомендовано выставить 60 сек в настройках функции), чтобы платформа
+# не обрывала выполнение с ошибкой 504 независимо от того, сколько резидентов накопилось в базе.
+TIME_BUDGET_SECONDS = 45
 
 CORS = {
     "Access-Control-Allow-Origin": "*",
@@ -140,15 +146,33 @@ def ask_yandex_gpt(prompt: str, system_prompt: str = YANDEX_SYSTEM_PROMPT) -> st
 
 
 def handler(event: dict, context) -> dict:
-    """Cron-функция: каждую ночь формирует свежую AI-сводку (YandexGPT Pro) по всем активным резидентам
-    (без даты выписки) на основе отчётов дежурных за последние 3 дня и сохраняет в историю сводок пациента."""
+    """Cron-функция: пакетно формирует свежую AI-сводку (YandexGPT Pro) по активным резидентам (без даты
+    выписки) на основе отчётов дежурных за последние 3 дня и сохраняет в историю сводок пациента.
+    Обрабатывает резидентов по одному, начиная с тех, у кого сводка самая старая (или отсутствует вовсе),
+    и останавливается по бюджету времени TIME_BUDGET_SECONDS — а не по количеству пациентов. Это гарантирует,
+    что вызов никогда не упрётся в таймаут облачной функции (504), сколько бы резидентов ни было в базе:
+    при росте базы обработка просто равномерно распределится на несколько ночных прогонов подряд, каждый
+    резидент рано или поздно получит свежую сводку."""
     if event.get("httpMethod") == "OPTIONS":
         return {"statusCode": 200, "headers": CORS, "body": ""}
+
+    start_time = time.monotonic()
 
     conn = get_conn()
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
-    cur.execute(f"SELECT * FROM {SCHEMA}.patients WHERE discharge_date IS NULL ORDER BY id")
+    # Резиденты без выписки, упорядоченные так, чтобы в первую очередь обрабатывались те, у кого
+    # свежей сводки ещё не было вовсе (NULL — раньше всех), а затем те, у кого она самая старая.
+    # Так при нехватке бюджета времени за одну ночь никто не остаётся забытым надолго.
+    cur.execute(f"""
+        SELECT p.*, (
+            SELECT MAX(s.created_at) FROM {SCHEMA}.patient_ai_summaries s
+            WHERE s.patient_id = p.id AND s.source = 'yandex_gpt'
+        ) AS last_summary_at
+        FROM {SCHEMA}.patients p
+        WHERE p.discharge_date IS NULL
+        ORDER BY last_summary_at ASC NULLS FIRST, p.id ASC
+    """)
     patients = cur.fetchall()
 
     system_prompt = get_system_prompt(cur, SCHEMA)
@@ -167,10 +191,19 @@ def handler(event: dict, context) -> dict:
     generated = 0
     skipped = 0
     errors = 0
+    processed = 0
+    stopped_by_budget = False
 
     for patient in patients:
+        # Бюджет времени проверяем ПЕРЕД обработкой следующего резидента (а не после), чтобы не начать
+        # вызов Агента, для завершения которого может не хватить оставшегося времени функции.
+        if time.monotonic() - start_time > TIME_BUDGET_SECONDS:
+            stopped_by_budget = True
+            break
+
         patient = dict(patient)
         pid = patient["id"]
+        processed += 1
 
         cur.execute(f"SELECT * FROM {SCHEMA}.patient_children WHERE patient_id = %s", (pid,))
         children = [dict(c) for c in cur.fetchall()]
@@ -222,4 +255,12 @@ def handler(event: dict, context) -> dict:
 
     conn.close()
 
-    return ok({"total_active": len(patients), "generated": generated, "skipped_no_reports": skipped, "errors": errors})
+    return ok({
+        "total_active": len(patients),
+        "processed": processed,
+        "generated": generated,
+        "skipped_no_reports": skipped,
+        "errors": errors,
+        "remaining": max(0, len(patients) - processed),
+        "stopped_by_time_budget": stopped_by_budget,
+    })

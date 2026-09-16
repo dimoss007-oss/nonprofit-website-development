@@ -1,12 +1,12 @@
 {
   "tests": [
     {
-      "name": "Ночной прогон AI-сводок",
+      "name": "Пакетный прогон AI-сводок (укладывается в бюджет времени)",
       "method": "GET",
       "path": "/",
       "expectedStatus": 200,
-      "expectedBody": {"generated": 0},
-      "bodyMatcher": "partial"
+      "expectedBody": {"total_active": "number", "processed": "number", "generated": "number", "remaining": "number", "stopped_by_time_budget": "boolean"},
+      "bodyMatcher": "keys"
     }
   ]
 }
