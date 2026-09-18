@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import Icon from "@/components/ui/icon";
 
 const NEWS_URL = "https://functions.poehali.dev/b33c4df8-295a-4694-a485-e771aec3d9ce";
-const VK_SYNC_URL = "https://functions.poehali.dev/ce64965a-09e0-411a-bbed-d25e01b5c170";
+const VK_SYNC_URL = "https://functions.poehali.dev/7aa0c61c-d0d9-445c-bf64-da1978b51e1a?route=sync";
 
 interface NewsItem {
   id: number;

@@ -1,0 +1,20 @@
+{
+  "tests": [
+    {
+      "name": "GET route=news — посты со стены группы",
+      "method": "GET",
+      "path": "/?route=news&count=5",
+      "expectedStatus": 200,
+      "expectedBody": {"posts": "array", "total": "number", "offset": "number", "count": "number"},
+      "bodyMatcher": "keys"
+    },
+    {
+      "name": "POST route=sync — синхронизация постов в БД",
+      "method": "POST",
+      "path": "/?route=sync",
+      "expectedStatus": 200,
+      "expectedBody": {"added": "number", "updated": "number", "skipped": "number", "total_processed": "number"},
+      "bodyMatcher": "keys"
+    }
+  ]
+}
