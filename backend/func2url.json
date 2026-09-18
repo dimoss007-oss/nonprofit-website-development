@@ -1,4 +1,5 @@
 {
+  "max-bots-api": "https://functions.poehali.dev/00c68cd6-f856-493b-8405-a472359e411e",
   "vk-api": "https://functions.poehali.dev/7aa0c61c-d0d9-445c-bf64-da1978b51e1a",
   "yandex-gpt-chat": "https://functions.poehali.dev/ca19dfbe-f809-4d0a-bb57-c57da6698400",
   "crm-ai-summary-cron": "https://functions.poehali.dev/453ec4a7-94a6-470e-9dbe-b45fd8f387bf",
