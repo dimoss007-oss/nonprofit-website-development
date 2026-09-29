@@ -115,6 +115,23 @@ export default function AdminNewsTab({ isAdmin = true }: { isAdmin?: boolean }) 
     finally { setSyncing(false); setTimeout(() => setSyncResult(null), 5000); }
   };
 
+  const handleExport = () => {
+    const rows = [...news]
+      .sort((a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime())
+      .map((n) => ({
+        date: n.published_at.slice(0, 10),
+        title: n.title,
+        text: n.text,
+      }));
+    const blob = new Blob([JSON.stringify(rows, null, 2)], { type: "application/json;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `news-export-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
@@ -124,6 +141,10 @@ export default function AdminNewsTab({ isAdmin = true }: { isAdmin?: boolean }) 
           <button onClick={handleVkSync} disabled={syncing} className="flex items-center gap-2 text-sm bg-[#4a76a8] text-white px-4 py-2 rounded-lg hover:bg-[#3d6491] transition-colors disabled:opacity-60">
             <Icon name="RefreshCw" size={14} className={syncing ? "animate-spin" : ""} />
             {syncing ? "Синхронизация..." : "Загрузить из ВК"}
+          </button>
+          <button onClick={handleExport} disabled={!news.length} className="flex items-center gap-2 text-sm bg-sage text-white px-4 py-2 rounded-lg hover:bg-sage-dark transition-colors disabled:opacity-60">
+            <Icon name="Download" size={14} />
+            Выгрузить новости
           </button>
         </div>
       </div>
