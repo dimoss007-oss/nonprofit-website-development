@@ -240,6 +240,23 @@ export default function AdminNews() {
     }
   };
 
+  const handleExport = () => {
+    const rows = [...news]
+      .sort((a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime())
+      .map((n) => ({
+        date: n.published_at.slice(0, 10),
+        title: n.title,
+        text: n.text,
+      }));
+    const blob = new Blob([JSON.stringify(rows, null, 2)], { type: "application/json;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `news-export-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const handleLogout = () => {
     sessionStorage.removeItem(SESSION_KEY);
     setAuthed(false);
@@ -273,6 +290,14 @@ export default function AdminNews() {
             {syncResult && (
               <span className="text-xs text-ink/60">{syncResult}</span>
             )}
+            <button
+              onClick={handleExport}
+              disabled={!news.length}
+              className="flex items-center gap-2 text-sm bg-sage text-white px-4 py-2 rounded-sm hover:bg-sage-dark transition-colors disabled:opacity-60"
+            >
+              <Icon name="Download" size={14} />
+              Экспорт всех новостей
+            </button>
             <a href="/admin/gallery" className="text-sm text-ink/60 hover:text-ink transition-colors">
               Галерея
             </a>
