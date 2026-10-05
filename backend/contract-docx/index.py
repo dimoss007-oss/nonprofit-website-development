@@ -15,7 +15,7 @@ DOCX_TYPE = "application/vnd.openxmlformats-officedocument.wordprocessingml.docu
 
 CORS = {
     "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type",
 }
 
@@ -165,11 +165,46 @@ def build_contract(patient: dict, children: list, number: str, contract_date: da
     return buf.getvalue()
 
 
+def next_number(cur, contract_date: date) -> str:
+    cur.execute(
+        f"SELECT contract_number FROM {SCHEMA}.contracts WHERE date_trunc('month', contract_date) = date_trunc('month', %s::date)",
+        (contract_date.isoformat(),),
+    )
+    month = f"{contract_date.month:02d}"
+    biggest = 0
+    for row in cur.fetchall():
+        head, _, tail = str(row["contract_number"]).partition("/")
+        if head.strip().isdigit() and tail.strip() == month:
+            biggest = max(biggest, int(head))
+    return f"{biggest + 1:02d}/{month}"
+
+
+def parse_date(raw):
+    return datetime.strptime(raw, "%Y-%m-%d").date() if raw else date.today()
+
+
 def handler(event: dict, context) -> dict:
-    """Формирует договор о предоставлении комплекса социальных услуг (.docx) по данным пациента из CRM.
-    POST {patient_id, contract_number, contract_date (YYYY-MM-DD, необязательно)} -> {file_name, file_base64, content_type}."""
+    """Договоры о предоставлении комплекса социальных услуг (.docx) по данным пациента из CRM.
+    GET ?contract_date=YYYY-MM-DD -> {next_number} следующий номер вида NN/MM в рамках месяца.
+    POST {patient_id, contract_number, contract_date (YYYY-MM-DD, необязательно)} -> {file_name, file_base64, content_type}
+    и запоминает выданный номер."""
     if event.get("httpMethod") == "OPTIONS":
         return {"statusCode": 200, "headers": CORS, "body": ""}
+
+    if event.get("httpMethod") == "GET":
+        params = event.get("queryStringParameters") or {}
+        try:
+            d = parse_date(params.get("contract_date"))
+        except ValueError:
+            return err("Неверная дата договора")
+        conn = psycopg2.connect(os.environ["DATABASE_URL"])
+        try:
+            cur = conn.cursor(cursor_factory=RealDictCursor)
+            number = next_number(cur, d)
+            cur.close()
+        finally:
+            conn.close()
+        return ok({"next_number": number})
 
     body = json.loads(event.get("body") or "{}")
     patient_id = body.get("patient_id")
@@ -181,7 +216,7 @@ def handler(event: dict, context) -> dict:
 
     raw_date = body.get("contract_date")
     try:
-        contract_date = datetime.strptime(raw_date, "%Y-%m-%d").date() if raw_date else date.today()
+        contract_date = parse_date(raw_date)
     except ValueError:
         return err("Неверная дата договора")
 
@@ -194,6 +229,16 @@ def handler(event: dict, context) -> dict:
             return err("Пациент не найден", 404)
         cur.execute(f"SELECT * FROM {SCHEMA}.patient_children WHERE patient_id = %s ORDER BY birth_date", (int(patient_id),))
         children = cur.fetchall()
+        cur.execute(
+            f"SELECT 1 FROM {SCHEMA}.contracts WHERE patient_id = %s AND contract_number = %s AND contract_date = %s",
+            (int(patient_id), number, contract_date.isoformat()),
+        )
+        if not cur.fetchone():
+            cur.execute(
+                f"INSERT INTO {SCHEMA}.contracts (patient_id, contract_number, contract_date) VALUES (%s, %s, %s)",
+                (int(patient_id), number, contract_date.isoformat()),
+            )
+            conn.commit()
         cur.close()
     finally:
         conn.close()

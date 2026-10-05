@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Icon from "@/components/ui/icon";
 
 const CONTRACT_API = "https://functions.poehali.dev/f031009a-8971-49ec-8e6e-2c84ce422d80";
@@ -9,6 +9,17 @@ export default function ContractButton({ patientId, defaultDate }: { patientId: 
   const [date, setDate] = useState(() => (defaultDate || new Date().toISOString()).slice(0, 10));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [numberTouched, setNumberTouched] = useState(false);
+
+  useEffect(() => {
+    if (!open || numberTouched || !date) return;
+    let cancelled = false;
+    fetch(`${CONTRACT_API}?contract_date=${date}`)
+      .then((r) => r.json())
+      .then((d) => { if (!cancelled && d.next_number) setNumber(d.next_number); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [open, date, numberTouched]);
 
   const download = async () => {
     if (!number.trim()) { setError("Укажите номер договора"); return; }
@@ -28,6 +39,7 @@ export default function ContractButton({ patientId, defaultDate }: { patientId: 
       a.href = url; a.download = d.file_name; a.click();
       URL.revokeObjectURL(url);
       setOpen(false);
+      setNumberTouched(false);
     } catch {
       setError("Ошибка соединения с сервером");
     } finally {
@@ -44,7 +56,7 @@ export default function ContractButton({ patientId, defaultDate }: { patientId: 
         <div className="absolute right-0 top-full mt-2 z-20 w-72 bg-white border border-beige-dark rounded-xl shadow-lg p-4 space-y-3">
           <div>
             <label className="block text-xs uppercase tracking-widest text-ink/50 mb-1.5">Номер договора</label>
-            <input value={number} onChange={(e) => setNumber(e.target.value)} placeholder="например, 07/07" className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm text-ink bg-beige/50 focus:outline-none focus:border-ink" />
+            <input value={number} onChange={(e) => { setNumber(e.target.value); setNumberTouched(true); }} placeholder="Подставляется автоматически" className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm text-ink bg-beige/50 focus:outline-none focus:border-ink" />
           </div>
           <div>
             <label className="block text-xs uppercase tracking-widest text-ink/50 mb-1.5">Дата заключения</label>

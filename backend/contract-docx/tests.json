@@ -1,6 +1,27 @@
 {
   "tests": [
-    {"name": "OPTIONS preflight", "method": "OPTIONS", "path": "/", "expectedStatus": 200},
-    {"name": "Без patient_id", "method": "POST", "path": "/", "body": {}, "expectedStatus": 400}
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Следующий номер",
+      "method": "GET",
+      "path": "/?contract_date=2026-10-05",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "next_number": "string"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Без patient_id",
+      "method": "POST",
+      "path": "/",
+      "body": {},
+      "expectedStatus": 400
+    }
   ]
 }
