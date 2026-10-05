@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import Icon from "@/components/ui/icon";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import ChildWeeklyReports from "@/components/admin/crm/ChildWeeklyReports";
 import {
   API, UPLOAD_API, CHILD_REPORTS_API, ChildWithPatient, ChildDailyReport, ChildAiSummary,
   ChildScales, CHILD_SCALE_META, fmt, fmtDateTime,
@@ -166,9 +167,9 @@ export default function ChildCard({ childId, onBack, onDeleted, onOpenPatient, i
   const generateSummary = async () => {
     setGenerating(true);
     try {
-      const r = await fetch(API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "generate_child_summary", child_id: childId }) });
+      const r = await fetch(API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "generate_child_yandex_summary", child_id: childId }) });
       const d = await r.json();
-      setDraft(d.summary || "");
+      setDraft(d.summary_text || d.error || "");
     } finally {
       setGenerating(false);
     }
@@ -250,6 +251,7 @@ export default function ChildCard({ childId, onBack, onDeleted, onOpenPatient, i
         <TabsList>
           <TabsTrigger value="data">Данные</TabsTrigger>
           <TabsTrigger value="reports">Ежедневные отчёты</TabsTrigger>
+          <TabsTrigger value="weekly">Еженедельные отчёты</TabsTrigger>
           <TabsTrigger value="dynamics">Динамика</TabsTrigger>
           <TabsTrigger value="tasks" disabled>Задачи</TabsTrigger>
         </TabsList>
@@ -336,12 +338,16 @@ export default function ChildCard({ childId, onBack, onDeleted, onOpenPatient, i
           </div>
         </TabsContent>
 
+        <TabsContent value="weekly" className="mt-4">
+          <ChildWeeklyReports childId={childId} authorName={authorName} isAdmin={isAdmin} />
+        </TabsContent>
+
         <TabsContent value="dynamics" className="space-y-4 mt-4">
           <div className="bg-white border border-beige-dark rounded-2xl p-5 space-y-3">
             <div className="flex items-center justify-between flex-wrap gap-2">
               <div className="flex items-center gap-2">
                 <Icon name="Sparkles" size={16} className="text-purple-500" />
-                <h3 className="font-semibold text-ink text-sm uppercase tracking-wide">ИИ-сводка за 7 дней</h3>
+                <h3 className="font-semibold text-ink text-sm uppercase tracking-wide">ИИ-сводка (еженедельные и ежедневные отчёты)</h3>
               </div>
               <button onClick={generateSummary} disabled={generating} className="text-sm flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-beige-dark hover:border-ink transition-colors disabled:opacity-60">
                 <Icon name={generating ? "Loader" : "WandSparkles"} size={14} className={generating ? "animate-spin" : ""} />

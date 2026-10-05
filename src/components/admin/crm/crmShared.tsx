@@ -1,6 +1,7 @@
 export const API = "https://functions.poehali.dev/c30060e8-222e-48b5-823a-3f1a5b44fbd5";
 export const UPLOAD_API = "https://functions.poehali.dev/8a6d9ba2-3c66-4604-bccf-68b50295e021";
 export const CHILD_REPORTS_API = "https://functions.poehali.dev/5c7a56b7-8b5d-4577-aeb5-bc9c3f9aaad1";
+export const CHILD_WEEKLY_API = "https://functions.poehali.dev/fdfa67e9-1e57-4207-9df7-603250d5e1e1";
 
 export type Child = {
   id: number; last_name?: string; first_name: string; middle_name?: string; birth_date?: string; photo_url?: string;
@@ -43,6 +44,7 @@ export type ChildDailyReport = ChildScales & {
   id: number; child_id: number; author?: string; report_date: string;
   identified_problems?: string; taken_actions?: string; results?: string; created_at: string;
 };
+export type ChildWeeklyReport = { id: number; child_id: number; author?: string; week_start: string; report_text: string; created_at: string };
 export type ChildAiSummary = { id: number; child_id: number; summary_text: string; created_at: string };
 
 export const CHILD_SCALE_META: { key: keyof ChildScales; label: string }[] = [

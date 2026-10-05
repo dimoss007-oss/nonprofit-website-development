@@ -328,6 +328,60 @@ def generate_yandex_summary(cur, patient_id: int, schema: str, days: int) -> dic
     return {"summary_text": summary_text, "days": days}
 
 
+def generate_child_yandex_summary(cur, child_id: int, schema: str) -> dict:
+    """Сводка по ребёнку через YandexGPT: ежедневные отчёты за 14 дней и еженедельные за 6 недель.
+    Имена ребёнка и мамы вырезаются до отправки во внешний API."""
+    cur.execute(f"SELECT * FROM {schema}.patient_children WHERE id = %s", (child_id,))
+    child = cur.fetchone()
+    if not child:
+        return {"error": "Ребёнок не найден"}
+    child = dict(child)
+
+    cur.execute(f"SELECT * FROM {schema}.patients WHERE id = %s", (child["patient_id"],))
+    mother = cur.fetchone()
+    mother = dict(mother) if mother else {}
+
+    cur.execute(
+        f"""SELECT report_date, identified_problems, taken_actions, results
+            FROM {schema}.child_daily_reports
+            WHERE child_id = %s AND report_date >= CURRENT_DATE - INTERVAL '14 days'
+            ORDER BY report_date ASC""",
+        (child_id,),
+    )
+    daily = [dict(r) for r in cur.fetchall()]
+
+    cur.execute(
+        f"""SELECT week_start, report_text
+            FROM {schema}.child_weekly_reports
+            WHERE child_id = %s AND week_start >= CURRENT_DATE - INTERVAL '42 days'
+            ORDER BY week_start ASC""",
+        (child_id,),
+    )
+    weekly = [dict(r) for r in cur.fetchall()]
+
+    lines = []
+    for w in weekly:
+        lines.append(f"Еженедельный отчёт, неделя с {fmt_ru_date(w['week_start'])}: {w['report_text']}")
+    for r in daily:
+        parts = [p for p in (r.get("identified_problems"), r.get("taken_actions"), r.get("results")) if p]
+        if parts:
+            lines.append(f"{fmt_ru_date(r['report_date'])}: " + " ".join(parts))
+
+    if not lines:
+        return {"summary_text": "Недостаточно текстовых данных для сводки: нет еженедельных отчётов за последние 6 недель и заполненных ежедневных отчётов за 14 дней."}
+
+    raw_text = "Отчёты по ребёнку (не по взрослому резиденту).\n" + "\n".join(lines)
+
+    for field in ("first_name", "last_name", "middle_name"):
+        v = (child.get(field) or "").strip()
+        if len(v) > 1:
+            raw_text = re.sub(re.escape(v), "[Ребёнок]", raw_text, flags=re.IGNORECASE)
+    anonymized_text = anonymize_names(raw_text, mother, [])
+
+    summary_text = ask_yandex_gpt(anonymized_text, get_system_prompt(cur, schema))
+    return {"summary_text": summary_text, "weekly_count": len(weekly), "daily_count": len(daily)}
+
+
 def fmt_ru_date(d) -> str:
     if not d:
         return ""
@@ -935,6 +989,7 @@ def handler(event: dict, context) -> dict:
             cur.execute(f"DELETE FROM {SCHEMA}.child_ai_summaries WHERE child_id IN (SELECT id FROM {SCHEMA}.patient_children WHERE patient_id = %s)", (pid,))
             cur.execute(f"DELETE FROM {SCHEMA}.child_tasks WHERE child_id IN (SELECT id FROM {SCHEMA}.patient_children WHERE patient_id = %s)", (pid,))
             cur.execute(f"DELETE FROM {SCHEMA}.child_daily_reports WHERE child_id IN (SELECT id FROM {SCHEMA}.patient_children WHERE patient_id = %s)", (pid,))
+            cur.execute(f"DELETE FROM {SCHEMA}.child_weekly_reports WHERE child_id IN (SELECT id FROM {SCHEMA}.patient_children WHERE patient_id = %s)", (pid,))
             cur.execute(f"DELETE FROM {SCHEMA}.patient_children WHERE patient_id = %s", (pid,))
 
             # Теперь базу ничего не держит, и можно безопасно удалить саму карточку
@@ -966,6 +1021,7 @@ def handler(event: dict, context) -> dict:
             cur.execute(f"DELETE FROM {SCHEMA}.child_ai_summaries WHERE child_id = %s", (child_id,))
             cur.execute(f"DELETE FROM {SCHEMA}.child_tasks WHERE child_id = %s", (child_id,))
             cur.execute(f"DELETE FROM {SCHEMA}.child_daily_reports WHERE child_id = %s", (child_id,))
+            cur.execute(f"DELETE FROM {SCHEMA}.child_weekly_reports WHERE child_id = %s", (child_id,))
             cur.execute(f"DELETE FROM {SCHEMA}.patient_children WHERE id = %s", (child_id,))
             conn.commit()
             return ok({"success": True})
@@ -1128,6 +1184,15 @@ def handler(event: dict, context) -> dict:
                 return err("Поле child_id обязательно")
             summary_text = analyze_child_data(cur, child_id, SCHEMA, days=7)
             return ok({"summary": summary_text})
+
+        if action == "generate_child_yandex_summary":
+            child_id = body.get("child_id")
+            if not child_id:
+                return err("Поле child_id обязательно")
+            result = generate_child_yandex_summary(cur, child_id, SCHEMA)
+            if result.get("error"):
+                return err(result["error"], 404)
+            return ok(result)
 
         if action == "save_child_summary":
             child_id = body.get("child_id")
