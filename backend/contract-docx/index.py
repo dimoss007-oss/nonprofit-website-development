@@ -7,10 +7,10 @@ from datetime import date, datetime
 
 import psycopg2
 from docx import Document
+from template_data import TEMPLATE_B64
 from psycopg2.extras import RealDictCursor
 
 SCHEMA = os.environ.get("MAIN_DB_SCHEMA", "public")
-TEMPLATE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "template.docx")
 DOCX_TYPE = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 
 CORS = {
@@ -60,7 +60,7 @@ def child_relation(middle_name: str) -> str:
 
 
 def build_contract(patient: dict, children: list, number: str, contract_date: date) -> bytes:
-    doc = Document(TEMPLATE_PATH)
+    doc = Document(io.BytesIO(base64.b64decode(TEMPLATE_B64)))
 
     last = (patient.get("last_name") or "").strip()
     first = (patient.get("first_name") or "").strip()
