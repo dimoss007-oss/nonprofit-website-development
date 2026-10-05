@@ -4,6 +4,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import PatientDynamics from "@/components/admin/PatientDynamics";
 import PatientTasks from "@/components/admin/crm/PatientTasks";
 import PatientAiSummary from "@/components/admin/crm/PatientAiSummary";
+import ContractButton from "@/components/admin/crm/ContractButton";
 import { API, UPLOAD_API, Child, PatientFull, EMPTY_FORM, RiskBadge, fmt, fmtDateTime, fmtSize, stayDuration, CARE_STAGE_META } from "@/components/admin/crm/crmShared";
 import { PatientForm, ChildForm, ChildRow, Row } from "@/components/admin/crm/PatientFormParts";
 
@@ -180,6 +181,7 @@ export default function PatientCard({ patientId, onBack, onDeleted, isAdmin, aut
             Поступила: {fmt(patient.admission_date)}
           </p>
         </div>
+        <ContractButton patientId={patientId} defaultDate={patient.admission_date} />
         <button onClick={() => setEditing(e => !e)} className="px-3 py-1.5 text-sm border border-beige-dark rounded-lg hover:border-ink transition-colors flex items-center gap-1.5">
           <Icon name="Pencil" size={14} /> Редактировать
         </button>
