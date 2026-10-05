@@ -2,6 +2,9 @@ import json
 import os
 import hashlib
 import hmac
+import base64
+import uuid
+import boto3
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
@@ -30,8 +33,15 @@ def verify_master(login: str, password: str) -> bool:
     master_password = os.environ.get("ADMIN_PASSWORD", "")
     return hmac.compare_digest(login, master_login) and hmac.compare_digest(password, master_password)
 
+PUBLIC_COLS = "id, login, role, full_name, phone, created_at, permissions, position, photo_url"
+FULL_COLS = PUBLIC_COLS + ", birth_date, passport_series, passport_number, passport_issued_by, passport_issued_date"
+
+def clean(value):
+    value = (value or "").strip() if isinstance(value, str) else value
+    return value or None
+
 def handler(event: dict, context) -> dict:
-    """Управление пользователями админ-панели и авторизация с ролями и правами доступа к разделам."""
+    """Управление сотрудниками админ-панели: авторизация, роли, права, должности, паспортные данные и фото."""
     if event.get("httpMethod") == "OPTIONS":
         return {"statusCode": 200, "headers": CORS, "body": ""}
 
@@ -65,7 +75,7 @@ def handler(event: dict, context) -> dict:
     if method == "GET":
         conn = get_conn()
         cur = conn.cursor(cursor_factory=RealDictCursor)
-        cur.execute(f"SELECT id, login, role, full_name, phone, created_at, permissions FROM {SCHEMA}.admin_users ORDER BY created_at")
+        cur.execute(f"SELECT {PUBLIC_COLS} FROM {SCHEMA}.admin_users ORDER BY created_at")
         users = cur.fetchall()
         conn.close()
         return ok({"users": [dict(u) for u in users]})
@@ -81,6 +91,31 @@ def handler(event: dict, context) -> dict:
 
     if method == "POST":
         action = body.get("action")
+
+        if action == "list_full":
+            cur.execute(f"SELECT {FULL_COLS} FROM {SCHEMA}.admin_users ORDER BY created_at")
+            users = cur.fetchall()
+            conn.close()
+            return ok({"users": [dict(u) for u in users]})
+
+        if action == "upload_photo":
+            user_id = body.get("user_id")
+            file_name = body.get("file_name") or "photo.jpg"
+            file_data = body.get("file_data")
+            file_type = body.get("file_type") or "image/jpeg"
+            if not user_id or not file_data:
+                conn.close()
+                return err("Обязательные поля: user_id, file_data")
+            ext = file_name.rsplit(".", 1)[-1].lower() if "." in file_name else "jpg"
+            key = f"staff/{user_id}/photo_{uuid.uuid4().hex[:8]}.{ext}"
+            s3 = boto3.client("s3", endpoint_url="https://bucket.poehali.dev", aws_access_key_id=os.environ["AWS_ACCESS_KEY_ID"], aws_secret_access_key=os.environ["AWS_SECRET_ACCESS_KEY"])
+            s3.put_object(Bucket="files", Key=key, Body=base64.b64decode(file_data), ContentType=file_type)
+            cdn_url = f"https://cdn.poehali.dev/projects/{os.environ['AWS_ACCESS_KEY_ID']}/bucket/{key}"
+            cur.execute(f"UPDATE {SCHEMA}.admin_users SET photo_url=%s WHERE id=%s RETURNING id, photo_url", (cdn_url, user_id))
+            row = cur.fetchone()
+            conn.commit()
+            conn.close()
+            return ok({"user": dict(row)} if row else {"error": "Не найден"})
 
         # Создать пользователя
         if action == "create":
@@ -102,8 +137,9 @@ def handler(event: dict, context) -> dict:
 
             permissions_str = json.dumps(permissions) if permissions is not None else None
             cur.execute(
-                f"INSERT INTO {SCHEMA}.admin_users (login, password_hash, role, full_name, phone, permissions) VALUES (%s,%s,%s,%s,%s,%s) RETURNING id, login, role, full_name, phone, created_at, permissions",
-                (login, hash_password(password), role, full_name or None, phone or None, permissions_str)
+                f"INSERT INTO {SCHEMA}.admin_users (login, password_hash, role, full_name, phone, permissions, position, birth_date, passport_series, passport_number, passport_issued_by, passport_issued_date) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING {PUBLIC_COLS}",
+                (login, hash_password(password), role, full_name or None, phone or None, permissions_str,
+                 clean(body.get("position")), clean(body.get("birth_date")), clean(body.get("passport_series")), clean(body.get("passport_number")), clean(body.get("passport_issued_by")), clean(body.get("passport_issued_date")))
             )
             user = cur.fetchone()
             conn.commit()
@@ -124,16 +160,13 @@ def handler(event: dict, context) -> dict:
 
             permissions_str = json.dumps(permissions) if permissions is not None else None
 
+            fields = ["role=COALESCE(%s,role)", "full_name=%s", "phone=%s", "permissions=%s", "position=%s", "birth_date=%s", "passport_series=%s", "passport_number=%s", "passport_issued_by=%s", "passport_issued_date=%s"]
+            values = [role, full_name or None, phone or None, permissions_str, clean(body.get("position")), clean(body.get("birth_date")), clean(body.get("passport_series")), clean(body.get("passport_number")), clean(body.get("passport_issued_by")), clean(body.get("passport_issued_date"))]
             if new_password:
-                cur.execute(
-                    f"UPDATE {SCHEMA}.admin_users SET role=COALESCE(%s,role), full_name=%s, phone=%s, password_hash=%s, permissions=%s WHERE id=%s RETURNING id, login, role, full_name, phone, permissions",
-                    (role, full_name or None, phone or None, hash_password(new_password), permissions_str, user_id)
-                )
-            else:
-                cur.execute(
-                    f"UPDATE {SCHEMA}.admin_users SET role=COALESCE(%s,role), full_name=%s, phone=%s, permissions=%s WHERE id=%s RETURNING id, login, role, full_name, phone, permissions",
-                    (role, full_name or None, phone or None, permissions_str, user_id)
-                )
+                fields.append("password_hash=%s")
+                values.append(hash_password(new_password))
+            values.append(user_id)
+            cur.execute(f"UPDATE {SCHEMA}.admin_users SET {', '.join(fields)} WHERE id=%s RETURNING {FULL_COLS}", tuple(values))
             user = cur.fetchone()
             conn.commit()
             conn.close()

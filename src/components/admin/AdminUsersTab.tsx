@@ -1,9 +1,37 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Icon from "@/components/ui/icon";
 
 const API = "https://functions.poehali.dev/e6567f16-b3db-4b0d-9c1f-abed808c2ac8";
 
-type AdminUser = { id: number; login: string; role: "admin" | "user"; full_name?: string; phone?: string; created_at: string; permissions?: string | null };
+type AdminUser = {
+  id: number; login: string; role: "admin" | "user"; full_name?: string; phone?: string; created_at: string; permissions?: string | null;
+  position?: string | null; photo_url?: string | null; birth_date?: string | null;
+  passport_series?: string | null; passport_number?: string | null; passport_issued_by?: string | null; passport_issued_date?: string | null;
+};
+
+type ProfileForm = { position: string; birth_date: string; passport_series: string; passport_number: string; passport_issued_by: string; passport_issued_date: string };
+const EMPTY_PROFILE: ProfileForm = { position: "", birth_date: "", passport_series: "", passport_number: "", passport_issued_by: "", passport_issued_date: "" };
+
+const toProfile = (u: AdminUser): ProfileForm => ({
+  position: u.position || "",
+  birth_date: u.birth_date?.slice(0, 10) || "",
+  passport_series: u.passport_series || "",
+  passport_number: u.passport_number || "",
+  passport_issued_by: u.passport_issued_by || "",
+  passport_issued_date: u.passport_issued_date?.slice(0, 10) || "",
+});
+
+const fmtDate = (d?: string | null) => (d ? d.slice(0, 10).split("-").reverse().join(".") : "");
+
+const readAsBase64 = (file: File): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve((reader.result as string).split(",")[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+
+const INPUT_CLS = "w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink";
 
 const ROLE_LABELS = { admin: "Администратор", user: "Пользователь" };
 const ROLE_COLORS = { admin: "bg-ink text-beige", user: "bg-beige-dark text-ink" };
@@ -49,12 +77,52 @@ function getAvatarColor(login: string): string {
   return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
 }
 
-function Avatar({ name, login, size = "md" }: { name?: string; login: string; size?: "sm" | "md" }) {
-  const sz = size === "sm" ? "w-8 h-8 text-xs" : "w-10 h-10 text-sm";
+function Avatar({ name, login, size = "md", photoUrl }: { name?: string; login: string; size?: "sm" | "md" | "lg"; photoUrl?: string | null }) {
+  const sz = size === "sm" ? "w-8 h-8 text-xs" : size === "lg" ? "w-16 h-16 text-lg" : "w-10 h-10 text-sm";
+  if (photoUrl) {
+    return <img src={photoUrl} alt={name || login} className={`${sz} rounded-xl object-cover flex-shrink-0`} />;
+  }
   return (
     <div className={`${sz} ${getAvatarColor(login)} rounded-xl flex items-center justify-center flex-shrink-0 font-semibold`}>
       {getInitials(name, login)}
     </div>
+  );
+}
+
+function ProfileFields({ value, onChange }: { value: ProfileForm; onChange: (v: ProfileForm) => void }) {
+  const set = (k: keyof ProfileForm, v: string) => onChange({ ...value, [k]: v });
+  return (
+    <>
+      <div>
+        <label className="text-xs text-ink/50 mb-1 block">Должность</label>
+        <input value={value.position} onChange={e => set("position", e.target.value)} placeholder="Например, психолог" className={INPUT_CLS} />
+      </div>
+      <div>
+        <label className="text-xs text-ink/50 mb-1 block">Дата рождения</label>
+        <input type="date" value={value.birth_date} onChange={e => set("birth_date", e.target.value)} className={INPUT_CLS} />
+      </div>
+      <div className="sm:col-span-2 border-t border-beige-dark pt-3">
+        <p className="text-xs uppercase tracking-widest text-ink/40 mb-3">Паспорт</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label className="text-xs text-ink/50 mb-1 block">Серия</label>
+            <input value={value.passport_series} onChange={e => set("passport_series", e.target.value)} placeholder="0000" maxLength={10} className={INPUT_CLS} />
+          </div>
+          <div>
+            <label className="text-xs text-ink/50 mb-1 block">Номер</label>
+            <input value={value.passport_number} onChange={e => set("passport_number", e.target.value)} placeholder="000000" maxLength={20} className={INPUT_CLS} />
+          </div>
+          <div>
+            <label className="text-xs text-ink/50 mb-1 block">Дата выдачи</label>
+            <input type="date" value={value.passport_issued_date} onChange={e => set("passport_issued_date", e.target.value)} className={INPUT_CLS} />
+          </div>
+          <div>
+            <label className="text-xs text-ink/50 mb-1 block">Кем выдан</label>
+            <input value={value.passport_issued_by} onChange={e => set("passport_issued_by", e.target.value)} className={INPUT_CLS} />
+          </div>
+        </div>
+      </div>
+    </>
   );
 }
 
@@ -117,13 +185,18 @@ export default function AdminUsersTab({ authLogin, authPassword, isAdmin = false
   const [newFullName, setNewFullName] = useState("");
   const [newPhone, setNewPhone] = useState("");
   const [newPerms, setNewPerms] = useState<TabId[]>(ALL_TABS.map(t => t.id));
+  const [newProfile, setNewProfile] = useState<ProfileForm>(EMPTY_PROFILE);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
   const load = async () => {
     setLoading(true);
-    const r = await fetch(API, { method: "GET" });
-    const d = await r.json();
+    let d: { users?: AdminUser[] } = {};
+    if (isAdmin) {
+      const r = await fetch(API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "list_full", auth_login: authLogin, auth_password: authPassword }) });
+      if (r.ok) d = await r.json();
+    }
+    if (!d.users) d = await (await fetch(API, { method: "GET" })).json();
     setUsers(d.users || []);
     setLoading(false);
   };
@@ -134,11 +207,11 @@ export default function AdminUsersTab({ authLogin, authPassword, isAdmin = false
     if (!newLogin.trim() || !newPassword.trim()) { setError("Заполните логин и пароль"); return; }
     setSaving(true); setError("");
     const permissions = newRole === "user" ? newPerms : null;
-    const r = await fetch(API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "create", auth_login: authLogin, auth_password: authPassword, login: newLogin, password: newPassword, role: newRole, full_name: newFullName, phone: newPhone, permissions }) });
+    const r = await fetch(API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "create", auth_login: authLogin, auth_password: authPassword, login: newLogin, password: newPassword, role: newRole, full_name: newFullName, phone: newPhone, permissions, ...newProfile }) });
     const d = await r.json();
     setSaving(false);
     if (d.error) { setError(d.error); return; }
-    setAdding(false); setNewLogin(""); setNewPassword(""); setNewRole("user"); setNewFullName(""); setNewPhone(""); setNewPerms(ALL_TABS.map(t => t.id));
+    setAdding(false); setNewLogin(""); setNewPassword(""); setNewRole("user"); setNewFullName(""); setNewPhone(""); setNewPerms(ALL_TABS.map(t => t.id)); setNewProfile(EMPTY_PROFILE);
     load();
   };
 
@@ -169,12 +242,13 @@ export default function AdminUsersTab({ authLogin, authPassword, isAdmin = false
             {users.length === 0 && <p className="text-center text-ink/40 text-sm py-8">Других сотрудников нет</p>}
             {users.map(u => (
               <div key={u.id} className="bg-white border border-beige-dark rounded-2xl px-5 py-4 flex items-center gap-4">
-                <Avatar name={u.full_name} login={u.login} />
+                <Avatar name={u.full_name} login={u.login} photoUrl={u.photo_url} />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-semibold text-sm text-ink">{u.full_name || u.login}</span>
                     <span className={`text-xs px-2 py-0.5 rounded-full ${ROLE_COLORS[u.role]}`}>{ROLE_LABELS[u.role]}</span>
                   </div>
+                  {u.position && <p className="text-xs text-ink/60 mt-0.5">{u.position}</p>}
                   <div className="flex items-center gap-3 mt-0.5 flex-wrap">
                     <p className="text-xs text-ink/40">@{u.login}</p>
                     {u.phone && <p className="text-xs text-ink/50 flex items-center gap-1"><Icon name="Phone" size={11} />{u.phone}</p>}
@@ -212,7 +286,7 @@ export default function AdminUsersTab({ authLogin, authPassword, isAdmin = false
           <h3 className="font-semibold text-ink">Новый сотрудник</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="text-xs text-ink/50 mb-1 block">Имя / Должность</label>
+              <label className="text-xs text-ink/50 mb-1 block">ФИО</label>
               <input value={newFullName} onChange={e => setNewFullName(e.target.value)} placeholder="Мария Иванова" className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" />
             </div>
             <div>
@@ -230,6 +304,7 @@ export default function AdminUsersTab({ authLogin, authPassword, isAdmin = false
               <label className="text-xs text-ink/50 mb-1 block">Логин *</label>
               <input value={newLogin} onChange={e => setNewLogin(e.target.value)} placeholder="login" className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" />
             </div>
+            <ProfileFields value={newProfile} onChange={setNewProfile} />
             <div className="sm:col-span-2">
               <label className="text-xs text-ink/50 mb-1 block">Пароль *</label>
               <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="••••••••" className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" />
@@ -299,12 +374,34 @@ function EditableUserRow({ user, authLogin, authPassword, onDeleted, onUpdated, 
   const [phone, setPhone] = useState(user.phone || "");
   const [newPassword, setNewPassword] = useState("");
   const [perms, setPerms] = useState<TabId[]>(() => parsePermissions(user.permissions) ?? ALL_TABS.map(t => t.id));
+  const [profile, setProfile] = useState<ProfileForm>(() => toProfile(user));
   const [saving, setSaving] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [photoError, setPhotoError] = useState("");
+  const photoRef = useRef<HTMLInputElement>(null);
+
+  const uploadPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { setPhotoError("Фото не должно быть больше 5 МБ"); return; }
+    setUploadingPhoto(true); setPhotoError("");
+    try {
+      const file_data = await readAsBase64(file);
+      const r = await fetch(API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "upload_photo", auth_login: authLogin, auth_password: authPassword, user_id: user.id, file_name: file.name, file_data, file_type: file.type }) });
+      const d = await r.json();
+      if (d.error) setPhotoError(d.error); else onUpdated();
+    } catch {
+      setPhotoError("Не удалось загрузить фото");
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
 
   const save = async () => {
     setSaving(true);
     const permissions = role === "user" ? perms : null;
-    await fetch(API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "update", auth_login: authLogin, auth_password: authPassword, user_id: user.id, role, full_name: fullName, phone, new_password: newPassword, permissions }) });
+    await fetch(API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "update", auth_login: authLogin, auth_password: authPassword, user_id: user.id, role, full_name: fullName, phone, new_password: newPassword, permissions, ...profile }) });
     setSaving(false);
     onCancelEdit();
     onUpdated();
@@ -314,9 +411,20 @@ function EditableUserRow({ user, authLogin, authPassword, onDeleted, onUpdated, 
 
   if (editing) return (
     <div className="bg-white border border-ink/20 rounded-2xl p-5 space-y-4">
+      <div className="flex items-center gap-4">
+        <button type="button" onClick={() => photoRef.current?.click()} className="relative rounded-xl overflow-hidden hover:opacity-80 transition-opacity">
+          <Avatar name={user.full_name} login={user.login} size="lg" photoUrl={user.photo_url} />
+          {uploadingPhoto && <div className="absolute inset-0 bg-black/40 flex items-center justify-center"><Icon name="Loader" size={16} className="animate-spin text-white" /></div>}
+        </button>
+        <input ref={photoRef} type="file" accept="image/*" className="hidden" onChange={uploadPhoto} />
+        <div>
+          <button type="button" onClick={() => photoRef.current?.click()} className="text-sm text-ink underline underline-offset-2">{user.photo_url ? "Заменить фото" : "Загрузить фото"}</button>
+          {photoError && <p className="text-xs text-red-500 mt-1">{photoError}</p>}
+        </div>
+      </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
-          <label className="text-xs text-ink/50 mb-1 block">Имя / Должность</label>
+          <label className="text-xs text-ink/50 mb-1 block">ФИО</label>
           <input value={fullName} onChange={e => setFullName(e.target.value)} className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" />
         </div>
         <div>
@@ -334,6 +442,7 @@ function EditableUserRow({ user, authLogin, authPassword, onDeleted, onUpdated, 
           <label className="text-xs text-ink/50 mb-1 block">Новый пароль (необязательно)</label>
           <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="Оставьте пустым, чтобы не менять" className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" />
         </div>
+        <ProfileFields value={profile} onChange={setProfile} />
         {role === "user" && (
           <div className="sm:col-span-2">
             <PermissionsEditor value={perms} onChange={setPerms} />
@@ -349,14 +458,17 @@ function EditableUserRow({ user, authLogin, authPassword, onDeleted, onUpdated, 
 
   return (
     <div className="bg-white border border-beige-dark rounded-2xl px-5 py-4 flex items-center gap-4 group">
-      <Avatar name={user.full_name} login={user.login} />
+      <Avatar name={user.full_name} login={user.login} photoUrl={user.photo_url} />
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
           <span className="font-semibold text-sm text-ink">{user.full_name || user.login}</span>
           <span className={`text-xs px-2 py-0.5 rounded-full ${ROLE_COLORS[user.role]}`}>{ROLE_LABELS[user.role]}</span>
         </div>
+        {user.position && <p className="text-xs text-ink/60 mt-0.5">{user.position}</p>}
         <div className="flex items-center gap-3 mt-0.5 flex-wrap">
           <p className="text-xs text-ink/40">@{user.login}</p>
+          {user.birth_date && <p className="text-xs text-ink/50 flex items-center gap-1"><Icon name="Cake" size={11} />{fmtDate(user.birth_date)}</p>}
+          {(user.passport_series || user.passport_number) && <p className="text-xs text-ink/50 flex items-center gap-1"><Icon name="IdCard" size={11} />{[user.passport_series, user.passport_number].filter(Boolean).join(" ")}</p>}
           {user.phone && <p className="text-xs text-ink/50 flex items-center gap-1"><Icon name="Phone" size={11} />{user.phone}</p>}
         </div>
         {user.role === "user" && <PermissionsBadges perms={currentPerms} />}

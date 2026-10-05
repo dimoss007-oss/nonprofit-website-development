@@ -4,10 +4,31 @@
       "name": "Неверный логин",
       "method": "POST",
       "path": "/",
-      "body": {"action": "login", "login": "wrong", "password": "wrong"},
+      "body": {
+        "action": "login",
+        "login": "wrong",
+        "password": "wrong"
+      },
       "expectedStatus": 401,
-      "expectedBody": {"ok": false},
+      "expectedBody": {
+        "ok": false
+      },
       "bodyMatcher": "partial"
+    },
+    {
+      "name": "Публичный список",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Полный список без прав",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "list_full"
+      },
+      "expectedStatus": 403
     }
   ]
 }
