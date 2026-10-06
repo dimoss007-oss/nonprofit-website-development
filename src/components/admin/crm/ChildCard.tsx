@@ -31,6 +31,7 @@ export default function ChildCard({ childId, onBack, onDeleted, onOpenPatient, i
   const [child, setChild] = useState<ChildWithPatient | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
+  const [activeTab, setActiveTab] = useState("data");
   const [saving, setSaving] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const photoRef = useRef<HTMLInputElement>(null);
@@ -216,6 +217,9 @@ export default function ChildCard({ childId, onBack, onDeleted, onOpenPatient, i
             <Icon name="User" size={12} /> Мама: {motherName}{child.patient_alias && ` (${child.patient_alias})`}
           </button>
         </div>
+        <button onClick={() => setActiveTab("weekly")} className="px-3 py-1.5 text-sm rounded-lg bg-ink text-beige hover:bg-ink/90 transition-colors flex items-center gap-1.5">
+          <Icon name="CalendarPlus" size={14} /> Еженедельный отчёт
+        </button>
         <button onClick={() => setEditing(e => !e)} className="px-3 py-1.5 text-sm border border-beige-dark rounded-lg hover:border-ink transition-colors flex items-center gap-1.5">
           <Icon name="Pencil" size={14} /> Редактировать
         </button>
@@ -247,8 +251,8 @@ export default function ChildCard({ childId, onBack, onDeleted, onOpenPatient, i
         </div>
       )}
 
-      <Tabs defaultValue="data" className="w-full">
-        <TabsList>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="h-auto flex-wrap justify-start">
           <TabsTrigger value="data">Данные</TabsTrigger>
           <TabsTrigger value="reports">Ежедневные отчёты</TabsTrigger>
           <TabsTrigger value="weekly">Еженедельные отчёты</TabsTrigger>
