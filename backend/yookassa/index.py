@@ -47,6 +47,7 @@ def handler(event: dict, context) -> dict:
     user_email = str(body.get("user_email", "")).strip()
     success_url = str(body.get("success_url", "")).strip()
     monthly = bool(body.get("monthly", False))
+    referrer_code = "".join(ch for ch in str(body.get("referrer_code", "")).upper() if ch.isalnum())[:16] or None
     description_base = "Пожертвование АНО Спасение надежды"
     description = (f"Ежемесячное {description_base.lower()}" if monthly else description_base)
 
@@ -114,9 +115,9 @@ def handler(event: dict, context) -> dict:
         order_number = f"YK-{datetime.now().strftime('%Y%m%d')}-{payment_id[:8].upper()}"
         cur.execute(
             f"""INSERT INTO {schema}.orders
-                (order_number, user_name, user_email, user_phone, amount, status, order_comment)
-                VALUES (%s, %s, %s, %s, %s, %s, %s)""",
-            (order_number, user_name, user_email or None, None, round(amount, 2), "pending", f"yookassa:{payment_id}{'|monthly' if monthly else ''}")
+                (order_number, user_name, user_email, user_phone, amount, status, order_comment, referrer_code)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""",
+            (order_number, user_name, user_email or None, None, round(amount, 2), "pending", f"yookassa:{payment_id}{'|monthly' if monthly else ''}", referrer_code)
         )
         conn.commit()
         cur.close()

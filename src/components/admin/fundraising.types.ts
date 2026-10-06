@@ -1,5 +1,5 @@
 export type DonorType = "org" | "person";
-export type Section = "stats" | "orgs" | "persons" | "goals" | "funnel" | "campaigns" | "projects" | "tasks" | "kpi" | "docs" | "qr";
+export type Section = "stats" | "orgs" | "persons" | "goals" | "funnel" | "campaigns" | "projects" | "tasks" | "kpi" | "docs" | "qr" | "cabinet";
 export type Status = "active" | "inactive" | "potential" | "lost";
 export type DonorCategory = "donation" | "grant" | "subsidy" | "targeted" | "corporate" | "fund";
 export type DonationType = "money" | "goods" | "services" | "volunteer";

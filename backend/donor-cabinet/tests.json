@@ -1,0 +1,10 @@
+{
+  "tests": [
+    {"name": "OPTIONS preflight", "method": "OPTIONS", "path": "/", "expectedStatus": 200},
+    {"name": "Кабинет без входа", "method": "GET", "path": "/?view=overview", "expectedStatus": 401},
+    {"name": "Публичные уровни и достижения", "method": "GET", "path": "/?view=public", "expectedStatus": 200, "expectedBody": {}, "bodyMatcher": "keys"},
+    {"name": "Код: неверный email", "method": "POST", "path": "/", "body": {"action": "request_code", "email": "abc"}, "expectedStatus": 400},
+    {"name": "Проверка кода: нет данных", "method": "POST", "path": "/", "body": {"action": "verify_code"}, "expectedStatus": 400},
+    {"name": "Админ-действие без прав", "method": "POST", "path": "/", "body": {"action": "admin_overview"}, "expectedStatus": 403}
+  ]
+}

@@ -247,7 +247,7 @@ export default function AdminPanel() {
         {tab === "requests" && <AdminRequestsTab isAdmin={isAdmin} />}
         {tab === "users" && <AdminUsersTab authLogin={session.login} authPassword={session.password} isAdmin={isAdmin} />}
         {tab === "gallery" && <AdminGalleryTab />}
-        {tab === "fundraising" && <AdminFundraisingTab adminUsers={adminUsers.map(u => u.full_name || u.login)} users={adminUsers} />}
+        {tab === "fundraising" && <AdminFundraisingTab adminUsers={adminUsers.map(u => u.full_name || u.login)} users={adminUsers} authLogin={session.login} authPassword={session.password} />}
         {tab === "gov" && <AdminGovTab focusAgencyId={focusGovId} onFocusHandled={() => setFocusGovId(null)} users={adminUsers} />}
         {tab === "shifts" && <AdminShiftLogsTab onSelectPatient={goToPatient} filterPatientId={shiftFilterPatientId} onClearFilter={() => setShiftFilterPatientId(null)} />}
         {tab === "ai_settings" && <AdminAiSettingsTab isAdmin={isAdmin} authLogin={session.login} authPassword={session.password} />}

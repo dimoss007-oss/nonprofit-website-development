@@ -17,6 +17,7 @@ import FundraisingTasksTab from "./FundraisingTasksTab";
 import FundraisingDocsTab from "./FundraisingDocsTab";
 import FundraisingKpiTab from "./FundraisingKpiTab";
 import { DonorCrmPanel } from "./DonorCrmPanel";
+import DonorCabinetAdmin from "./donorcabinet/DonorCabinetAdmin";
 
 const DONATE_URL = "https://спасениенадежды.рф/donate";
 const DONATE_LINK_URL = "https://спасениенадежды.рф/donate-pay";
@@ -123,7 +124,7 @@ function DonateQR() {
   );
 }
 
-export default function AdminFundraisingTab({ adminUsers, users }: { adminUsers: string[]; users: { login: string; full_name?: string }[] }) {
+export default function AdminFundraisingTab({ adminUsers, users, authLogin = "", authPassword = "" }: { adminUsers: string[]; users: { login: string; full_name?: string }[]; authLogin?: string; authPassword?: string }) {
   const apiUrl = FUNDRAISING_URL;
   const [section, setSection] = useState<Section>("stats");
   const [stats, setStats] = useState<Stats | null>(null);
@@ -208,6 +209,7 @@ export default function AdminFundraisingTab({ adminUsers, users }: { adminUsers:
     { id: "campaigns" as Section, label: "Кампании", icon: "Megaphone" },
     { id: "projects" as Section, label: "Проекты", icon: "FolderOpen" },
     { id: "tasks" as Section, label: "Задачи", icon: "CheckSquare" },
+    { id: "cabinet" as Section, label: "Кабинет", icon: "HeartHandshake" },
     { id: "docs" as Section, label: "Документы", icon: "FileText" },
     { id: "qr" as Section, label: "QR", icon: "QrCode" },
   ];
@@ -445,6 +447,7 @@ export default function AdminFundraisingTab({ adminUsers, users }: { adminUsers:
       {section === "tasks" && <FundraisingTasksTab />}
 
       {/* ── ДОКУМЕНТЫ ── */}
+      {section === "cabinet" && <DonorCabinetAdmin authLogin={authLogin} authPassword={authPassword} />}
       {section === "docs" && <FundraisingDocsTab />}
 
       {/* ── KPI ── */}

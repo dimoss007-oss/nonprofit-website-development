@@ -19,6 +19,7 @@ import AdminFinance from "./pages/AdminFinance";
 import Gratitude from "./pages/Gratitude";
 import Donate from "./pages/Donate";
 import DonatePay from "./pages/DonatePay";
+import Cabinet from "./pages/Cabinet";
 import Partners from "./pages/Partners";
 import CaseReferral from "./pages/CaseReferral";
 import CrmPatients from "./pages/CrmPatients";
@@ -49,6 +50,7 @@ const App = () => (
           <Route path="/gratitude" element={<Gratitude />} />
           <Route path="/donate" element={<Donate />} />
           <Route path="/donate-pay" element={<DonatePay />} />
+          <Route path="/cabinet" element={<Cabinet />} />
           <Route path="/partners" element={<Partners />} />
           <Route path="/case-referral" element={<CaseReferral />} />
           <Route path="/crm" element={<Navigate to="/admin" replace />} />

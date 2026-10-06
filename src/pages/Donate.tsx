@@ -51,6 +51,14 @@ export default function Donate() {
   const [error, setError] = useState("");
   const [goals, setGoals] = useState<FundraisingGoal[]>([]);
   const [selectedNeed, setSelectedNeed] = useState<number | null>(null);
+  const [referrerCode] = useState(() => {
+    const fromUrl = new URLSearchParams(window.location.search).get("ref");
+    if (fromUrl) {
+      sessionStorage.setItem("donor_ref", fromUrl);
+      return fromUrl;
+    }
+    return sessionStorage.getItem("donor_ref") || "";
+  });
 
   useEffect(() => {
     fetch(`${FUNDRAISING_URL}?type=goals`)
@@ -80,6 +88,7 @@ export default function Donate() {
           user_name: name || "Аноним",
           user_email: email || undefined,
           monthly,
+          referrer_code: referrerCode || undefined,
           success_url: `${window.location.origin}/donate`,
         }),
       });
@@ -114,6 +123,9 @@ export default function Donate() {
           <span className="flex items-center gap-1.5"><Icon name="Calendar" size={14} />Работаем с 2018 года</span>
           <span className="flex items-center gap-1.5"><Icon name="ShieldCheck" size={14} />Официальная НКО</span>
         </div>
+        <a href="/cabinet" className="inline-flex items-center gap-1.5 mt-6 text-xs text-beige/70 hover:text-beige border border-beige/20 rounded-full px-4 py-1.5 transition-colors">
+          <Icon name="UserRound" size={13} />Личный кабинет жертвователя
+        </a>
       </div>
 
       <div className="max-w-4xl mx-auto px-4 py-10 space-y-10">
