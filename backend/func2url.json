@@ -11,7 +11,6 @@
   "max-shift-report-bot": "https://functions.poehali.dev/24f88fa1-d8fc-458b-9001-d1e8e5cb3e2c",
   "child-daily-reports": "https://functions.poehali.dev/5c7a56b7-8b5d-4577-aeb5-bc9c3f9aaad1",
   "patient-daily-reports": "https://functions.poehali.dev/b9e0c53c-5060-4447-a399-d6cbcdade3a2",
-  "bot-hub": "https://functions.poehali.dev/1b996edd-51fa-4a7d-81e8-72aaafa5e3c3",
   "chat-messages": "https://functions.poehali.dev/6252f900-ff7e-44d1-8b3c-be6604ad90d2",
   "sop-families": "https://functions.poehali.dev/a6165b16-3047-437e-95c8-119e4f3c08a1",
   "case-referral": "https://functions.poehali.dev/81a085eb-a1a8-4aa9-bf8f-22e62b80018e",
@@ -27,7 +26,6 @@
   "contact-requests": "https://functions.poehali.dev/2a909b11-72ee-48fd-9e6a-24527476dc11",
   "tasks": "https://functions.poehali.dev/6036e39a-3369-4ec5-a7b3-a4393528188a",
   "crm-upload": "https://functions.poehali.dev/8a6d9ba2-3c66-4604-bccf-68b50295e021",
-  "donate-link": "https://functions.poehali.dev/c23f2972-a113-4230-8f83-748ba3f217fa",
   "max-contact-bot": "https://functions.poehali.dev/138700ec-2c07-45ee-bff3-9278d2ad1f25",
   "contact-form": "https://functions.poehali.dev/056dc0e5-de05-4ccb-9e4d-a3d8c3ebb938",
   "max-contact-webhook": "https://functions.poehali.dev/ab8e6bea-4059-4e9f-a8ff-52bc03460be1",
@@ -40,6 +38,5 @@
   "max-set-webhook": "https://functions.poehali.dev/65c4e683-8443-46ea-b0c8-afd179344e42",
   "max-finance-bot": "https://functions.poehali.dev/147b61f7-fbe1-4676-862a-8bf01c1e68cb",
   "gallery": "https://functions.poehali.dev/abf6fa73-1b43-4ff7-af96-8b6e8ca2b46a",
-  "news": "https://functions.poehali.dev/b33c4df8-295a-4694-a485-e771aec3d9ce",
-  "upload-image": "https://functions.poehali.dev/f66c849a-5859-4c21-852d-787a73d528d7"
+  "news": "https://functions.poehali.dev/b33c4df8-295a-4694-a485-e771aec3d9ce"
 }
