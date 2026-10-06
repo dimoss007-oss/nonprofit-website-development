@@ -15,6 +15,43 @@
       "expectedStatus": 200,
       "expectedBody": {},
       "bodyMatcher": "keys"
+    },
+    {
+      "name": "Список детей",
+      "method": "GET",
+      "path": "/?view=children",
+      "expectedStatus": 200,
+      "expectedBody": {},
+      "bodyMatcher": "keys"
+    },
+    {
+      "name": "Настройки ИИ",
+      "method": "GET",
+      "path": "/?view=ai_settings",
+      "expectedStatus": 200,
+      "expectedBody": {},
+      "bodyMatcher": "keys"
+    },
+    {
+      "name": "Карточка ребёнка не найдена",
+      "method": "GET",
+      "path": "/?view=child&child_id=999999",
+      "expectedStatus": 404
+    },
+    {
+      "name": "Пациент не найден",
+      "method": "GET",
+      "path": "/?id=999999",
+      "expectedStatus": 404
+    },
+    {
+      "name": "Задача без полей",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "add_task"
+      },
+      "expectedStatus": 400
     }
   ]
 }
