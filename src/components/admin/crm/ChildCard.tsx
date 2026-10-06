@@ -35,7 +35,7 @@ export default function ChildCard({ childId, onBack, onDeleted, onOpenPatient, i
   const [saving, setSaving] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const photoRef = useRef<HTMLInputElement>(null);
-  const [form, setForm] = useState({ last_name: "", first_name: "", middle_name: "", birth_date: "", previous_education: "", current_education: "", extracurriculars: "" });
+  const [form, setForm] = useState({ alias: "", last_name: "", first_name: "", middle_name: "", birth_date: "", previous_education: "", current_education: "", extracurriculars: "" });
 
   const [reports, setReports] = useState<ChildDailyReport[]>([]);
   const [reportsLoading, setReportsLoading] = useState(true);
@@ -69,7 +69,7 @@ export default function ChildCard({ childId, onBack, onDeleted, onOpenPatient, i
     setChild(d.child ?? null);
     if (d.child) {
       setForm({
-        last_name: d.child.last_name ?? "", first_name: d.child.first_name, middle_name: d.child.middle_name ?? "",
+        alias: d.child.alias ?? "", last_name: d.child.last_name ?? "", first_name: d.child.first_name, middle_name: d.child.middle_name ?? "",
         birth_date: d.child.birth_date?.slice(0, 10) ?? "", previous_education: d.child.previous_education ?? "",
         current_education: d.child.current_education ?? "", extracurriculars: d.child.extracurriculars ?? "",
       });
@@ -206,6 +206,7 @@ export default function ChildCard({ childId, onBack, onDeleted, onOpenPatient, i
         <div className="flex-1 min-w-[200px] pt-1">
           <div className="flex items-center gap-2 flex-wrap">
             <h2 className="font-cormorant text-ink text-2xl font-semibold leading-snug">{fullName}</h2>
+            {child.alias && <span className="text-xs text-ink/50">({child.alias})</span>}
             {typeof child.current_age === "number" && <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-beige-mid text-ink/60">{child.current_age} лет</span>}
             {typeof child.latest_avg_score === "number" && (
               <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${child.latest_avg_score >= 8 ? "bg-green-100 text-green-700" : child.latest_avg_score >= 5 ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-700"}`}>
@@ -233,6 +234,7 @@ export default function ChildCard({ childId, onBack, onDeleted, onOpenPatient, i
       {editing && (
         <div className="bg-white border border-beige-dark rounded-2xl p-6 space-y-4">
           <h3 className="font-semibold text-ink mb-1">Редактирование</h3>
+          <div><label className="text-xs text-ink/50 mb-1 block">Псевдоним</label><input value={form.alias} onChange={e => setForm(f => ({ ...f, alias: e.target.value }))} placeholder="Как называют в отчётах" className="w-full sm:w-1/3 border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" /></div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div><label className="text-xs text-ink/50 mb-1 block">Фамилия</label><input value={form.last_name} onChange={e => setForm(f => ({ ...f, last_name: e.target.value }))} className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" /></div>
             <div><label className="text-xs text-ink/50 mb-1 block">Имя *</label><input value={form.first_name} onChange={e => setForm(f => ({ ...f, first_name: e.target.value }))} className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" /></div>

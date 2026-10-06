@@ -372,7 +372,7 @@ def generate_child_yandex_summary(cur, child_id: int, schema: str) -> dict:
 
     raw_text = "Отчёты по ребёнку (не по взрослому резиденту).\n" + "\n".join(lines)
 
-    for field in ("first_name", "last_name", "middle_name"):
+    for field in ("first_name", "last_name", "middle_name", "alias"):
         v = (child.get(field) or "").strip()
         if len(v) > 1:
             raw_text = re.sub(re.escape(v), "[Ребёнок]", raw_text, flags=re.IGNORECASE)
@@ -1007,9 +1007,9 @@ def handler(event: dict, context) -> dict:
         if action == "add_child":
             pid = body.get("patient_id")
             cur.execute(
-                f"INSERT INTO {SCHEMA}.patient_children (patient_id, last_name, first_name, middle_name, birth_date, previous_education, current_education, extracurriculars) VALUES (%s,%s,%s,%s,%s,%s,%s,%s) RETURNING *, EXTRACT(YEAR FROM AGE(CURRENT_DATE, birth_date))::int AS current_age",
+                f"INSERT INTO {SCHEMA}.patient_children (patient_id, last_name, first_name, middle_name, birth_date, previous_education, current_education, extracurriculars, alias) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING *, EXTRACT(YEAR FROM AGE(CURRENT_DATE, birth_date))::int AS current_age",
                 (pid, body.get("last_name"), body.get("first_name"), body.get("middle_name"), body.get("birth_date") or None,
-                 body.get("previous_education"), body.get("current_education"), body.get("extracurriculars"))
+                 body.get("previous_education"), body.get("current_education"), body.get("extracurriculars"), (body.get("alias") or "").strip() or None)
             )
             child = cur.fetchone()
             conn.commit()
@@ -1029,9 +1029,9 @@ def handler(event: dict, context) -> dict:
         if action == "update_child":
             child_id = body.get("child_id")
             cur.execute(
-                f"UPDATE {SCHEMA}.patient_children SET last_name=%s, first_name=%s, middle_name=%s, birth_date=%s, previous_education=%s, current_education=%s, extracurriculars=%s WHERE id=%s RETURNING *, EXTRACT(YEAR FROM AGE(CURRENT_DATE, birth_date))::int AS current_age",
+                f"UPDATE {SCHEMA}.patient_children SET last_name=%s, first_name=%s, middle_name=%s, birth_date=%s, previous_education=%s, current_education=%s, extracurriculars=%s, alias=%s WHERE id=%s RETURNING *, EXTRACT(YEAR FROM AGE(CURRENT_DATE, birth_date))::int AS current_age",
                 (body.get("last_name"), body.get("first_name"), body.get("middle_name"), body.get("birth_date") or None,
-                 body.get("previous_education"), body.get("current_education"), body.get("extracurriculars"), child_id)
+                 body.get("previous_education"), body.get("current_education"), body.get("extracurriculars"), (body.get("alias") or "").strip() or None, child_id)
             )
             child = cur.fetchone()
             conn.commit()

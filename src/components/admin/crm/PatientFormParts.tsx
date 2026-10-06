@@ -89,7 +89,7 @@ export function PatientForm({ initial, onSave, onCancel, loading }: { initial?: 
   );
 }
 
-const EMPTY_CHILD_FORM = { last_name: "", first_name: "", middle_name: "", birth_date: "", previous_education: "", current_education: "", extracurriculars: "" };
+const EMPTY_CHILD_FORM = { alias: "", last_name: "", first_name: "", middle_name: "", birth_date: "", previous_education: "", current_education: "", extracurriculars: "" };
 
 export function ChildForm({ onAdd, onCancel }: { onAdd: (c: Omit<Child, "id">) => void; onCancel: () => void }) {
   const [form, setForm] = useState(EMPTY_CHILD_FORM);
@@ -102,6 +102,7 @@ export function ChildForm({ onAdd, onCancel }: { onAdd: (c: Omit<Child, "id">) =
         <input placeholder="Имя *" value={form.first_name} onChange={set("first_name")} className="border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" />
         <input placeholder="Отчество" value={form.middle_name} onChange={set("middle_name")} className="border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" />
       </div>
+      <div><label className="text-xs text-ink/50 mb-1 block">Псевдоним</label><input value={form.alias} onChange={set("alias")} placeholder="Как называют в отчётах" className="w-full sm:w-1/3 border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" /></div>
       <div><label className="text-xs text-ink/50 mb-1 block">Дата рождения</label><input type="date" value={form.birth_date} onChange={set("birth_date")} className="border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" /></div>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
         <div><label className="text-xs text-ink/50 mb-1 block">Школа/сад, откуда прибыл</label><input value={form.previous_education} onChange={set("previous_education")} className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" /></div>
@@ -122,7 +123,7 @@ export function ChildRow({ child, onUpdate, onDelete, onUploadPhoto, isAdmin, au
   const [reportsOpen, setReportsOpen] = useState(false);
   const [dynamicsOpen, setDynamicsOpen] = useState(false);
   const [form, setForm] = useState({
-    last_name: child.last_name ?? "", first_name: child.first_name, middle_name: child.middle_name ?? "", birth_date: child.birth_date?.slice(0, 10) ?? "",
+    alias: child.alias ?? "", last_name: child.last_name ?? "", first_name: child.first_name, middle_name: child.middle_name ?? "", birth_date: child.birth_date?.slice(0, 10) ?? "",
     previous_education: child.previous_education ?? "", current_education: child.current_education ?? "", extracurriculars: child.extracurriculars ?? "",
   });
   const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) => setForm(f => ({ ...f, [k]: e.target.value }));
@@ -142,6 +143,7 @@ export function ChildRow({ child, onUpdate, onDelete, onUploadPhoto, isAdmin, au
         <input placeholder="Имя *" value={form.first_name} onChange={set("first_name")} className="border border-beige-dark bg-white rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-ink" />
         <input placeholder="Отчество" value={form.middle_name} onChange={set("middle_name")} className="border border-beige-dark bg-white rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-ink" />
       </div>
+      <div><label className="text-xs text-ink/50 mb-1 block">Псевдоним</label><input value={form.alias} onChange={set("alias")} placeholder="Как называют в отчётах" className="w-full sm:w-1/3 border border-beige-dark bg-white rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-ink" /></div>
       <div><label className="text-xs text-ink/50 mb-1 block">Дата рождения</label><input type="date" value={form.birth_date} onChange={set("birth_date")} className="border border-beige-dark bg-white rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-ink" /></div>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
         <div><label className="text-xs text-ink/50 mb-1 block">Школа/сад, откуда прибыл</label><input value={form.previous_education} onChange={set("previous_education")} className="w-full border border-beige-dark bg-white rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-ink" /></div>
@@ -178,6 +180,7 @@ export function ChildRow({ child, onUpdate, onDelete, onUploadPhoto, isAdmin, au
                 />
               )}
               <span className="text-sm text-ink">{[child.last_name, child.first_name, child.middle_name].filter(Boolean).join(" ")}</span>
+              {child.alias && <span className="text-xs text-ink/50">({child.alias})</span>}
             </span>
             {typeof child.current_age === "number" && <span className="text-xs text-ink/40 ml-2">Возраст: {child.current_age} лет</span>}
             {child.birth_date && <span className="text-xs text-ink/40 ml-2">({fmt(child.birth_date)})</span>}

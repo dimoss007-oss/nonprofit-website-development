@@ -1,0 +1,1 @@
+ALTER TABLE patient_children ADD COLUMN IF NOT EXISTS alias VARCHAR(100);

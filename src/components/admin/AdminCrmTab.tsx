@@ -60,7 +60,7 @@ export default function AdminCrmTab({ isAdmin = true, authorName = "Сотруд
 
   const cq = childSearch.toLowerCase();
   const children = childSearch
-    ? allChildren.filter(c => `${c.last_name ?? ""} ${c.first_name} ${c.middle_name ?? ""}`.toLowerCase().includes(cq))
+    ? allChildren.filter(c => `${c.last_name ?? ""} ${c.first_name} ${c.middle_name ?? ""} ${c.alias ?? ""}`.toLowerCase().includes(cq))
     : allChildren;
 
   const createPatient = async (form: typeof EMPTY_FORM) => {

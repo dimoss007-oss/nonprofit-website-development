@@ -53,7 +53,7 @@ def monday_of(raw: str) -> str:
 
 def load_children(cur) -> list:
     cur.execute(
-        f"""SELECT c.id, c.first_name, c.last_name, c.middle_name,
+        f"""SELECT c.id, c.first_name, c.last_name, c.middle_name, c.alias,
                    p.first_name AS mother_first_name, p.last_name AS mother_last_name, p.alias AS mother_alias
             FROM {SCHEMA}.patient_children c
             JOIN {SCHEMA}.patients p ON p.id = c.patient_id
@@ -63,6 +63,8 @@ def load_children(cur) -> list:
     rows = [dict(r) for r in cur.fetchall()]
     for r in rows:
         r["display_name"] = " ".join(x for x in (r["last_name"], r["first_name"]) if x)
+        if r.get("alias"):
+            r["display_name"] += f" ({r['alias']})"
     return rows
 
 
@@ -72,6 +74,9 @@ def build_index(children: list) -> dict:
         first = norm(c["first_name"])
         last = norm(c["last_name"])
         keys = {first}
+        alias = norm(c.get("alias") or "")
+        if alias:
+            keys.add(alias)
         if last:
             keys.update({last, f"{first} {last}", f"{last} {first}", f"{first} {last[:1]}"})
         for key in keys:
@@ -119,9 +124,9 @@ def parse_report(text: str, children: list) -> list:
         m = LINE_RE.match(line)
         name_part = m.group(1).strip() if m else ""
         words = name_part.split()
-        looks_like_name = bool(m) and 1 <= len(words) <= 3 and name_part[:1].isupper()
+        found = match_children(name_part, index) if m and 1 <= len(words) <= 3 else []
+        looks_like_name = bool(m) and 1 <= len(words) <= 3 and (bool(found) or name_part[:1].isupper())
         if looks_like_name:
-            found = match_children(name_part, index)
             blocks.append({"name_in_text": name_part, "text": m.group(2).strip(), "candidate_ids": found})
         elif blocks:
             blocks[-1]["text"] += "\n" + line

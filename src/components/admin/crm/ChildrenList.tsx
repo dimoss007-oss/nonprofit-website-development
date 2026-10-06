@@ -67,6 +67,7 @@ export default function ChildrenList({
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <p className="font-semibold text-ink">{[c.last_name, c.first_name, c.middle_name].filter(Boolean).join(" ")}</p>
+                      {c.alias && <span className="text-xs text-ink/50">({c.alias})</span>}
                       {typeof c.current_age === "number" && <span className="text-xs text-ink/40 flex-shrink-0">{c.current_age} лет</span>}
                       {scoreBadge(c.latest_avg_score)}
                     </div>

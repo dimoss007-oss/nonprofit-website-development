@@ -4,7 +4,7 @@ export const CHILD_REPORTS_API = "https://functions.poehali.dev/5c7a56b7-8b5d-45
 export const CHILD_WEEKLY_API = "https://functions.poehali.dev/fdfa67e9-1e57-4207-9df7-603250d5e1e1";
 
 export type Child = {
-  id: number; last_name?: string; first_name: string; middle_name?: string; birth_date?: string; photo_url?: string;
+  id: number; alias?: string; last_name?: string; first_name: string; middle_name?: string; birth_date?: string; photo_url?: string;
   previous_education?: string; current_education?: string; extracurriculars?: string; current_age?: number;
   latest_avg_score?: number;
 };
