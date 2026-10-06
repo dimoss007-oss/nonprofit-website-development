@@ -125,6 +125,7 @@ export default function AdminCrmTab({ isAdmin = true, authorName = "Сотруд
           search={childSearch}
           setSearch={setChildSearch}
           onSelect={setSelectedChildId}
+          authorName={authorName}
         />
       )}
     </div>

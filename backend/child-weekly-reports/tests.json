@@ -1,7 +1,33 @@
 {
   "tests": [
-    {"name": "OPTIONS preflight", "method": "OPTIONS", "path": "/", "expectedStatus": 200},
-    {"name": "Список без child_id", "method": "GET", "path": "/", "expectedStatus": 400},
-    {"name": "Создание без полей", "method": "POST", "path": "/", "body": {}, "expectedStatus": 400}
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Список без child_id",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 400
+    },
+    {
+      "name": "Создание без полей",
+      "method": "POST",
+      "path": "/",
+      "body": {},
+      "expectedStatus": 400
+    },
+    {
+      "name": "Разбор без текста",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "parse",
+        "week_start": "2026-10-05"
+      },
+      "expectedStatus": 400
+    }
   ]
 }

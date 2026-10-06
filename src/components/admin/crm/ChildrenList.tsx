@@ -1,14 +1,16 @@
 import Icon from "@/components/ui/icon";
+import ChildrenBulkReport from "@/components/admin/crm/ChildrenBulkReport";
 import { ChildWithPatient, fmt, plural } from "@/components/admin/crm/crmShared";
 
 export default function ChildrenList({
-  children, loading, search, setSearch, onSelect,
+  children, loading, search, setSearch, onSelect, authorName = "",
 }: {
   children: ChildWithPatient[];
   loading: boolean;
   search: string;
   setSearch: (v: string) => void;
   onSelect: (id: number) => void;
+  authorName?: string;
 }) {
   const scoreBadge = (score?: number) => {
     if (typeof score !== "number") return null;
@@ -21,6 +23,8 @@ export default function ChildrenList({
       <div className="flex items-center justify-between">
         <h2 className="font-cormorant text-ink text-2xl font-semibold">Дети в стационаре</h2>
       </div>
+
+      <ChildrenBulkReport authorName={authorName} />
 
       {children.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
