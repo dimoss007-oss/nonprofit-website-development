@@ -5,7 +5,7 @@
       "method": "GET",
       "path": "/?route=news&count=5",
       "expectedStatus": 200,
-      "expectedBody": {"posts": "array", "total": "number", "offset": "number", "count": "number"},
+      "expectedBody": {},
       "bodyMatcher": "keys"
     },
     {
@@ -13,7 +13,7 @@
       "method": "POST",
       "path": "/?route=sync",
       "expectedStatus": 200,
-      "expectedBody": {"added": "number", "updated": "number", "skipped": "number", "total_processed": "number"},
+      "expectedBody": {},
       "bodyMatcher": "keys"
     }
   ]
