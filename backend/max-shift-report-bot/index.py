@@ -44,6 +44,9 @@ LINE_NAME_RE = re.compile(r"^(?:\d+\.?\s*)?([А-ЯЁ][а-яё]+(?:\s+[А-ЯЁ][�
 DATE_RE = re.compile(r"(?m)^\s*(\d{1,2})[\./](\d{1,2})(?:[\./](\d{2,4}))?\s")
 DATE_RU_RE = re.compile(r"(?i)(?:за\s+)?(\d{1,2})\s+([а-я]+)")
 NAME_MATCH_CUTOFF = 0.8
+REPORT_MIN_LEN = 300
+MAX_MESSAGE_LEN = 3900
+STATE_ICONS = [(7, "🟢"), (5, "🟡"), (0, "🔴")]
 
 MONTHS_RU = {
     "января": 1, "февраля": 2, "марта": 3, "апреля": 4, "мая": 5, "июня": 6,
@@ -274,6 +277,62 @@ def parse_shift_report(text: str, patients: list):
     return general_log, blocks
 
 
+def state_icon(state):
+    if state is None:
+        return "⚪"
+    for threshold, icon in STATE_ICONS:
+        if state >= threshold:
+            return icon
+    return "⚪"
+
+
+def build_dynamics_lines(cur, blocks: list, report_date_iso: str) -> list:
+    """Для каждого пациента сравнивает оценку состояния с предыдущим отчётом (стрелка динамики)."""
+    lines = []
+    for block in blocks:
+        patient = block["patient"]
+        state = analyze_sentiment(block["text"])
+        cur.execute(
+            f"""SELECT overall_state FROM {SCHEMA}.patient_daily_reports
+                WHERE patient_id = %s AND report_date < %s AND overall_state IS NOT NULL
+                ORDER BY report_date DESC, id DESC LIMIT 1""",
+            (patient["id"], report_date_iso),
+        )
+        prev = cur.fetchone()
+        prev_state = prev["overall_state"] if prev else None
+        if state is None or prev_state is None:
+            trend = ""
+        elif state > prev_state:
+            trend = f" ↗ было {prev_state}"
+        elif state < prev_state:
+            trend = f" ↘ было {prev_state}"
+        else:
+            trend = f" → без изменений ({prev_state})"
+        name = patient.get("alias") or f"{patient.get('first_name') or ''} {(patient.get('last_name') or '')[:1]}.".strip()
+        score = state if state is not None else "—"
+        lines.append(f"{state_icon(state)} {name}: {score}{trend}")
+    return lines
+
+
+def broadcast_report(cur, token: str, author_id: int, author_name: str, report_date, text: str, dynamics: list, from_group: bool):
+    """Рассылает отчёт всем привязанным сотрудникам (кроме автора), если он пришёл из личного диалога.
+    Если отчёт написан в общем чате, его там уже видят все — отдельная рассылка не нужна."""
+    if from_group:
+        return
+    cur.execute(
+        f"SELECT max_chat_id FROM {SCHEMA}.admin_users WHERE max_chat_id IS NOT NULL AND id <> %s",
+        (author_id,),
+    )
+    recipients = [r["max_chat_id"] for r in cur.fetchall()]
+    header = f"📋 Отчёт смены за {report_date.strftime('%d.%m.%Y')}\nАвтор: {author_name}\n\n"
+    dyn = "\n\n📈 Динамика по пациентам:\n" + "\n".join(dynamics) if dynamics else ""
+    room = MAX_MESSAGE_LEN - len(header) - len(dyn)
+    body_text = text if len(text) <= room else text[: max(room - 1, 0)] + "…"
+    message = header + body_text + dyn
+    for uid in recipients:
+        send_message(message, token, user_id=int(uid))
+
+
 def handler(event: dict, context) -> dict:
     """Webhook-эндпоинт для приёма ежедневных отчётов смены из бота Max. Проверяет секрет вебхука (заголовок X-Max-Bot-Api-Secret),
     авторизует отправителя по привязанному номеру телефона (сотрудник из admin_users; чужие/незарегистрированные
@@ -303,6 +362,7 @@ def handler(event: dict, context) -> dict:
     user_id = sender.get("user_id") or (body.get("user") or {}).get("user_id")
     recipient = msg.get("recipient") or {}
     chat_id = recipient.get("chat_id")
+    from_group = recipient.get("chat_type") == "chat"
     text = (msg.get("body") or {}).get("text") or ""
 
     print(f"incoming update_type={update_type} user_id={user_id} chat_id={chat_id} text_len={len(text)}")
@@ -336,6 +396,13 @@ def handler(event: dict, context) -> dict:
     if not employee:
         conn.close()
         print(f"ignored: user_id={user_id} is not a registered employee")
+        if len(text) >= REPORT_MIN_LEN:
+            send_message(
+                f"⚠️ Отчёт не принят: ваш аккаунт Max (ID {user_id}) не привязан к сотруднику. "
+                f"Отправьте команду /bind и ваш номер телефона, как в админке, например: /bind +79001234567. "
+                f"Затем отправьте отчёт ещё раз.",
+                token, chat_id=chat_id, user_id=user_id,
+            )
         return ok({"ok": True})
 
     author_name = employee.get("full_name") or employee.get("login") or "Сотрудник"
@@ -380,9 +447,14 @@ def handler(event: dict, context) -> dict:
         recognized += 1
 
     conn.commit()
+
+    dynamics = build_dynamics_lines(cur, blocks, report_date_iso)
+    broadcast_report(cur, token, employee["id"], author_name, report_date, text, dynamics, from_group)
     conn.close()
 
     reply = f"✅ Отчёт за {report_date.strftime('%d.%m.%Y')} успешно принят. Автор: {author_name}. Распознано пациентов: {recognized}."
+    if dynamics:
+        reply += "\n\n📈 Динамика по пациентам:\n" + "\n".join(dynamics)
 
     # Ответ уходит в chat_id — если сообщение пришло из общего группового чата смены, туда же и отвечаем,
     # чтобы результат видела вся смена; иначе (личка) — тем же способом отправителю.
