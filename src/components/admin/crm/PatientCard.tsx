@@ -3,6 +3,7 @@ import Icon from "@/components/ui/icon";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import PatientDynamics from "@/components/admin/PatientDynamics";
 import PatientTasks from "@/components/admin/crm/PatientTasks";
+import PatientPsychReports from "@/components/admin/crm/PatientPsychReports";
 import PatientAiSummary from "@/components/admin/crm/PatientAiSummary";
 import ContractButton from "@/components/admin/crm/ContractButton";
 import { API, UPLOAD_API, Child, PatientFull, EMPTY_FORM, RiskBadge, fmt, fmtDateTime, fmtSize, stayDuration, CARE_STAGE_META } from "@/components/admin/crm/crmShared";
@@ -233,6 +234,7 @@ export default function PatientCard({ patientId, onBack, onDeleted, isAdmin, aut
           <TabsTrigger value="dynamics">Динамика</TabsTrigger>
           <TabsTrigger value="tasks">Основное задание</TabsTrigger>
           <TabsTrigger value="additional-tasks">Доп. задание</TabsTrigger>
+          <TabsTrigger value="psych-reports">Отчёты психолога</TabsTrigger>
           <TabsTrigger value="ai-summary">Аналитическая сводка</TabsTrigger>
         </TabsList>
 
@@ -372,6 +374,10 @@ export default function PatientCard({ patientId, onBack, onDeleted, isAdmin, aut
 
         <TabsContent value="additional-tasks" className="mt-4">
           <PatientTasks patientId={patientId} tasks={tasks ?? []} taskType="additional" onChanged={() => load()} />
+        </TabsContent>
+
+        <TabsContent value="psych-reports" className="mt-4">
+          <PatientPsychReports patientId={patientId} />
         </TabsContent>
 
         <TabsContent value="ai-summary" className="mt-4">

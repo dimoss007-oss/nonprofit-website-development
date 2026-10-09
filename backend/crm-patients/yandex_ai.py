@@ -161,7 +161,15 @@ def generate_yandex_summary(cur, patient_id: int, schema: str, days: int) -> dic
     )
     shift_logs = [dict(r) for r in cur.fetchall()]
 
-    if not reports and not shift_logs:
+    cur.execute(
+        f"""SELECT report_date, report_text FROM {schema}.psychologist_reports
+            WHERE patient_id = %s AND report_date >= CURRENT_DATE - %s::interval
+            ORDER BY report_date ASC""",
+        (patient_id, f"{days} days"),
+    )
+    psych_reports = [dict(r) for r in cur.fetchall()]
+
+    if not reports and not shift_logs and not psych_reports:
         return {"summary_text": "Недостаточно данных за выбранный период для формирования аналитической сводки."}
 
     lines = []
@@ -172,6 +180,9 @@ def generate_yandex_summary(cur, patient_id: int, schema: str, days: int) -> dic
 
     for s in shift_logs:
         lines.append(f"{s['report_date']} (общая сводка смены): {s['log_text']}")
+
+    for pr in psych_reports:
+        lines.append(f"{pr['report_date']} (отчёт психолога): {pr['report_text']}")
 
     raw_text = "\n".join(lines)
     if not raw_text.strip():
@@ -303,7 +314,14 @@ def generate_official_characteristic(cur, patient_id: int, schema: str) -> dict:
         )
     shift_logs = [dict(r) for r in cur.fetchall()]
 
-    if not reports and not shift_logs:
+    cur.execute(
+        f"""SELECT report_date, report_text FROM {schema}.psychologist_reports
+            WHERE patient_id = %s ORDER BY report_date ASC""",
+        (patient_id,),
+    )
+    psych_reports = [dict(r) for r in cur.fetchall()]
+
+    if not reports and not shift_logs and not psych_reports:
         return {"error": "Недостаточно данных за период пребывания для формирования характеристики"}
 
     lines = []
@@ -313,6 +331,8 @@ def generate_official_characteristic(cur, patient_id: int, schema: str) -> dict:
             lines.append(f"{r['report_date']}: " + " ".join(parts))
     for s in shift_logs:
         lines.append(f"{s['report_date']} (общая сводка смены): {s['log_text']}")
+    for pr in psych_reports:
+        lines.append(f"{pr['report_date']} (отчёт психолога): {pr['report_text']}")
 
     raw_text = "\n".join(lines)
     if not raw_text.strip():

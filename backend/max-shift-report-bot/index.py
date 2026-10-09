@@ -106,7 +106,7 @@ def find_employee_by_max_id(cur, max_user_id: int):
     """Ищет сотрудника в admin_users по привязанному max_chat_id (Max user_id отправителя).
     Возвращает dict {id, full_name} или None, если отправитель не является зарегистрированным сотрудником."""
     cur.execute(
-        f"SELECT id, full_name, login FROM {SCHEMA}.admin_users WHERE max_chat_id = %s",
+        f"SELECT id, full_name, login, position FROM {SCHEMA}.admin_users WHERE max_chat_id = %s",
         (max_user_id,),
     )
     row = cur.fetchone()
@@ -277,6 +277,10 @@ def parse_shift_report(text: str, patients: list):
     return general_log, blocks
 
 
+def is_psychologist(employee: dict) -> bool:
+    return "психолог" in (employee.get("position") or "").lower()
+
+
 def state_icon(state):
     if state is None:
         return "⚪"
@@ -414,7 +418,7 @@ def handler(event: dict, context) -> dict:
 
     general_log, blocks = parse_shift_report(text, patients)
 
-    if general_log:
+    if general_log and not is_psychologist(employee):
         cur.execute(
             f"INSERT INTO {SCHEMA}.shift_logs (report_date, log_text) VALUES (%s, %s)",
             (report_date_iso, general_log),
@@ -430,6 +434,24 @@ def handler(event: dict, context) -> dict:
         return ok({"ok": True, "recognized": 0})
 
     recognized = 0
+
+    if is_psychologist(employee):
+        for block in blocks:
+            cur.execute(
+                f"""INSERT INTO {SCHEMA}.psychologist_reports (patient_id, employee_id, author, report_date, report_text)
+                    VALUES (%s, %s, %s, %s, %s)
+                    ON CONFLICT (patient_id, report_date, employee_id) DO UPDATE SET
+                        report_text = EXCLUDED.report_text, author = EXCLUDED.author""",
+                (block["patient"]["id"], employee["id"], author_name, report_date_iso, block["text"]),
+            )
+            recognized += 1
+        conn.commit()
+        conn.close()
+        send_message(
+            f"✅ Отчёт психолога за {report_date.strftime('%d.%m.%Y')} принят. Автор: {author_name}. Распознано пациентов: {recognized}.",
+            token, chat_id=chat_id, user_id=user_id,
+        )
+        return ok({"ok": True, "recognized": recognized, "psychologist": True})
 
     for block in blocks:
         patient = block["patient"]

@@ -17,6 +17,8 @@ def route_get(cur, conn, params):
         return summaries.get_text_summary(cur, conn, params, {})
     if view == "yandex_summary" and has_patient:
         return summaries.get_yandex_summary(cur, conn, params, {})
+    if view == "psychologist_reports" and has_patient:
+        return summaries.get_psychologist_reports(cur, conn, params, {})
     if view == "ai_settings":
         return summaries.get_ai_settings(cur, conn, params, {})
     if view == "stats":

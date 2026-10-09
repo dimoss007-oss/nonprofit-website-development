@@ -114,3 +114,14 @@ def save_local_summary(cur, conn, params, body):
     summary = cur.fetchone()
     conn.commit()
     return ok({"summary": dict(summary)}, 201)
+
+
+def get_psychologist_reports(cur, conn, params, body):
+    patient_id = params.get("id")
+    cur.execute(
+        f"""SELECT id, author, report_date, report_text, created_at
+            FROM {SCHEMA}.psychologist_reports
+            WHERE patient_id = %s ORDER BY report_date DESC, id DESC""",
+        (patient_id,),
+    )
+    return ok({"reports": [dict(r) for r in cur.fetchall()]})

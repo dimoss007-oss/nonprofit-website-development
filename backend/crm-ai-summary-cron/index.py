@@ -217,7 +217,15 @@ def handler(event: dict, context) -> dict:
         )
         reports = [dict(r) for r in cur.fetchall()]
 
-        if not reports and not shift_logs:
+        cur.execute(
+            f"""SELECT report_date, report_text FROM {SCHEMA}.psychologist_reports
+                WHERE patient_id = %s AND report_date >= CURRENT_DATE - %s::interval
+                ORDER BY report_date ASC""",
+            (pid, f"{DAYS_WINDOW} days"),
+        )
+        psych_reports = [dict(r) for r in cur.fetchall()]
+
+        if not reports and not shift_logs and not psych_reports:
             skipped += 1
             continue
 
@@ -229,6 +237,9 @@ def handler(event: dict, context) -> dict:
 
         for s in shift_logs:
             lines.append(f"{s['report_date']} (общая сводка смены): {s['log_text']}")
+
+        for pr in psych_reports:
+            lines.append(f"{pr['report_date']} (отчёт психолога): {pr['report_text']}")
 
         if not lines:
             skipped += 1
