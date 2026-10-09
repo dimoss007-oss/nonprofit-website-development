@@ -5,7 +5,7 @@ const API = "https://functions.poehali.dev/e6567f16-b3db-4b0d-9c1f-abed808c2ac8"
 
 type AdminUser = {
   id: number; login: string; role: "admin" | "user"; full_name?: string; phone?: string; created_at: string; permissions?: string | null;
-  position?: string | null; photo_url?: string | null; birth_date?: string | null;
+  position?: string | null; photo_url?: string | null; max_linked?: boolean; birth_date?: string | null;
   passport_series?: string | null; passport_number?: string | null; passport_issued_by?: string | null; passport_issued_date?: string | null;
 };
 
@@ -247,6 +247,7 @@ export default function AdminUsersTab({ authLogin, authPassword, isAdmin = false
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-semibold text-sm text-ink">{u.full_name || u.login}</span>
                     <span className={`text-xs px-2 py-0.5 rounded-full ${ROLE_COLORS[u.role]}`}>{ROLE_LABELS[u.role]}</span>
+                    <span className={`text-xs px-2 py-0.5 rounded-full flex items-center gap-1 ${u.max_linked ? "bg-green-100 text-green-800" : "bg-amber-100 text-amber-800"}`}><Icon name={u.max_linked ? "MessageCircleCheck" : "MessageCircleWarning"} size={11} />{u.max_linked ? "Max привязан" : "Max не привязан"}</span>
                   </div>
                   {u.position && <p className="text-xs text-ink/60 mt-0.5">{u.position}</p>}
                   <div className="flex items-center gap-3 mt-0.5 flex-wrap">
@@ -463,6 +464,7 @@ function EditableUserRow({ user, authLogin, authPassword, onDeleted, onUpdated, 
         <div className="flex items-center gap-2 flex-wrap">
           <span className="font-semibold text-sm text-ink">{user.full_name || user.login}</span>
           <span className={`text-xs px-2 py-0.5 rounded-full ${ROLE_COLORS[user.role]}`}>{ROLE_LABELS[user.role]}</span>
+                    <span className={`text-xs px-2 py-0.5 rounded-full flex items-center gap-1 ${user.max_linked ? "bg-green-100 text-green-800" : "bg-amber-100 text-amber-800"}`}><Icon name={user.max_linked ? "MessageCircleCheck" : "MessageCircleWarning"} size={11} />{user.max_linked ? "Max привязан" : "Max не привязан"}</span>
         </div>
         {user.position && <p className="text-xs text-ink/60 mt-0.5">{user.position}</p>}
         <div className="flex items-center gap-3 mt-0.5 flex-wrap">

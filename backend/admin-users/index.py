@@ -33,7 +33,7 @@ def verify_master(login: str, password: str) -> bool:
     master_password = os.environ.get("ADMIN_PASSWORD", "")
     return hmac.compare_digest(login, master_login) and hmac.compare_digest(password, master_password)
 
-PUBLIC_COLS = "id, login, role, full_name, phone, created_at, permissions, position, photo_url"
+PUBLIC_COLS = "id, login, role, full_name, phone, created_at, permissions, position, photo_url, (max_chat_id IS NOT NULL) AS max_linked"
 FULL_COLS = PUBLIC_COLS + ", birth_date, passport_series, passport_number, passport_issued_by, passport_issued_date"
 
 def clean(value):
