@@ -141,7 +141,31 @@ def err(msg, status=400):
     return {"statusCode": status, "headers": {**CORS, "Content-Type": "application/json"}, "body": json.dumps({"error": msg})}
 
 
-def send_message(text: str, token: str, chat_id: int = None, user_id: int = None):
+CONTACT_KEYBOARD = [{
+    "type": "inline_keyboard",
+    "payload": {"buttons": [[{"type": "request_contact", "text": "📱 Поделиться номером"}]]},
+}]
+
+
+def extract_contact_phone(attachments: list, sender_id: int):
+    """Достаёт номер телефона из вложения-контакта. Принимает только собственный контакт отправителя."""
+    for a in attachments or []:
+        if a.get("type") != "contact":
+            continue
+        payload = a.get("payload") or {}
+        info = payload.get("max_info") or {}
+        if info.get("user_id") and int(info["user_id"]) != sender_id:
+            return None
+        vcf = payload.get("vcf_info") or ""
+        m = re.search(r"TEL[^:]*:([+\d\s\-()]+)", vcf)
+        if m:
+            return m.group(1).strip()
+        if payload.get("phone"):
+            return str(payload["phone"])
+    return None
+
+
+def send_message(text: str, token: str, chat_id: int = None, user_id: int = None, attachments: list = None):
     """Отправляет сообщение в Max. Если известен chat_id — сообщение уходит в чат и видно всем участникам,
     иначе (fallback) — личным сообщением отправителю через user_id."""
     params = {"chat_id": chat_id} if chat_id else {"user_id": user_id}
@@ -149,7 +173,7 @@ def send_message(text: str, token: str, chat_id: int = None, user_id: int = None
         f"{MAX_API_URL}/messages",
         params=params,
         headers={"Authorization": token},
-        json={"text": text},
+        json={"text": text, **({"attachments": attachments} if attachments else {})},
     )
     print(f"send_message params={params} status={r.status_code} body={r.text[:200]}")
 
@@ -371,7 +395,25 @@ def handler(event: dict, context) -> dict:
 
     print(f"incoming update_type={update_type} user_id={user_id} chat_id={chat_id} text_len={len(text)}")
 
-    if update_type != "message_created" or not user_id or not text.strip():
+    attachments = (msg.get("body") or {}).get("attachments") or []
+
+    if update_type == "bot_started" and user_id:
+        start_chat = body.get("chat_id")
+        conn = get_conn()
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        known = find_employee_by_max_id(cur, int(user_id))
+        conn.close()
+        if known:
+            send_message("Вы уже привязаны. Отправляйте отчёты в чат.", token, chat_id=int(start_chat) if start_chat else None, user_id=int(user_id))
+        else:
+            send_message(
+                "Здравствуйте! Чтобы бот принимал ваши отчёты, нажмите кнопку ниже и поделитесь номером телефона.",
+                token, chat_id=int(start_chat) if start_chat else None, user_id=int(user_id), attachments=CONTACT_KEYBOARD,
+            )
+        return ok({"ok": True})
+
+    has_contact = any(a.get("type") == "contact" for a in attachments)
+    if update_type != "message_created" or not user_id or (not text.strip() and not has_contact):
         return ok({"ok": True})
 
     user_id = int(user_id)
@@ -380,6 +422,19 @@ def handler(event: dict, context) -> dict:
 
     conn = get_conn()
     cur = conn.cursor(cursor_factory=RealDictCursor)
+
+    if has_contact:
+        phone = extract_contact_phone(attachments, user_id)
+        if phone and bind_employee_by_phone(cur, conn, user_id, phone):
+            conn.close()
+            send_message("✅ Аккаунт привязан. Теперь ваши отчёты будут приниматься.", token, chat_id=chat_id, user_id=user_id)
+        else:
+            conn.close()
+            send_message(
+                "Не удалось привязать: этот номер не найден среди сотрудников. Попросите администратора проверить ваш номер в карточке сотрудника.",
+                token, chat_id=chat_id, user_id=user_id,
+            )
+        return ok({"ok": True})
 
     # Команда привязки: сотрудник один раз пишет /bind +7ХХХХХХХХХХ, чтобы Max-аккаунт узнавался в будущем
     # (номер телефона отправителя недоступен в самом вебхуке — только через ручную привязку по chat_id/user_id).
@@ -402,10 +457,9 @@ def handler(event: dict, context) -> dict:
         print(f"ignored: user_id={user_id} is not a registered employee")
         if not from_group or len(text) >= REPORT_MIN_LEN:
             send_message(
-                f"⚠️ Отчёт не принят: ваш аккаунт Max (ID {user_id}) не привязан к сотруднику. "
-                f"Отправьте команду /bind и ваш номер телефона, как в админке, например: /bind +79001234567. "
-                f"Затем отправьте отчёт ещё раз.",
-                token, chat_id=chat_id, user_id=user_id,
+                f"⚠️ Сообщение не принято: ваш аккаунт Max не привязан к сотруднику. "
+                f"Нажмите кнопку ниже и поделитесь номером телефона, затем отправьте отчёт ещё раз.",
+                token, chat_id=chat_id, user_id=user_id, attachments=CONTACT_KEYBOARD,
             )
         return ok({"ok": True})
 
