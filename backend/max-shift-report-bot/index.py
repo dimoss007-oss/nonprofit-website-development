@@ -400,7 +400,7 @@ def handler(event: dict, context) -> dict:
     if not employee:
         conn.close()
         print(f"ignored: user_id={user_id} is not a registered employee")
-        if len(text) >= REPORT_MIN_LEN:
+        if not from_group or len(text) >= REPORT_MIN_LEN:
             send_message(
                 f"⚠️ Отчёт не принят: ваш аккаунт Max (ID {user_id}) не привязан к сотруднику. "
                 f"Отправьте команду /bind и ваш номер телефона, как в админке, например: /bind +79001234567. "
