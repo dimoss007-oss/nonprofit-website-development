@@ -342,7 +342,7 @@ def build_dynamics_lines(cur, blocks: list, report_date_iso: str) -> list:
     return lines
 
 
-def broadcast_report(cur, token: str, author_id: int, author_name: str, report_date, text: str, dynamics: list, from_group: bool):
+def broadcast_report(cur, token: str, author_id: int, author_name: str, report_date, text: str, dynamics: list, from_group: bool, title: str = "Отчёт смены"):
     """Рассылает отчёт всем привязанным сотрудникам (кроме автора), если он пришёл из личного диалога.
     Если отчёт написан в общем чате, его там уже видят все — отдельная рассылка не нужна."""
     if from_group:
@@ -352,7 +352,7 @@ def broadcast_report(cur, token: str, author_id: int, author_name: str, report_d
         (author_id,),
     )
     recipients = [r["max_chat_id"] for r in cur.fetchall()]
-    header = f"📋 Отчёт смены за {report_date.strftime('%d.%m.%Y')}\nАвтор: {author_name}\n\n"
+    header = f"📋 {title} за {report_date.strftime('%d.%m.%Y')}\nАвтор: {author_name}\n\n"
     dyn = "\n\n📈 Динамика по пациентам:\n" + "\n".join(dynamics) if dynamics else ""
     room = MAX_MESSAGE_LEN - len(header) - len(dyn)
     body_text = text if len(text) <= room else text[: max(room - 1, 0)] + "…"
@@ -500,6 +500,7 @@ def handler(event: dict, context) -> dict:
             )
             recognized += 1
         conn.commit()
+        broadcast_report(cur, token, employee["id"], author_name, report_date, text, [], from_group, title="Отчёт психолога")
         conn.close()
         send_message(
             f"✅ Отчёт психолога за {report_date.strftime('%d.%m.%Y')} принят. Автор: {author_name}. Распознано пациентов: {recognized}.",
