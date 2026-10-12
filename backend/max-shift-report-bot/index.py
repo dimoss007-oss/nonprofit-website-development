@@ -365,6 +365,28 @@ def append_psychologist_continuation(cur, employee_id: int, text: str):
     return row
 
 
+def missing_inpatients_note(cur, report_date_iso: str) -> str:
+    cur.execute(
+        f"""SELECT p.first_name, p.last_name, p.alias
+            FROM {SCHEMA}.patients p
+            WHERE p.discharge_date IS NULL AND p.care_stage = 'inpatient'
+              AND NOT EXISTS (
+                  SELECT 1 FROM {SCHEMA}.psychologist_reports r
+                  WHERE r.patient_id = p.id AND r.report_date = %s
+              )
+            ORDER BY p.first_name""",
+        (report_date_iso,),
+    )
+    rows = cur.fetchall()
+    if not rows:
+        return "\n\n✅ В отчёте есть все пациентки стационара."
+    names = [r["alias"] or f"{r['first_name']} {r['last_name']}" for r in rows]
+    return (
+        f"\n\n⚠️ В отчёте не нашлось пациенток стационара ({len(names)}): " + ", ".join(names)
+        + ". Пришлите их блоки отдельным сообщением, имя в начале."
+    )
+
+
 def ambiguity_note(ambiguous: list) -> str:
     if not ambiguous:
         return ""
@@ -614,13 +636,15 @@ def handler(event: dict, context) -> dict:
             )
             recognized += 1
         conn.commit()
+        missing_note = missing_inpatients_note(cur, report_date_iso)
         broadcast_report(cur, token, employee["id"], author_name, report_date, text, [], from_group, title="Отчёт психолога")
         conn.close()
         send_message(
             f"✅ Отчёт психолога за {report_date.strftime('%d.%m.%Y')} принят. Автор: {author_name}. Распознано пациентов: {recognized} ({', '.join(b['patient'].get('alias') or b['patient']['first_name'] for b in blocks)})."
             + (f" Склеено частей: {parts}." if parts > 1 else "")
             + (f" Начало сообщения дописано к пациентке {continued['alias'] or continued['first_name']}." if continued else "")
-            + ambiguity_note(ambiguous),
+            + ambiguity_note(ambiguous)
+            + missing_note,
             token, chat_id=chat_id, user_id=user_id,
         )
         return ok({"ok": True, "recognized": recognized, "psychologist": True})
