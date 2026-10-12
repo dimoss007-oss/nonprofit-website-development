@@ -49,6 +49,19 @@ export default function PatientNamesHint({ patients }: { patients: Patient[] }) 
           <button onClick={copy} className="text-xs text-ink/60 hover:text-ink flex items-center gap-1">
             <Icon name={copied ? "Check" : "Copy"} size={12} /> {copied ? "Скопировано" : "Скопировать шаблон отчёта"}
           </button>
+          <div className="bg-beige-mid rounded-xl px-4 py-3 space-y-2">
+            <p className="text-sm font-semibold text-ink flex items-center gap-2">
+              <Icon name="MessageSquareText" size={14} /> Памятка психологу: длинный отчёт
+            </p>
+            <ol className="list-decimal pl-5 space-y-1.5 text-xs text-ink/70">
+              <li>Каждый блок по пациентке начинайте с её имени из списка выше, затем тире и текст: «Катя Б. – …».</li>
+              <li>Max обрезает сообщение примерно на 4000 знаках. Длинный отчёт отправляйте частями, одну за другой. Паузы до часа не страшны.</li>
+              <li>На каждую длинную часть бот ответит «Часть N получена». Пока он так отвечает, ничего не сохранено, это нормально.</li>
+              <li>Если последняя часть короткая, бот сам склеит все части и разложит по пациенткам. Если и она длинная, отправьте отдельным сообщением /готово.</li>
+              <li>Бот напишет «Склеено частей: N» и перечислит распознанных пациенток. Если кого-то нет, отправьте её блок отдельным сообщением с именем в начале.</li>
+              <li>Повторная отправка блока с тем же именем и датой заменяет старый текст, дублей не будет.</li>
+            </ol>
+          </div>
         </div>
       )}
     </div>
