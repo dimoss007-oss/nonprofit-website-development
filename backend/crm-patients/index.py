@@ -19,6 +19,8 @@ def route_get(cur, conn, params):
         return summaries.get_yandex_summary(cur, conn, params, {})
     if view == "psychologist_reports" and has_patient:
         return summaries.get_psychologist_reports(cur, conn, params, {})
+    if view == "psychologist_day":
+        return summaries.get_psychologist_day(cur, conn, params, {})
     if view == "ai_settings":
         return summaries.get_ai_settings(cur, conn, params, {})
     if view == "stats":
@@ -51,6 +53,7 @@ POST_ACTIONS = {
     "generate_and_save_yandex_summary": summaries.generate_and_save_yandex_summary,
     "generate_characteristic_docx": summaries.generate_characteristic_docx,
     "save_local_summary": summaries.save_local_summary,
+    "psychologist_day_docx": summaries.generate_psychologist_day_docx,
 }
 
 

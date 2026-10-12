@@ -125,3 +125,67 @@ def get_psychologist_reports(cur, conn, params, body):
         (patient_id,),
     )
     return ok({"reports": [dict(r) for r in cur.fetchall()]})
+
+
+def _psych_day_rows(cur, report_date):
+    cur.execute(
+        f"""SELECT r.id, r.patient_id, r.author, r.report_date, r.report_text,
+                   p.first_name, p.last_name, p.alias
+            FROM {SCHEMA}.psychologist_reports r
+            JOIN {SCHEMA}.patients p ON p.id = r.patient_id
+            WHERE r.report_date = %s
+            ORDER BY p.last_name, p.first_name, r.id""",
+        (report_date,),
+    )
+    rows = [dict(r) for r in cur.fetchall()]
+    for r in rows:
+        r["patient_name"] = " ".join(x for x in (r["last_name"], r["first_name"]) if x)
+        if r.get("alias"):
+            r["patient_name"] += f" ({r['alias']})"
+    return rows
+
+
+def get_psychologist_day(cur, conn, params, body):
+    report_date = (params.get("date") or "").strip()
+    if not report_date:
+        return err("Укажите дату")
+    return ok({"reports": _psych_day_rows(cur, report_date)})
+
+
+def generate_psychologist_day_docx(cur, conn, params, body):
+    import io
+    from datetime import datetime
+    from docx import Document
+    from docx.enum.text import WD_ALIGN_PARAGRAPH
+    from docx.shared import Pt
+
+    report_date = (body.get("date") or "").strip()
+    if not report_date:
+        return err("Укажите дату")
+    rows = _psych_day_rows(cur, report_date)
+    if not rows:
+        return err("За эту дату нет отчётов психолога")
+    d = datetime.strptime(report_date[:10], "%Y-%m-%d").strftime("%d.%m.%Y")
+
+    doc = Document()
+    doc.styles["Normal"].font.name = "Times New Roman"
+    doc.styles["Normal"].font.size = Pt(12)
+    title = doc.add_heading("Отчёт психолога по пациентам", level=1)
+    title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    sub = doc.add_paragraph(f"Дата: {d}")
+    sub.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    authors = ", ".join(dict.fromkeys(r["author"] for r in rows if r.get("author")))
+    if authors:
+        doc.add_paragraph(f"Автор: {authors}").alignment = WD_ALIGN_PARAGRAPH.CENTER
+    for r in rows:
+        doc.add_heading(r["patient_name"], level=2)
+        for line in (r["report_text"] or "").split("\n"):
+            if line.strip():
+                doc.add_paragraph(line.strip())
+    buf = io.BytesIO()
+    doc.save(buf)
+    return ok({
+        "file_name": f"Отчёт психолога {report_date}.docx",
+        "file_base64": base64.b64encode(buf.getvalue()).decode("ascii"),
+        "content_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    })

@@ -2,6 +2,7 @@ import Icon from "@/components/ui/icon";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Patient, EMPTY_FORM, RiskBadge, fmt, stayDuration, plural, CareStage } from "@/components/admin/crm/crmShared";
 import { PatientForm } from "@/components/admin/crm/PatientFormParts";
+import PsychologistDayReport from "@/components/admin/crm/PsychologistDayReport";
 import PatientNamesHint from "@/components/admin/crm/PatientNamesHint";
 import StateSparkline from "@/components/admin/crm/StateSparkline";
 
@@ -35,6 +36,8 @@ export default function PatientList({
           <Icon name="UserPlus" size={16} /> Добавить
         </button>
       </div>
+
+      {careStage === "inpatient" && <PsychologistDayReport />}
 
       {careStage === "inpatient" && <PatientNamesHint patients={allPatients} />}
 
