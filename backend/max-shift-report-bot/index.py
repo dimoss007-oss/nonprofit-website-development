@@ -315,6 +315,30 @@ def parse_shift_report(text: str, patients: list):
     return general_log, blocks, ambiguous
 
 
+CONTINUATION_WINDOW_MIN = 20
+
+
+def append_psychologist_continuation(cur, employee_id: int, text: str):
+    """Дописывает продолжение длинного отчёта (пришло отдельным сообщением без имени) к последнему отчёту этого психолога,
+    если тот сохранён не более CONTINUATION_WINDOW_MIN минут назад. Возвращает пациента или None."""
+    cur.execute(
+        f"""SELECT r.id, r.patient_id, p.first_name, p.alias
+            FROM {SCHEMA}.psychologist_reports r
+            JOIN {SCHEMA}.patients p ON p.id = r.patient_id
+            WHERE r.employee_id = %s AND r.created_at > NOW() - (%s || ' minutes')::interval
+            ORDER BY r.id DESC LIMIT 1""",
+        (employee_id, str(CONTINUATION_WINDOW_MIN)),
+    )
+    row = cur.fetchone()
+    if not row:
+        return None
+    cur.execute(
+        f"UPDATE {SCHEMA}.psychologist_reports SET report_text = report_text || E'\\n' || %s WHERE id = %s",
+        (text, row["id"]),
+    )
+    return row
+
+
 def ambiguity_note(ambiguous: list) -> str:
     if not ambiguous:
         return ""
@@ -502,6 +526,18 @@ def handler(event: dict, context) -> dict:
             (report_date_iso, general_log),
         )
 
+    continued = None
+    if is_psychologist(employee) and general_log:
+        continued = append_psychologist_continuation(cur, employee["id"], general_log)
+        if continued and not blocks:
+            conn.commit()
+            conn.close()
+            send_message(
+                f"✅ Продолжение отчёта добавлено к пациентке {continued['alias'] or continued['first_name']}.",
+                token, chat_id=chat_id, user_id=user_id,
+            )
+            return ok({"ok": True, "continued": True})
+
     if not blocks:
         conn.commit()
         conn.close()
@@ -527,7 +563,9 @@ def handler(event: dict, context) -> dict:
         broadcast_report(cur, token, employee["id"], author_name, report_date, text, [], from_group, title="Отчёт психолога")
         conn.close()
         send_message(
-            f"✅ Отчёт психолога за {report_date.strftime('%d.%m.%Y')} принят. Автор: {author_name}. Распознано пациентов: {recognized} ({', '.join(b['patient'].get('alias') or b['patient']['first_name'] for b in blocks)})." + ambiguity_note(ambiguous),
+            f"✅ Отчёт психолога за {report_date.strftime('%d.%m.%Y')} принят. Автор: {author_name}. Распознано пациентов: {recognized} ({', '.join(b['patient'].get('alias') or b['patient']['first_name'] for b in blocks)})."
+            + (f" Начало сообщения дописано к пациентке {continued['alias'] or continued['first_name']}." if continued else "")
+            + ambiguity_note(ambiguous),
             token, chat_id=chat_id, user_id=user_id,
         )
         return ok({"ok": True, "recognized": recognized, "psychologist": True})
