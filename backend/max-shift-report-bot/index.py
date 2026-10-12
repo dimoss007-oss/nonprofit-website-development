@@ -316,6 +316,32 @@ def parse_shift_report(text: str, patients: list):
 
 
 CONTINUATION_WINDOW_MIN = 20
+LONG_PART_MIN_LEN = 3500
+BUFFER_WINDOW_MIN = 60
+FLUSH_COMMANDS = {"/готово", "/готов", "/конец", "/done"}
+
+
+def take_buffer(cur, employee_id: int, chat_id: int):
+    cur.execute(
+        f"""DELETE FROM {SCHEMA}.report_buffer
+            WHERE employee_id = %s AND chat_id = %s
+              AND updated_at > NOW() - (%s || ' minutes')::interval
+            RETURNING buffered_text, parts""",
+        (employee_id, chat_id, str(BUFFER_WINDOW_MIN)),
+    )
+    row = cur.fetchone()
+    cur.execute(f"DELETE FROM {SCHEMA}.report_buffer WHERE employee_id = %s AND chat_id = %s", (employee_id, chat_id))
+    return row
+
+
+def put_buffer(cur, employee_id: int, chat_id: int, text: str, parts: int):
+    cur.execute(
+        f"""INSERT INTO {SCHEMA}.report_buffer (employee_id, chat_id, buffered_text, parts, updated_at)
+            VALUES (%s, %s, %s, %s, NOW())
+            ON CONFLICT (employee_id, chat_id) DO UPDATE SET
+                buffered_text = EXCLUDED.buffered_text, parts = EXCLUDED.parts, updated_at = NOW()""",
+        (employee_id, chat_id, text, parts),
+    )
 
 
 def append_psychologist_continuation(cur, employee_id: int, text: str):
@@ -512,6 +538,34 @@ def handler(event: dict, context) -> dict:
         return ok({"ok": True})
 
     author_name = employee.get("full_name") or employee.get("login") or "Сотрудник"
+
+    buffer_key = chat_id or user_id
+    is_flush = text.strip().lower() in FLUSH_COMMANDS
+    buffered = take_buffer(cur, employee["id"], buffer_key)
+    parts = 1
+    if is_flush:
+        if not buffered:
+            conn.commit()
+            conn.close()
+            send_message("Нет отложенных частей отчёта.", token, chat_id=chat_id, user_id=user_id)
+            return ok({"ok": True})
+        text = buffered["buffered_text"]
+        parts = buffered["parts"]
+    elif buffered:
+        text = buffered["buffered_text"] + "\n" + text
+        parts = buffered["parts"] + 1
+
+    if not is_flush and len((msg.get("body") or {}).get("text") or "") >= LONG_PART_MIN_LEN:
+        put_buffer(cur, employee["id"], buffer_key, text, parts)
+        conn.commit()
+        conn.close()
+        send_message(
+            f"📨 Часть {parts} получена ({len(text)} знаков). Пришлите продолжение следующим сообщением — я склею всё в один отчёт. "
+            f"Если это был весь отчёт, отправьте /готово.",
+            token, chat_id=chat_id, user_id=user_id,
+        )
+        return ok({"ok": True, "buffered": True, "parts": parts})
+
     report_date = extract_report_date(text)
     report_date_iso = report_date.isoformat()
 
@@ -564,6 +618,7 @@ def handler(event: dict, context) -> dict:
         conn.close()
         send_message(
             f"✅ Отчёт психолога за {report_date.strftime('%d.%m.%Y')} принят. Автор: {author_name}. Распознано пациентов: {recognized} ({', '.join(b['patient'].get('alias') or b['patient']['first_name'] for b in blocks)})."
+            + (f" Склеено частей: {parts}." if parts > 1 else "")
             + (f" Начало сообщения дописано к пациентке {continued['alias'] or continued['first_name']}." if continued else "")
             + ambiguity_note(ambiguous),
             token, chat_id=chat_id, user_id=user_id,
@@ -591,7 +646,7 @@ def handler(event: dict, context) -> dict:
     broadcast_report(cur, token, employee["id"], author_name, report_date, text, dynamics, from_group)
     conn.close()
 
-    reply = f"✅ Отчёт за {report_date.strftime('%d.%m.%Y')} успешно принят. Автор: {author_name}. Распознано пациентов: {recognized} ({', '.join(b['patient'].get('alias') or b['patient']['first_name'] for b in blocks)})." + ambiguity_note(ambiguous)
+    reply = f"✅ Отчёт за {report_date.strftime('%d.%m.%Y')} успешно принят. Автор: {author_name}. Распознано пациентов: {recognized} ({', '.join(b['patient'].get('alias') or b['patient']['first_name'] for b in blocks)})." + (f" Склеено частей: {parts}." if parts > 1 else "") + ambiguity_note(ambiguous)
     if dynamics:
         reply += "\n\n📈 Динамика по пациентам:\n" + "\n".join(dynamics)
 
