@@ -1,4 +1,6 @@
 import difflib
+import base64
+import io
 import json
 import os
 import re
@@ -200,6 +202,42 @@ def generate_summary(rows: list) -> str:
     return resp.json()["result"]["alternatives"][0]["message"]["text"].strip()
 
 
+def week_range_label(week_start: str) -> str:
+    d = datetime.strptime(week_start[:10], "%Y-%m-%d").date()
+    e = d + timedelta(days=6)
+    return f"{d.strftime('%d.%m.%Y')} – {e.strftime('%d.%m.%Y')}"
+
+
+def build_summary_docx(week_start: str, summary_text: str, rows: list) -> bytes:
+    from docx import Document
+    from docx.shared import Pt
+    from docx.enum.text import WD_ALIGN_PARAGRAPH
+
+    doc = Document()
+    style = doc.styles["Normal"]
+    style.font.name = "Times New Roman"
+    style.font.size = Pt(12)
+
+    title = doc.add_heading("Выжимка из отчётов по детям", level=1)
+    title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    period = doc.add_paragraph(f"Неделя: {week_range_label(week_start)}")
+    period.alignment = WD_ALIGN_PARAGRAPH.CENTER
+
+    doc.add_heading("Выжимка", level=2)
+    for line in summary_text.replace("**", "").split("\n"):
+        if line.strip():
+            doc.add_paragraph(line.strip())
+
+    names = list(dict.fromkeys(r["child_name"] for r in rows))
+    doc.add_heading(f"Дети, по которым есть отчёты ({len(names)})", level=2)
+    for n in names:
+        doc.add_paragraph(n, style="List Number")
+
+    buf = io.BytesIO()
+    doc.save(buf)
+    return buf.getvalue()
+
+
 def handler(event: dict, context) -> dict:
     """Еженедельные отчёты по детям. GET ?child_id=N — список; POST — создать; PUT ?id=N — изменить; DELETE ?id=N — удалить.
     POST {action: parse} — разбор общего текста по детям; POST {action: import} — сохранение разобранного отчёта."""
@@ -227,6 +265,21 @@ def handler(event: dict, context) -> dict:
             except (RuntimeError, requests.exceptions.RequestException) as e:
                 return err(str(e) if isinstance(e, RuntimeError) else "Нет связи с YandexGPT, попробуйте позже", 502)
             return ok({"summary_text": text, "reports_count": len(rows)})
+
+        if method == "POST" and body.get("action") == "summary_docx":
+            if not body.get("week_start"):
+                return err("Укажите неделю отчёта")
+            summary_text = (body.get("summary_text") or "").strip()
+            if not summary_text:
+                return err("Сначала составьте выжимку")
+            week = monday_of(body["week_start"])
+            rows = load_week_reports(cur, week)
+            data = build_summary_docx(week, summary_text, rows)
+            return ok({
+                "file_name": f"Выжимка по детям {week}.docx",
+                "file_base64": base64.b64encode(data).decode("ascii"),
+                "content_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            })
 
         if method == "POST" and body.get("action") in ("parse", "import"):
             action = body["action"]

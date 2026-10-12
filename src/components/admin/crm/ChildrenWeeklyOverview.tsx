@@ -58,6 +58,33 @@ export default function ChildrenWeeklyOverview() {
     }
   };
 
+  const [docBusy, setDocBusy] = useState(false);
+
+  const downloadWord = async () => {
+    setDocBusy(true);
+    setError("");
+    try {
+      const r = await fetch(CHILD_WEEKLY_API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "summary_docx", week_start: weekStart, summary_text: summary }),
+      });
+      const d = await r.json();
+      if (!r.ok) { setError(d.error || "Не удалось сформировать документ"); return; }
+      const bytes = Uint8Array.from(atob(d.file_base64), (c) => c.charCodeAt(0));
+      const url = URL.createObjectURL(new Blob([bytes], { type: d.content_type }));
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = d.file_name;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      setError("Ошибка соединения с сервером");
+    } finally {
+      setDocBusy(false);
+    }
+  };
+
   const copy = () => navigator.clipboard.writeText(summary);
 
   return (
@@ -95,7 +122,12 @@ export default function ChildrenWeeklyOverview() {
             <div className="bg-beige-mid rounded-xl p-4">
               <div className="flex items-center justify-between mb-2">
                 <p className="text-xs font-semibold text-ink uppercase tracking-wide">Выжимка за неделю</p>
-                <button onClick={copy} className="text-xs text-ink/60 hover:text-ink flex items-center gap-1"><Icon name="Copy" size={12} /> Копировать</button>
+                <div className="flex items-center gap-3">
+                  <button onClick={copy} className="text-xs text-ink/60 hover:text-ink flex items-center gap-1"><Icon name="Copy" size={12} /> Копировать</button>
+                  <button onClick={downloadWord} disabled={docBusy} className="text-xs text-ink/60 hover:text-ink flex items-center gap-1 disabled:opacity-50">
+                    <Icon name={docBusy ? "Loader" : "Download"} size={12} className={docBusy ? "animate-spin" : ""} /> Скачать в Word
+                  </button>
+                </div>
               </div>
               <p className="text-sm text-ink/80 leading-relaxed whitespace-pre-line">{summary}</p>
             </div>
