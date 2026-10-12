@@ -195,24 +195,37 @@ def analyze_sentiment(text: str):
 
 
 def normalize_name(s: str) -> str:
-    return re.sub(r"[.\s]+", " ", (s or "").strip().lower()).strip()
+    s = (s or "").lower().replace("ё", "е")
+    s = re.sub(r"[^\w\s]", " ", s)
+    return re.sub(r"\s+", " ", s).strip()
 
 
 def build_patient_candidates(patients: list) -> dict:
-    """Строит словарь всех возможных вариаций имён пациентов (alias, Имя + первая буква фамилии) для fuzzy-поиска."""
-    candidates = {}
-    for p in patients:
-        alias_n = normalize_name(p.get("alias") or "")
-        if alias_n:
-            candidates[alias_n] = p
-        first = (p.get("first_name") or "").strip()
-        last_initial = (p.get("last_name") or "")[:1].strip()
-        if first and last_initial:
-            candidates[normalize_name(f"{first} {last_initial}")] = p
-        if first:
-            candidates.setdefault(normalize_name(first), p)
+    """Словарь «вариант имени -> список пациентов». Псевдоним из карточки имеет приоритет над производными вариантами
+    (имя + инициал фамилии, имя, фамилия, имя + фамилия). Если вариант подходит нескольким людям, он считается неоднозначным."""
+    strong, weak = {}, {}
 
-    return candidates
+    def add(target, key, p):
+        if key:
+            ids = target.setdefault(key, {})
+            ids[p["id"]] = p
+
+    for p in patients:
+        first = normalize_name(p.get("first_name") or "")
+        last = normalize_name(p.get("last_name") or "")
+        add(strong, normalize_name(p.get("alias") or ""), p)
+        if first and last:
+            add(weak, f"{first} {last[:1]}", p)
+            add(weak, f"{first} {last}", p)
+            add(weak, f"{last} {first}", p)
+        if last:
+            add(weak, last, p)
+        if first:
+            add(weak, first, p)
+
+    result = {k: list(v.values()) for k, v in weak.items()}
+    result.update({k: list(v.values()) for k, v in strong.items()})
+    return result
 
 
 def expand_diminutive(name: str) -> str:
@@ -229,66 +242,67 @@ def expand_diminutive(name: str) -> str:
 
 
 def match_patient(name: str, candidates: dict, cutoff: float = NAME_MATCH_CUTOFF):
-    """Fuzzy-сопоставление распознанного имени с пациентом по подготовленному словарю кандидатов.
-    Учитывает уменьшительно-ласкательные формы имён (Аня -> Анна и т.п.)."""
+    """Сопоставляет имя из текста с пациентом. Возвращает (пациент, None) при единственном совпадении,
+    (None, [пациенты]) если подходят несколько, (None, None) если не найдено. Учитывает уменьшительные формы (Аня -> Анна)."""
     n = normalize_name(name)
     if not n:
-        return None
+        return None, None
 
     variants = [n]
     expanded = normalize_name(expand_diminutive(n))
     if expanded != n:
         variants.append(expanded)
 
+    def verdict(found):
+        return (found[0], None) if len(found) == 1 else (None, found)
+
     for variant in variants:
         if variant in candidates:
-            return candidates[variant]
+            return verdict(candidates[variant])
 
     for variant in variants:
         close = difflib.get_close_matches(variant, list(candidates.keys()), n=1, cutoff=cutoff)
         if close:
-            return candidates[close[0]]
+            return verdict(candidates[close[0]])
 
-    return None
+    return None, None
 
 
 def parse_shift_report(text: str, patients: list):
-    """Построчный разбор текста отчёта смены. Устойчив к любым форматам: нумерованным спискам,
-    тире, двоеточиям, свободному тексту без разметки, датам прописью и т.п.
-
-    Для каждой строки проверяется, начинается ли она с имени, похожего на пациента из базы
-    (fuzzy-сопоставление). Если да — начинается новый блок по этому пациенту, остаток строки
-    идёт в его текст. Если нет — строка добавляется в текущий открытый блок пациента,
-    либо (если пациент ещё не найден) в общую сводку смены (general_log)."""
+    """Построчный разбор отчёта. Строка, начинающаяся с имени пациента, открывает его блок; остальные строки
+    дописываются в текущий блок, а до первого пациента идут в общую сводку смены.
+    Если имя подходит нескольким пациентам (например, «Таня» при трёх Татьянах), блок не приписывается
+    никому и попадает в список неоднозначных, чтобы текст не ушёл не тому человеку."""
     candidates = build_patient_candidates(patients)
 
     general_lines = []
     patient_blocks = {}
-    current_patient_id = None
+    ambiguous = []
+    current = None
 
     for raw_line in text.split("\n"):
         line = raw_line.strip()
         if not line:
             continue
 
-        matched_patient = None
-        remainder = line
+        matched_patient, options, remainder = None, None, line
         m = LINE_NAME_RE.match(line)
         if m:
-            candidate_name = m.group(1).strip()
-            found = match_patient(candidate_name, candidates)
-            if found:
-                matched_patient = found
+            matched_patient, options = match_patient(m.group(1).strip(), candidates)
+            if matched_patient or options:
                 remainder = line[m.end():].strip()
 
         if matched_patient:
-            current_patient_id = matched_patient["id"]
-            block = patient_blocks.setdefault(current_patient_id, {"patient": matched_patient, "lines": []})
+            current = ("p", matched_patient["id"])
+            block = patient_blocks.setdefault(matched_patient["id"], {"patient": matched_patient, "lines": []})
             if remainder:
                 block["lines"].append(remainder)
-        elif current_patient_id is not None:
-            patient_blocks[current_patient_id]["lines"].append(line)
-        else:
+        elif options:
+            current = ("a", None)
+            ambiguous.append({"name": m.group(1).strip(), "options": options})
+        elif current and current[0] == "p":
+            patient_blocks[current[1]]["lines"].append(line)
+        elif current is None:
             general_lines.append(line)
 
     general_log = "\n".join(general_lines).strip()
@@ -298,7 +312,17 @@ def parse_shift_report(text: str, patients: list):
         if b["lines"]
     ]
 
-    return general_log, blocks
+    return general_log, blocks, ambiguous
+
+
+def ambiguity_note(ambiguous: list) -> str:
+    if not ambiguous:
+        return ""
+    lines = []
+    for a in ambiguous:
+        names = ", ".join(o.get("alias") or f"{o['first_name']} {o['last_name']}" for o in a["options"])
+        lines.append(f"• «{a['name']}» — подходят: {names}")
+    return "\n\n⚠️ Не сохранено, не понятно, о ком речь:\n" + "\n".join(lines) + "\nНапишите имя так, как в карточке (например, «Таня П.»), и отправьте этот фрагмент ещё раз."
 
 
 def is_psychologist(employee: dict) -> bool:
@@ -470,7 +494,7 @@ def handler(event: dict, context) -> dict:
     cur.execute(f"SELECT id, first_name, last_name, alias FROM {SCHEMA}.patients WHERE discharge_date IS NULL")
     patients = [dict(r) for r in cur.fetchall()]
 
-    general_log, blocks = parse_shift_report(text, patients)
+    general_log, blocks, ambiguous = parse_shift_report(text, patients)
 
     if general_log and not is_psychologist(employee):
         cur.execute(
@@ -482,7 +506,7 @@ def handler(event: dict, context) -> dict:
         conn.commit()
         conn.close()
         send_message(
-            f"⚠️ Отчёт за {report_date.strftime('%d.%m.%Y')} принят, но пациентов в тексте распознать не удалось. Автор: {author_name}.",
+            f"⚠️ Отчёт за {report_date.strftime('%d.%m.%Y')} принят, но пациентов в тексте распознать не удалось. Автор: {author_name}." + ambiguity_note(ambiguous),
             token, chat_id=chat_id, user_id=user_id,
         )
         return ok({"ok": True, "recognized": 0})
@@ -503,7 +527,7 @@ def handler(event: dict, context) -> dict:
         broadcast_report(cur, token, employee["id"], author_name, report_date, text, [], from_group, title="Отчёт психолога")
         conn.close()
         send_message(
-            f"✅ Отчёт психолога за {report_date.strftime('%d.%m.%Y')} принят. Автор: {author_name}. Распознано пациентов: {recognized}.",
+            f"✅ Отчёт психолога за {report_date.strftime('%d.%m.%Y')} принят. Автор: {author_name}. Распознано пациентов: {recognized} ({', '.join(b['patient'].get('alias') or b['patient']['first_name'] for b in blocks)})." + ambiguity_note(ambiguous),
             token, chat_id=chat_id, user_id=user_id,
         )
         return ok({"ok": True, "recognized": recognized, "psychologist": True})
@@ -529,7 +553,7 @@ def handler(event: dict, context) -> dict:
     broadcast_report(cur, token, employee["id"], author_name, report_date, text, dynamics, from_group)
     conn.close()
 
-    reply = f"✅ Отчёт за {report_date.strftime('%d.%m.%Y')} успешно принят. Автор: {author_name}. Распознано пациентов: {recognized}."
+    reply = f"✅ Отчёт за {report_date.strftime('%d.%m.%Y')} успешно принят. Автор: {author_name}. Распознано пациентов: {recognized} ({', '.join(b['patient'].get('alias') or b['patient']['first_name'] for b in blocks)})." + ambiguity_note(ambiguous)
     if dynamics:
         reply += "\n\n📈 Динамика по пациентам:\n" + "\n".join(dynamics)
 
