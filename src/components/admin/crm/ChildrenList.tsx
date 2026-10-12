@@ -1,4 +1,5 @@
 import Icon from "@/components/ui/icon";
+import ChildrenWeeklyOverview from "@/components/admin/crm/ChildrenWeeklyOverview";
 import ChildrenBulkReport from "@/components/admin/crm/ChildrenBulkReport";
 import { ChildWithPatient, fmt, plural } from "@/components/admin/crm/crmShared";
 
@@ -25,6 +26,8 @@ export default function ChildrenList({
       </div>
 
       <ChildrenBulkReport authorName={authorName} />
+
+      <ChildrenWeeklyOverview />
 
       {children.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">

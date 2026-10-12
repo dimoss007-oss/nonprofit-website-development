@@ -5,6 +5,7 @@ import re
 from datetime import datetime, timedelta
 
 import psycopg2
+import requests
 from psycopg2.extras import RealDictCursor
 
 SCHEMA = os.environ.get("MAIN_DB_SCHEMA", "public")
@@ -144,6 +145,61 @@ def parse_report(text: str, children: list) -> list:
     return result
 
 
+YANDEX_GPT_URL = "https://llm.api.cloud.yandex.net/foundationModels/v1/completion"
+SUMMARY_PROMPT = (
+    "Ты помощник психолога центра помощи матерям с детьми. Тебе дают еженедельные отчёты сотрудников по детям. "
+    "Составь краткую выжимку на русском языке: 1) общая картина за неделю в 2-3 предложениях; "
+    "2) по каждому ребёнку одна строка: имя — главное (состояние, поведение, успехи); "
+    "3) отдельный список «Требуют внимания» — только если в отчётах есть тревожные сигналы. "
+    "Ничего не выдумывай, опирайся только на текст отчётов. Без медицинских диагнозов."
+)
+MAX_SUMMARY_INPUT = 12000
+
+
+def load_week_reports(cur, week_start: str) -> list:
+    cur.execute(
+        f"""SELECT r.id, r.child_id, r.author, r.week_start, r.report_text, r.updated_at,
+                   c.first_name, c.last_name, c.alias
+            FROM {SCHEMA}.child_weekly_reports r
+            JOIN {SCHEMA}.patient_children c ON c.id = r.child_id
+            WHERE r.week_start = %s
+            ORDER BY c.last_name, c.first_name, r.id""",
+        (week_start,),
+    )
+    rows = [dict(r) for r in cur.fetchall()]
+    for r in rows:
+        r["child_name"] = " ".join(x for x in (r["last_name"], r["first_name"]) if x)
+        if r.get("alias"):
+            r["child_name"] += f" ({r['alias']})"
+    return rows
+
+
+def generate_summary(rows: list) -> str:
+    folder_id = (os.environ.get("YANDEX_FOLDER_ID") or "").strip()
+    api_key = (os.environ.get("YANDEX_API_KEY") or "").strip()
+    if not folder_id or not api_key:
+        raise RuntimeError("Не настроен доступ к YandexGPT")
+    chunks, total = [], 0
+    for r in rows:
+        chunk = f"{r['child_name']}:\n{r['report_text'].strip()}"
+        if total + len(chunk) > MAX_SUMMARY_INPUT:
+            break
+        chunks.append(chunk)
+        total += len(chunk)
+    payload = {
+        "modelUri": f"gpt://{folder_id}/yandexgpt/latest",
+        "completionOptions": {"stream": False, "temperature": 0.3, "maxTokens": 1200},
+        "messages": [
+            {"role": "system", "text": SUMMARY_PROMPT},
+            {"role": "user", "text": "\n\n".join(chunks)},
+        ],
+    }
+    resp = requests.post(YANDEX_GPT_URL, headers={"Authorization": f"Api-Key {api_key}", "Content-Type": "application/json"}, json=payload, timeout=60)
+    if resp.status_code != 200:
+        raise RuntimeError("YandexGPT вернул ошибку, попробуйте позже")
+    return resp.json()["result"]["alternatives"][0]["message"]["text"].strip()
+
+
 def handler(event: dict, context) -> dict:
     """Еженедельные отчёты по детям. GET ?child_id=N — список; POST — создать; PUT ?id=N — изменить; DELETE ?id=N — удалить.
     POST {action: parse} — разбор общего текста по детям; POST {action: import} — сохранение разобранного отчёта."""
@@ -157,6 +213,21 @@ def handler(event: dict, context) -> dict:
     conn = get_conn()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     try:
+        if method == "POST" and body.get("action") == "summary":
+            if not body.get("week_start"):
+                return err("Укажите неделю отчёта")
+            rows = load_week_reports(cur, monday_of(body["week_start"]))
+            if body.get("child_ids"):
+                wanted = {int(i) for i in body["child_ids"]}
+                rows = [r for r in rows if r["child_id"] in wanted]
+            if not rows:
+                return err("За эту неделю нет загруженных отчётов")
+            try:
+                text = generate_summary(rows)
+            except (RuntimeError, requests.exceptions.RequestException) as e:
+                return err(str(e) if isinstance(e, RuntimeError) else "Нет связи с YandexGPT, попробуйте позже", 502)
+            return ok({"summary_text": text, "reports_count": len(rows)})
+
         if method == "POST" and body.get("action") in ("parse", "import"):
             action = body["action"]
             week_start = body.get("week_start")
@@ -200,6 +271,9 @@ def handler(event: dict, context) -> dict:
                     created += 1
             conn.commit()
             return ok({"created": created, "updated": updated}, 201)
+
+        if method == "GET" and params.get("week_start"):
+            return ok({"reports": load_week_reports(cur, monday_of(params["week_start"]))})
 
         if method == "GET":
             child_id = params.get("child_id")
