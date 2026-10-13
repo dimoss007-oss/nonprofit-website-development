@@ -78,6 +78,8 @@ def handler(event: dict, context) -> dict:
         return err("Сумма должна быть не менее 1 ₽")
     if use_qr:
         monthly = False
+        if "@" not in user_email:
+            return err("Укажите email: на него придёт чек об оплате")
     if monthly and "@" not in user_email:
         return err("Для ежемесячного пожертвования укажите email: по нему вы сможете отключить подписку в личном кабинете")
 

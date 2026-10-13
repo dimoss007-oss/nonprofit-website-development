@@ -22,6 +22,7 @@ const fmt = (n: number) => `${Math.round(n).toLocaleString("ru")} ₽`;
 export default function TargetDonationModal({ open, onClose, goalId, title, currentAmount, targetAmount }: TargetDonationModalProps) {
   const [amount, setAmount] = useState<number>(500);
   const [custom, setCustom] = useState("");
+  const [email, setEmail] = useState("");
   const [stage, setStage] = useState<Stage>("form");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -60,6 +61,7 @@ export default function TargetDonationModal({ open, onClose, goalId, title, curr
 
   const pay = async () => {
     if (!finalAmount || finalAmount < 1) { setError("Укажите сумму от 1 ₽"); return; }
+    if (!/^\S+@\S+\.\S+$/.test(email.trim())) { setError("Укажите email: на него придёт чек об оплате"); return; }
     setLoading(true); setError("");
     try {
       const res = await fetch(YOOKASSA_URL, {
@@ -67,6 +69,7 @@ export default function TargetDonationModal({ open, onClose, goalId, title, curr
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           amount: finalAmount,
+          user_email: email.trim(),
           goal_id: goalId,
           goal_title: title,
           payment_method: "sbp_qr",
@@ -118,6 +121,9 @@ export default function TargetDonationModal({ open, onClose, goalId, title, curr
             </div>
             <input type="number" min={1} placeholder="Другая сумма, ₽" value={custom}
               onChange={(e) => setCustom(e.target.value)}
+              className="w-full border border-sage/20 text-ink placeholder-foreground/40 px-3 py-2.5 rounded-lg focus:outline-none focus:border-sage text-sm" />
+            <input type="email" placeholder="Email для чека" value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="w-full border border-sage/20 text-ink placeholder-foreground/40 px-3 py-2.5 rounded-lg focus:outline-none focus:border-sage text-sm" />
             {error && <p className="text-red-500 text-sm bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
             <button onClick={pay} disabled={loading || !finalAmount || finalAmount < 1}
