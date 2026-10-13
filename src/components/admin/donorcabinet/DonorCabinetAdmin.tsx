@@ -5,6 +5,7 @@ import { Creds, adminCall } from "@/components/admin/donorcabinet/adminApi";
 import DonorCatalog from "@/components/admin/donorcabinet/DonorCatalog";
 import DonorBroadcasts from "@/components/admin/donorcabinet/DonorBroadcasts";
 import DonorPeople from "@/components/admin/donorcabinet/DonorPeople";
+import DonorSubscriptions from "@/components/admin/donorcabinet/DonorSubscriptions";
 import DonorSettings from "@/components/admin/donorcabinet/DonorSettings";
 import { DonorFeedAdmin, DonorGifts } from "@/components/admin/donorcabinet/DonorGiftsFeed";
 
@@ -12,6 +13,7 @@ type Overview = { accounts: number; logged_in: number; awards: number; total_amo
 
 const SUBS = [
   { id: "people", label: "Жертвователи", icon: "Users" },
+  { id: "subscriptions", label: "Подписки", icon: "Repeat" },
   { id: "achievements", label: "Ачивки", icon: "Award" },
   { id: "levels", label: "Уровни", icon: "TrendingUp" },
   { id: "broadcasts", label: "Рассылки", icon: "Send" },
@@ -62,6 +64,7 @@ export default function DonorCabinetAdmin({ authLogin, authPassword }: { authLog
       </div>
 
       {sub === "people" && <DonorPeople creds={creds} />}
+      {sub === "subscriptions" && <DonorSubscriptions creds={creds} />}
       {sub === "achievements" && <DonorCatalog creds={creds} entity="achievement" />}
       {sub === "levels" && <DonorCatalog creds={creds} entity="level" />}
       {sub === "impact" && <DonorCatalog creds={creds} entity="impact" />}

@@ -317,6 +317,25 @@ def smtp_check(cur, conn, body):
     return ok({"ok": True, "host": host, "port": port})
 
 
+def list_subscriptions(cur, conn, body):
+    cur.execute(
+        f"""SELECT id, email, user_name, amount::float AS amount, card_last4, status, next_charge_at, last_charge_at,
+                   created_at, cancelled_at, fail_count, last_error
+            FROM {SCHEMA}.donor_subscriptions ORDER BY (status = 'active') DESC, (status = 'failed') DESC, created_at DESC LIMIT 500"""
+    )
+    items = [dict(r) for r in cur.fetchall()]
+    active = [i for i in items if i["status"] == "active"]
+    return ok({
+        "subscriptions": items,
+        "summary": {
+            "active": len(active),
+            "monthly_total": round(sum(i["amount"] for i in active), 2),
+            "failed": sum(1 for i in items if i["status"] == "failed"),
+            "cancelled": sum(1 for i in items if i["status"] == "cancelled"),
+        },
+    })
+
+
 def run_queue(cur, conn, body):
     return ok({"queue": process_queue(cur, conn)})
 
@@ -458,6 +477,7 @@ ADMIN_ACTIONS = {
     "account_awards": account_awards,
     "broadcast": send_broadcast,
     "broadcasts": list_broadcasts,
+    "subscriptions": list_subscriptions,
     "run_queue": run_queue,
     "smtp_check": smtp_check,
     "retry_failed": retry_failed,
