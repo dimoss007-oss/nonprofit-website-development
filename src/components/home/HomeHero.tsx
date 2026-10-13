@@ -5,12 +5,24 @@ import SiteNav from "@/components/shared/SiteNav";
 const VK_URL = "https://vk.com/spasenienadezhdi";
 const LOGO_IMG = "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/4ca974da-fec3-4fd3-834d-c7dccc97fca9.jpg";
 
-const HERO_IMGS = [
+const GALLERY_URL = "https://functions.poehali.dev/abf6fa73-1b43-4ff7-af96-8b6e8ca2b46a";
+const MAX_SLIDES = 8;
+
+const FALLBACK_IMGS = [
   "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/82a9f428-4386-466d-88e0-0ad976b369c3.jpg",
   "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/8c3c42ea-1fc4-4248-985b-aa5c922bfada.jpg",
   "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/76cb0a36-5f5c-4522-99f6-0ae2f3ca64ff.jpg",
   "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/ceda8cb1-b883-4b0c-a598-1e9d86a1e4c3.jpg",
 ];
+
+const shuffle = <T,>(arr: T[]): T[] => {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+};
 
 interface Props {
   onScrollTo: (id: string) => void;
@@ -20,13 +32,29 @@ interface Props {
 
 export default function HomeHero({ onScrollTo, activeSection, setActiveSection }: Props) {
   const [slideIndex, setSlideIndex] = useState(0);
+  const [slides, setSlides] = useState<string[]>(FALLBACK_IMGS);
+  const [fromGallery, setFromGallery] = useState(false);
+
+  useEffect(() => {
+    fetch(GALLERY_URL)
+      .then(r => r.json())
+      .then(d => {
+        const urls: string[] = (d.photos || []).map((p: { photo_url: string }) => p.photo_url).filter(Boolean);
+        if (urls.length >= 2) {
+          setSlides(shuffle(urls).slice(0, MAX_SLIDES));
+          setFromGallery(true);
+          setSlideIndex(0);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setSlideIndex(i => (i + 1) % HERO_IMGS.length);
+      setSlideIndex(i => (i + 1) % slides.length);
     }, 5000);
     return () => clearInterval(timer);
-  }, []);
+  }, [slides.length]);
 
   return (
     <>
@@ -86,14 +114,15 @@ export default function HomeHero({ onScrollTo, activeSection, setActiveSection }
               role="img"
               aria-label="Фотографии кризисного центра Спасение надежды"
             >
-              {HERO_IMGS.map((src, i) => (
+              {slides.map((src, i) => (
                 <img
                   key={src}
                   src={src}
                   alt={i === slideIndex ? "Кризисный центр Спасение надежды — фото" : ""}
                   aria-hidden={i !== slideIndex}
+                  loading={i === 0 ? "eager" : "lazy"}
                   className="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000"
-                  style={{ opacity: i === slideIndex ? 1 : 0, objectPosition: i === 1 ? "center 30%" : "top" }}
+                  style={{ opacity: i === slideIndex ? 1 : 0, objectPosition: fromGallery ? "center" : i === 1 ? "center 30%" : "top" }}
                 />
               ))}
               <img
@@ -103,11 +132,11 @@ export default function HomeHero({ onScrollTo, activeSection, setActiveSection }
                 className="absolute top-4 right-4 w-16 h-16 object-contain rounded-full z-10 drop-shadow-lg opacity-80"
               />
               <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10" role="group" aria-label="Переключение слайдов">
-                {HERO_IMGS.map((_, i) => (
+                {slides.map((_, i) => (
                   <button
                     key={i}
                     onClick={() => setSlideIndex(i)}
-                    aria-label={`Фото ${i + 1} из ${HERO_IMGS.length}`}
+                    aria-label={`Фото ${i + 1} из ${slides.length}`}
                     aria-pressed={i === slideIndex}
                     className={`h-2 rounded-full transition-all duration-300 ${i === slideIndex ? "bg-white w-5" : "bg-white/50 w-2"}`}
                   />
