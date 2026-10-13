@@ -9,6 +9,8 @@ export default function DonorSettings({ creds, onChanged }: { creds: Creds; onCh
   const [smtp, setSmtp] = useState(false);
   const [busy, setBusy] = useState(false);
   const [running, setRunning] = useState(false);
+  const [checking, setChecking] = useState(false);
+  const [check, setCheck] = useState<{ ok: boolean; text: string } | null>(null);
   const [msg, setMsg] = useState("");
   const [error, setError] = useState("");
 
@@ -25,6 +27,17 @@ export default function DonorSettings({ creds, onChanged }: { creds: Creds; onCh
     finally { setBusy(false); }
   };
 
+  const checkMail = async () => {
+    setChecking(true); setCheck(null);
+    try {
+      const d = await adminCall<{ ok: boolean; host?: string; port?: string; error?: string }>(creds, "smtp_check");
+      setCheck(d.ok
+        ? { ok: true, text: `Соединение установлено (${d.host}:${d.port}), логин и пароль приложения подошли` }
+        : { ok: false, text: d.error || "Проверка не прошла" });
+    } catch (e) { setCheck({ ok: false, text: e instanceof Error ? e.message : "Ошибка проверки" }); }
+    finally { setChecking(false); }
+  };
+
   const runAuto = async () => {
     setRunning(true); setMsg(""); setError("");
     try {
@@ -39,8 +52,18 @@ export default function DonorSettings({ creds, onChanged }: { creds: Creds; onCh
 
   return (
     <div className="space-y-5 max-w-3xl">
-      <div className={`rounded-xl px-4 py-3 text-sm flex items-center gap-2 ${smtp ? "bg-green-50 text-green-800 border border-green-200" : "bg-amber-50 text-amber-800 border border-amber-200"}`}>
-        <Icon name={smtp ? "CheckCircle" : "AlertTriangle"} size={16} />{smtp ? "Почта подключена: вход по коду и письма работают" : "Почта не подключена: добавьте данные SMTP в секреты проекта, иначе вход по коду не заработает"}
+      <div className={`rounded-xl px-4 py-3 text-sm space-y-2 ${smtp ? "bg-green-50 text-green-800 border border-green-200" : "bg-amber-50 text-amber-800 border border-amber-200"}`}>
+        <div className="flex items-center gap-2">
+          <Icon name={smtp ? "CheckCircle" : "AlertTriangle"} size={16} />{smtp ? "Почта подключена: вход по коду и письма работают" : "Почта не подключена: добавьте данные SMTP в секреты проекта, иначе вход по коду не заработает"}
+        </div>
+        {smtp && (
+          <button onClick={checkMail} disabled={checking} className="px-3 py-1.5 rounded-lg border border-current text-xs font-semibold hover:bg-white/60 disabled:opacity-60 transition-colors flex items-center gap-1.5">
+            <Icon name={checking ? "Loader" : "PlugZap"} size={13} className={checking ? "animate-spin" : ""} />Проверить почту
+          </button>
+        )}
+        {check && (
+          <p className={`text-xs rounded-lg px-3 py-2 ${check.ok ? "bg-white/70 text-green-800" : "bg-red-50 text-red-700"}`}>{check.text}</p>
+        )}
       </div>
 
       <div className="bg-white border border-beige-dark rounded-2xl p-5 space-y-3">
