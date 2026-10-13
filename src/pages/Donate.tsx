@@ -52,6 +52,7 @@ export default function Donate() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [monthly, setMonthly] = useState(false);
+  const [justPaid, setJustPaid] = useState(() => new URLSearchParams(window.location.search).get("paid") === "1");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [goals, setGoals] = useState<FundraisingGoal[]>([]);
@@ -99,7 +100,7 @@ export default function Donate() {
           user_email: email || undefined,
           monthly,
           referrer_code: referrerCode || undefined,
-          success_url: `${window.location.origin}/donate`,
+          success_url: `${window.location.origin}/donate?paid=1`,
         }),
       });
       const data = await res.json();
@@ -140,6 +141,15 @@ export default function Donate() {
       </div>
 
       <div className="max-w-4xl mx-auto px-4 py-10 space-y-10">
+
+        {justPaid && (
+          <div className="bg-sage text-white rounded-2xl p-5 sm:p-6 shadow-sm relative">
+            <button onClick={() => setJustPaid(false)} className="absolute top-3 right-3 text-white/70 hover:text-white" aria-label="Закрыть"><Icon name="X" size={16} /></button>
+            <p className="font-cormorant text-2xl font-semibold">Спасибо за вашу помощь!</p>
+            <p className="text-sm text-white/90 mt-1 max-w-xl">Если платёж прошёл, чек придёт на вашу почту. Войдите в личный кабинет по коду из письма: там ваша история помощи, сертификат благодарности и справка для налогового вычета.</p>
+            <a href="/cabinet" className="inline-flex items-center gap-1.5 mt-4 px-4 py-2 rounded-lg bg-white text-ink text-sm font-semibold hover:bg-beige transition-colors">Перейти в личный кабинет<Icon name="ArrowRight" size={14} /></a>
+          </div>
+        )}
 
         <a href="/cabinet" className="flex items-center gap-4 bg-white border border-sage/30 rounded-2xl p-4 sm:p-5 shadow-sm hover:border-sage transition-colors group">
           <div className="w-11 h-11 rounded-xl bg-sage/15 flex items-center justify-center flex-shrink-0">
