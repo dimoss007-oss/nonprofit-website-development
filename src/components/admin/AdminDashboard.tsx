@@ -24,7 +24,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="grid gap-4 grid-cols-1 lg:grid-cols-3">
+    <div className="grid gap-4 grid-cols-1 lg:grid-cols-3 [&>*]:min-w-0">
       <ResidentsCard data={data?.residents} loading={loading} onSaveCapacity={saveCapacity} />
       <FinanceCard data={data?.finance} loading={loading} />
       <SystemCard data={data?.system} loading={loading} />

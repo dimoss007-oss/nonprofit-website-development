@@ -22,9 +22,9 @@ export default function TasksCard({ data, loading }: { data?: DashboardSummary["
           const overdue = t.isOverdue;
           return (
             <li key={t.id} className={`rounded-xl px-3 py-2.5 border ${overdue ? "border-red-200 bg-red-50" : "border-beige-dark bg-beige-mid"}`}>
-              <div className="flex items-start justify-between gap-3">
-                <p className="text-sm text-ink">{t.title}</p>
-                <div className="flex gap-1 flex-shrink-0">
+              <div className="flex items-start justify-between gap-3 flex-wrap sm:flex-nowrap">
+                <p className="text-sm text-ink break-words min-w-0">{t.title}</p>
+                <div className="flex gap-1 flex-shrink-0 flex-wrap">
                   {t.isUrgent && !overdue && <StatusBadge tone="warn">Срочно</StatusBadge>}
                   {overdue && <StatusBadge tone="bad">Просрочено</StatusBadge>}
                 </div>

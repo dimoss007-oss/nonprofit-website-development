@@ -33,16 +33,16 @@ export default function AiReportsCard({ data, loading, summaryLoading, onRefresh
             <StatusBadge tone="good">Сигналов нет</StatusBadge>
           ) : (
             data.criticalAlerts.map(a => (
-              <div key={a} className="flex items-start gap-2 rounded-xl bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-700">
+              <div key={a} className="flex items-start gap-2 rounded-xl bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-700 break-words min-w-0">
                 <Icon name="TriangleAlert" size={14} className="mt-0.5 flex-shrink-0" />
-                {a}
+                <span className="min-w-0">{a}</span>
               </div>
             ))
           )}
           {summaryLoading && !data.dailySummary ? (
             <p className="text-sm italic text-gray-400 border-l-2 border-beige-dark pl-3 pt-1">Нейросеть готовит сводку за сутки...</p>
           ) : data.dailySummary ? (
-            <p className="text-sm italic text-gray-600 border-l-2 border-beige-dark pl-3 pt-1 leading-relaxed">
+            <p className="text-sm italic text-gray-600 border-l-2 border-beige-dark pl-3 pt-1 leading-relaxed break-words">
               {data.dailySummary}
             </p>
           ) : (

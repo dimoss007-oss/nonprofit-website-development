@@ -22,11 +22,11 @@ export default function FinanceCard({ data, loading }: { data?: DashboardSummary
       {data && (
         <div className="space-y-3">
           <div>
-            <p className="text-3xl font-semibold text-ink">{data.monthlyTotalRub.toLocaleString("ru-RU")} ₽</p>
+            <p className="text-3xl font-semibold text-ink break-words">{data.monthlyTotalRub.toLocaleString("ru-RU")} ₽</p>
             <p className="text-xs text-ink/60 mt-1">Собрано за текущий месяц</p>
           </div>
-          <div className="flex items-center gap-2 text-sm text-ink/80 bg-beige-mid rounded-xl px-3 py-2">
-            <Icon name="Repeat" size={14} />
+          <div className="flex items-center gap-2 text-sm text-ink/80 bg-beige-mid rounded-xl px-3 py-2 break-words">
+            <Icon name="Repeat" size={14} className="flex-shrink-0" />
             Активных ежемесячных доноров: <b>{data.activeRecurringDonors}</b>
           </div>
         </div>
