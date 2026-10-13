@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import SiteNav from "@/components/shared/SiteNav";
 import SiteFooter from "@/components/shared/SiteFooter";
 import Icon from "@/components/ui/icon";
+import { GALLERY_TAGS } from "@/lib/galleryTags";
 
 const GALLERY_URL = "https://functions.poehali.dev/abf6fa73-1b43-4ff7-af96-8b6e8ca2b46a";
 
@@ -10,7 +11,8 @@ interface GalleryPhoto {
   title: string;
   photo_url: string;
   created_at: string;
-  ratio?: number; // width / height
+  ratio?: number;
+  tags?: string[];
 }
 
 function getSpan(ratio: number, cols: number): { colSpan: number; rowSpan: number } {
@@ -25,7 +27,8 @@ function getSpan(ratio: number, cols: number): { colSpan: number; rowSpan: numbe
 }
 
 export default function Gallery() {
-  const [photos, setPhotos] = useState<GalleryPhoto[]>([]);
+  const [allPhotos, setPhotos] = useState<GalleryPhoto[]>([]);
+  const [activeTag, setActiveTag] = useState("all");
   const [loading, setLoading] = useState(true);
   const [lightbox, setLightbox] = useState<number | null>(null);
   const [cols, setCols] = useState(() => window.innerWidth < 640 ? 2 : 4);
@@ -69,6 +72,9 @@ export default function Gallery() {
       .catch(() => setLoading(false));
   }, []);
 
+  const photos = activeTag === "all" ? allPhotos : allPhotos.filter((p) => (p.tags || []).includes(activeTag));
+  const availableTags = GALLERY_TAGS.filter((t) => allPhotos.some((p) => (p.tags || []).includes(t.id)));
+
   const current = lightbox !== null ? photos[lightbox] : null;
   const prev = () => setLightbox((i) => (i !== null && i > 0 ? i - 1 : photos.length - 1));
   const next = () => setLightbox((i) => (i !== null && i < photos.length - 1 ? i + 1 : 0));
@@ -101,6 +107,20 @@ export default function Gallery() {
             Моменты нашей работы — люди, события, истории, которые изменили жизни.
           </p>
         </div>
+
+        {!loading && availableTags.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-8">
+            {[{ id: "all", label: "Все фото" }, ...availableTags].map((t) => (
+              <button
+                key={t.id}
+                onClick={() => { setActiveTag(t.id); setLightbox(null); }}
+                className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors ${activeTag === t.id ? "bg-ink text-beige border-ink" : "bg-white text-ink/70 border-beige-dark hover:border-ink"}`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+        )}
 
         {loading ? (
           <div
