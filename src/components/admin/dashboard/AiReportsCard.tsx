@@ -45,7 +45,14 @@ export default function AiReportsCard({ data, loading, summaryLoading, onRefresh
             <p className="text-sm italic text-gray-600 border-l-2 border-beige-dark pl-3 pt-1 leading-relaxed">
               {data.dailySummary}
             </p>
-          ) : null}
+          ) : (
+            <p className="text-sm italic text-gray-400 border-l-2 border-beige-dark pl-3 pt-1">Сводок пока нет</p>
+          )}
+          {data.dailySummaryDate && (
+            <p className="text-[11px] text-ink/40">
+              {data.dailySummaryFresh ? "Сегодня" : `От ${new Date(data.dailySummaryDate).toLocaleDateString("ru-RU", { day: "numeric", month: "long" })}`}
+            </p>
+          )}
           <button
             onClick={onRefresh}
             disabled={summaryLoading}

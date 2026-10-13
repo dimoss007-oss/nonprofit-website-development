@@ -152,13 +152,14 @@ def ai_reports(cur) -> dict:
     """, (ALERT_PATTERN,))
     alerts = [f"Тревожные маркеры в отчёте психолога: {r['name']}" for r in cur.fetchall()]
     cur.execute(f"""
-        SELECT summary_text, (summary_date = CURRENT_DATE) AS fresh
+        SELECT summary_text, summary_date, (summary_date = CURRENT_DATE) AS fresh
         FROM {SCHEMA}.ai_daily_summaries ORDER BY summary_date DESC LIMIT 1
     """)
     cached = cur.fetchone()
     summary_text = cached['summary_text'] if cached else ''
     fresh = bool(cached and cached['fresh'])
-    return {'weeklyDigestStatus': digest, 'criticalAlerts': alerts, 'dailySummary': summary_text, 'dailySummaryFresh': fresh}
+    summary_date = cached['summary_date'].isoformat() if cached else None
+    return {'weeklyDigestStatus': digest, 'criticalAlerts': alerts, 'dailySummary': summary_text, 'dailySummaryFresh': fresh, 'dailySummaryDate': summary_date}
 
 
 def collect_day_texts(cur) -> list:
@@ -227,7 +228,7 @@ def generate_daily_summary(cur) -> dict:
             ON CONFLICT (summary_date) DO UPDATE SET summary_text = EXCLUDED.summary_text, created_at = NOW()""",
         (summary,),
     )
-    return {'ok': True, 'summary': summary}
+    return {'ok': True, 'summary': summary, 'date': date.today().isoformat()}
 
 
 def system(cur) -> dict:

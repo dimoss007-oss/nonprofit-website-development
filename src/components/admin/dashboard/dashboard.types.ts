@@ -25,6 +25,7 @@ export interface DashboardSummary {
     criticalAlerts: string[];
     dailySummary: string;
     dailySummaryFresh: boolean;
+    dailySummaryDate: string | null;
   };
   system: {
     lastVkSync: string | null;

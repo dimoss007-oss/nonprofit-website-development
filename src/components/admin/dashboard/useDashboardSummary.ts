@@ -48,16 +48,12 @@ export function useDashboardSummary() {
       const r = await call({ action: "generate_daily_summary" });
       const d = await r.json();
       if (r.ok && d.summary) {
-        setData(prev => prev && { ...prev, aiReports: { ...prev.aiReports, dailySummary: d.summary, dailySummaryFresh: true } });
+        setData(prev => prev && { ...prev, aiReports: { ...prev.aiReports, dailySummary: d.summary, dailySummaryFresh: true, dailySummaryDate: d.date } });
       }
     } finally {
       setSummaryLoading(false);
     }
   }, []);
-
-  useEffect(() => {
-    if (data && !data.aiReports.dailySummaryFresh) refreshSummary();
-  }, [data === null, refreshSummary]);
 
   const saveCapacity = useCallback(async (capacity: number) => {
     const r = await call({ action: "set_bed_capacity", capacity });
