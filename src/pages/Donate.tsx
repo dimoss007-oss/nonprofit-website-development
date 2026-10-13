@@ -52,7 +52,7 @@ export default function Donate() {
   const [customAmount, setCustomAmount] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const photos = useGalleryPhotos(4);
+  const photos = useGalleryPhotos(4, "donate");
   const [monthly, setMonthly] = useState(false);
   const [justPaid, setJustPaid] = useState(() => new URLSearchParams(window.location.search).get("paid") === "1");
   const [loading, setLoading] = useState(false);

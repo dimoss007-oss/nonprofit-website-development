@@ -46,10 +46,13 @@ export default function HomeHero({ onScrollTo, activeSection, setActiveSection }
   };
 
   useEffect(() => {
-    fetch(GALLERY_URL)
-      .then(r => r.json())
-      .then(d => {
-        const urls: string[] = (d.photos || []).map((p: { photo_url: string }) => p.photo_url).filter(Boolean);
+    const load = (tag?: string) =>
+      fetch(tag ? `${GALLERY_URL}?tag=${tag}` : GALLERY_URL)
+        .then(r => r.json())
+        .then(d => (d.photos || []).map((p: { photo_url: string }) => p.photo_url).filter(Boolean) as string[]);
+    load("main")
+      .then(tagged => (tagged.length >= 2 ? tagged : load()))
+      .then(urls => {
         if (urls.length >= 2) {
           setSlides(shuffle(urls).slice(0, MAX_SLIDES));
           setFromGallery(true);

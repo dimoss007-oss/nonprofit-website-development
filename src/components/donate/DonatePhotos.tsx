@@ -11,17 +11,21 @@ const shuffle = <T,>(arr: T[]): T[] => {
   return a;
 };
 
-export function useGalleryPhotos(limit = 6): string[] {
+const loadUrls = async (tag?: string): Promise<string[]> => {
+  const r = await fetch(tag ? `${GALLERY_URL}?tag=${encodeURIComponent(tag)}` : GALLERY_URL);
+  const d = await r.json();
+  return (d.photos || []).map((p: { photo_url: string }) => p.photo_url).filter(Boolean);
+};
+
+export function useGalleryPhotos(limit = 6, tag?: string): string[] {
   const [photos, setPhotos] = useState<string[]>([]);
   useEffect(() => {
-    fetch(GALLERY_URL)
-      .then((r) => r.json())
-      .then((d) => {
-        const urls: string[] = (d.photos || []).map((p: { photo_url: string }) => p.photo_url).filter(Boolean);
-        setPhotos(shuffle(urls).slice(0, limit));
-      })
-      .catch(() => {});
-  }, [limit]);
+    (async () => {
+      let urls = tag ? await loadUrls(tag) : [];
+      if (urls.length < 3) urls = await loadUrls();
+      setPhotos(shuffle(urls).slice(0, limit));
+    })().catch(() => {});
+  }, [limit, tag]);
   return photos;
 }
 

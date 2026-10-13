@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import Icon from "@/components/ui/icon";
+import { GALLERY_TAGS, tagLabel } from "@/lib/galleryTags";
 
 const GALLERY_URL = "https://functions.poehali.dev/abf6fa73-1b43-4ff7-af96-8b6e8ca2b46a";
 const AUTH_URL = "https://functions.poehali.dev/e6567f16-b3db-4b0d-9c1f-abed808c2ac8";
@@ -11,6 +12,7 @@ interface GalleryPhoto {
   title: string;
   photo_url: string;
   created_at: string;
+  tags?: string[];
 }
 
 function compressAndConvert(file: File, maxWidth = 1600, quality = 0.82): Promise<string> {
@@ -139,6 +141,10 @@ export default function AdminGallery() {
   const [savedCount, setSavedCount] = useState(0);
   const [deleting, setDeleting] = useState<number | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const [uploadTags, setUploadTags] = useState<string[]>([]);
+  const [filterTag, setFilterTag] = useState("all");
+  const [selected, setSelected] = useState<number[]>([]);
+  const [tagBusy, setTagBusy] = useState(false);
 
   const loadPhotos = () => {
     setLoading(true);
@@ -174,7 +180,7 @@ export default function AdminGallery() {
         await fetch(GALLERY_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ photo: b64, title: photoTitle }),
+          body: JSON.stringify({ photo: b64, title: photoTitle, tags: uploadTags }),
         });
         setSavedCount((c) => c + 1);
       }
@@ -184,6 +190,24 @@ export default function AdminGallery() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const toggleUploadTag = (id: string) =>
+    setUploadTags((prev) => (prev.includes(id) ? prev.filter((t) => t !== id) : [...prev, id]));
+
+  const toggleSelect = (id: number) =>
+    setSelected((prev) => (prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]));
+
+  const applyTag = async (tag: string, mode: "add" | "remove") => {
+    if (!selected.length) return;
+    setTagBusy(true);
+    await fetch(GALLERY_URL, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ids: selected, tags: [tag], mode }),
+    });
+    setTagBusy(false);
+    loadPhotos();
   };
 
   const handleDelete = async (id: number) => {
@@ -301,6 +325,18 @@ export default function AdminGallery() {
               )}
             </div>
 
+            <div>
+              <label className="block text-xs uppercase tracking-widest text-ink/50 mb-2">Метки для этих фото (где показывать на сайте)</label>
+              <div className="flex flex-wrap gap-2">
+                {GALLERY_TAGS.map((t) => (
+                  <button key={t.id} type="button" onClick={() => toggleUploadTag(t.id)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${uploadTags.includes(t.id) ? "bg-sage text-white border-sage" : "bg-white text-ink/70 border-beige-dark hover:border-sage"}`}>
+                    #{t.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <button
               type="submit"
               disabled={saving || !pendingFiles.length}
@@ -334,25 +370,70 @@ export default function AdminGallery() {
               <p className="text-foreground/40">Фотографий пока нет</p>
             </div>
           ) : (
-            <div className="grid grid-cols-3 md:grid-cols-4 gap-4">
-              {photos.map((p) => (
-                <div key={p.id} className="relative aspect-square rounded-sm overflow-hidden group">
-                  <img src={p.photo_url} alt={p.title || ""} className="w-full h-full object-cover" />
-                  {p.title && (
-                    <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-xs p-2 truncate opacity-0 group-hover:opacity-100 transition-opacity">
-                      {p.title}
-                    </div>
-                  )}
-                  <button
-                    onClick={() => handleDelete(p.id)}
-                    disabled={deleting === p.id}
-                    className="absolute top-2 right-2 w-8 h-8 bg-black/60 hover:bg-red-600 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all disabled:opacity-40"
-                  >
-                    <Icon name="Trash2" size={14} className="text-white" />
+            <>
+              <div className="flex flex-wrap gap-2 mb-4">
+                {[{ id: "all", label: "Все" }, ...GALLERY_TAGS, { id: "none", label: "Без метки" }].map((t) => (
+                  <button key={t.id} onClick={() => setFilterTag(t.id)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${filterTag === t.id ? "bg-ink text-beige border-ink" : "bg-white text-ink/70 border-beige-dark hover:border-ink"}`}>
+                    {t.id === "all" || t.id === "none" ? t.label : `#${t.label}`}
                   </button>
+                ))}
+              </div>
+
+              {selected.length > 0 && (
+                <div className="sticky top-20 z-20 bg-white border border-sage/40 rounded-sm shadow-md p-4 mb-4 space-y-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-sm text-ink font-medium">Выбрано фото: {selected.length}</p>
+                    <button onClick={() => setSelected([])} className="text-xs text-ink/50 underline">Снять выбор</button>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-xs text-ink/50">Добавить метку:</span>
+                    {GALLERY_TAGS.map((t) => (
+                      <button key={t.id} disabled={tagBusy} onClick={() => applyTag(t.id, "add")}
+                        className="px-3 py-1.5 rounded-full text-xs font-medium bg-sage text-white hover:bg-sage-dark transition-colors disabled:opacity-50">+ #{t.label}</button>
+                    ))}
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-xs text-ink/50">Убрать метку:</span>
+                    {GALLERY_TAGS.map((t) => (
+                      <button key={t.id} disabled={tagBusy} onClick={() => applyTag(t.id, "remove")}
+                        className="px-3 py-1.5 rounded-full text-xs font-medium border border-red-300 text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50">− #{t.label}</button>
+                    ))}
+                  </div>
                 </div>
-              ))}
-            </div>
+              )}
+
+              <div className="grid grid-cols-3 md:grid-cols-4 gap-4">
+                {photos
+                  .filter((p) => filterTag === "all" || (filterTag === "none" ? !(p.tags || []).length : (p.tags || []).includes(filterTag)))
+                  .map((p) => {
+                    const isSel = selected.includes(p.id);
+                    return (
+                      <div key={p.id} className={`relative aspect-square rounded-sm overflow-hidden group ${isSel ? "ring-4 ring-sage" : ""}`}>
+                        <img src={p.photo_url} alt={p.title || ""} className="w-full h-full object-cover" />
+                        <button onClick={() => toggleSelect(p.id)} aria-label="Выбрать фото"
+                          className={`absolute top-2 left-2 w-7 h-7 rounded-full flex items-center justify-center border-2 transition-all ${isSel ? "bg-sage border-sage opacity-100" : "bg-black/40 border-white opacity-0 group-hover:opacity-100"}`}>
+                          {isSel && <Icon name="Check" size={14} className="text-white" />}
+                        </button>
+                        {(p.tags || []).length > 0 && (
+                          <div className="absolute bottom-0 left-0 right-0 p-1.5 flex flex-wrap gap-1 bg-gradient-to-t from-black/70 to-transparent">
+                            {(p.tags || []).map((t) => (
+                              <span key={t} className="text-[10px] leading-none px-1.5 py-1 rounded-full bg-white/90 text-ink">#{tagLabel(t)}</span>
+                            ))}
+                          </div>
+                        )}
+                        <button
+                          onClick={() => handleDelete(p.id)}
+                          disabled={deleting === p.id}
+                          className="absolute top-2 right-2 w-8 h-8 bg-black/60 hover:bg-red-600 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all disabled:opacity-40"
+                        >
+                          <Icon name="Trash2" size={14} className="text-white" />
+                        </button>
+                      </div>
+                    );
+                  })}
+              </div>
+            </>
           )}
         </div>
       </div>
