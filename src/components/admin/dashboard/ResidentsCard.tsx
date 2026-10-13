@@ -25,8 +25,9 @@ export default function ResidentsCard({ data, loading, onSaveCapacity }: Props) 
     <DashboardCard title="Оперативная сводка" icon="Users" iconClass="bg-blue-50 text-blue-600" loading={loading}>
       {data && (
         <div className="space-y-3">
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <Stat label="В стационаре" value={data.totalActive} />
+            <Stat label="Детей с ними" value={data.totalChildren} />
             <Stat label="Свободных мест" value={data.freeBeds ?? "—"} />
             <Stat label="Новые за неделю" value={data.newThisWeek} />
           </div>

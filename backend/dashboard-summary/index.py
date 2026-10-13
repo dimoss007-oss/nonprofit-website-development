@@ -68,11 +68,18 @@ def residents(cur) -> dict:
         FROM {SCHEMA}.patients
     """)
     row = cur.fetchone()
+    cur.execute(f"""
+        SELECT COUNT(*) AS children
+        FROM {SCHEMA}.patient_children c
+        JOIN {SCHEMA}.patients p ON p.id = c.patient_id
+        WHERE p.discharge_date IS NULL AND p.care_stage = 'inpatient'
+    """)
+    children = cur.fetchone()['children']
     cur.execute(f"SELECT bed_capacity FROM {SCHEMA}.crm_settings ORDER BY id LIMIT 1")
     settings = cur.fetchone()
     capacity = settings['bed_capacity'] if settings else None
     free = max(capacity - row['total_active'], 0) if capacity is not None else None
-    return {'totalActive': row['total_active'], 'freeBeds': free, 'newThisWeek': row['new_week']}
+    return {'totalActive': row['total_active'], 'freeBeds': free, 'newThisWeek': row['new_week'], 'totalChildren': children}
 
 
 def finance(cur) -> dict:

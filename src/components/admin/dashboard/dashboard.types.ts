@@ -21,6 +21,7 @@ export interface DashboardSummary {
     totalActive: number;
     freeBeds: number | null;
     newThisWeek: number;
+    totalChildren: number;
   };
   finance: {
     monthlyTotalRub: number;
