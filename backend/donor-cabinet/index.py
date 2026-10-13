@@ -18,6 +18,7 @@ CABINET_POST = {
     "update_profile": cabinet.update_profile,
     "certificate": cabinet.certificate,
     "tax_statement": cabinet.tax_statement,
+    "cancel_subscription": cabinet.cancel_subscription,
 }
 
 CABINET_GET = {
@@ -25,6 +26,7 @@ CABINET_GET = {
     "messages": cabinet.get_messages,
     "feed": cabinet.get_feed,
     "rating": cabinet.get_rating,
+    "subscriptions": cabinet.get_subscriptions,
     "year_summary": cabinet.year_summary,
     "public": lambda cur, conn, event, params: cabinet.public_info(cur, conn, event, params),
 }

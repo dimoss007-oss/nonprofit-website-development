@@ -263,3 +263,37 @@ def public_info(cur, conn, event, params):
         f"SELECT id, title, description, icon, color FROM {SCHEMA}.donor_achievements WHERE is_active ORDER BY sort_order, id"
     )
     return ok({"levels": levels, "achievements": [dict(r) for r in cur.fetchall()]})
+
+
+def get_subscriptions(cur, conn, event, params):
+    account, failed = require_account(cur, event)
+    if failed:
+        return failed
+    cur.execute(
+        f"""SELECT id, amount::float AS amount, card_last4, card_type, status, next_charge_at, created_at, cancelled_at
+            FROM {SCHEMA}.donor_subscriptions
+            WHERE lower(email) = %s AND status IN ('active', 'cancelled')
+            ORDER BY (status = 'active') DESC, created_at DESC LIMIT 20""",
+        (account["email"],),
+    )
+    return ok({"subscriptions": [dict(r) for r in cur.fetchall()]})
+
+
+def cancel_subscription(cur, conn, event, body):
+    account, failed = require_account(cur, event)
+    if failed:
+        return failed
+    try:
+        sub_id = int(body.get("id"))
+    except (TypeError, ValueError):
+        return err("Не указана подписка")
+    cur.execute(
+        f"""UPDATE {SCHEMA}.donor_subscriptions SET status = 'cancelled', cancelled_at = NOW()
+            WHERE id = %s AND lower(email) = %s AND status = 'active'""",
+        (sub_id, account["email"]),
+    )
+    changed = cur.rowcount
+    conn.commit()
+    if not changed:
+        return err("Подписка не найдена или уже отключена", 404)
+    return ok({"cancelled": True})

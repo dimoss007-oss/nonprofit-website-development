@@ -53,6 +53,8 @@ def handler(event: dict, context) -> dict:
 
     if amount < 1:
         return err("Сумма должна быть не менее 1 ₽")
+    if monthly and "@" not in user_email:
+        return err("Для ежемесячного пожертвования укажите email: по нему вы сможете отключить подписку в личном кабинете")
 
     idempotence_key = str(uuid.uuid4())
 

@@ -77,6 +77,7 @@ export default function Donate() {
 
   const handlePay = async () => {
     if (!finalAmount || finalAmount < 1) return;
+    if (monthly && !email.includes("@")) { setError("Для ежемесячного пожертвования укажите email: по нему вы войдёте в кабинет и сможете отключить подписку"); return; }
     setLoading(true);
     setError("");
     try {
@@ -175,7 +176,7 @@ export default function Donate() {
                 <input type="text" placeholder="Ваше имя (необязательно)"
                   value={name} onChange={e => setName(e.target.value)}
                   className="w-full border border-sage/20 text-ink placeholder-foreground/40 px-3 py-2.5 rounded-lg focus:outline-none focus:border-sage text-sm" />
-                <input type="email" placeholder="Email для квитанции (необязательно)"
+                <input type="email" placeholder={monthly ? "Email (обязательно для подписки)" : "Email для квитанции (необязательно)"}
                   value={email} onChange={e => setEmail(e.target.value)}
                   className="w-full border border-sage/20 text-ink placeholder-foreground/40 px-3 py-2.5 rounded-lg focus:outline-none focus:border-sage text-sm" />
               </div>
@@ -189,7 +190,7 @@ export default function Donate() {
                 </div>
                 <div>
                   <span className="text-sm font-medium text-ink">Ежемесячное пожертвование</span>
-                  <p className="text-xs text-foreground/50 mt-0.5">Регулярная поддержка позволяет планировать работу центра</p>
+                  <p className="text-xs text-foreground/50 mt-0.5">Регулярная поддержка позволяет планировать работу центра. Отключить подписку и отвязать карту можно в любой момент в <a href="/cabinet" className="underline">личном кабинете</a></p>
                 </div>
               </label>
 

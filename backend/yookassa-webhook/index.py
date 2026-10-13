@@ -1,7 +1,9 @@
 import json
 import os
 import base64
+import calendar
 import psycopg2
+from datetime import datetime
 from urllib.request import urlopen, Request
 
 YOOKASSA_API = "https://api.yookassa.ru/v3/payments"
@@ -15,6 +17,38 @@ CORS = {
 
 def get_conn():
     return psycopg2.connect(os.environ["DATABASE_URL"])
+
+
+def add_month(dt: datetime) -> datetime:
+    month = dt.month % 12 + 1
+    year = dt.year + (1 if dt.month == 12 else 0)
+    day = min(dt.day, calendar.monthrange(year, month)[1])
+    return dt.replace(year=year, month=month, day=day)
+
+
+def save_subscription(cur, schema: str, payment: dict, payment_id: str):
+    meta = payment.get("metadata") or {}
+    method = payment.get("payment_method") or {}
+    email = str(meta.get("user_email", "")).strip().lower()
+    if meta.get("subscription_id") or str(meta.get("monthly")) != "True":
+        return
+    if not email or not method.get("saved") or not method.get("id"):
+        return
+    card = method.get("card") or {}
+    cur.execute(
+        f"SELECT referrer_code FROM {schema}.orders WHERE order_comment LIKE %s LIMIT 1",
+        (f"yookassa:{payment_id}%",),
+    )
+    row = cur.fetchone()
+    cur.execute(
+        f"""INSERT INTO {schema}.donor_subscriptions
+            (email, user_name, amount, payment_method_id, first_payment_id, card_last4, card_type,
+             status, next_charge_at, last_charge_at, referrer_code)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, 'active', %s, NOW(), %s)
+            ON CONFLICT (first_payment_id) DO NOTHING""",
+        (email, str(meta.get("user_name") or "Аноним")[:255], float(payment["amount"]["value"]), method["id"],
+         payment_id, card.get("last4"), card.get("card_type"), add_month(datetime.utcnow()), row[0] if row else None),
+    )
 
 
 def handler(event: dict, context) -> dict:
@@ -58,6 +92,12 @@ def handler(event: dict, context) -> dict:
             WHERE order_comment LIKE %s AND status = 'pending'""",
         (new_status, new_status, f"yookassa:{payment_id}%")
     )
+    meta = payment.get("metadata") or {}
+    if meta.get("subscription_id"):
+        if status == "succeeded":
+            cur.execute(f"UPDATE {schema}.donor_subscriptions SET fail_count = 0, last_error = NULL WHERE id = %s", (int(meta["subscription_id"]),))
+    if status == "succeeded":
+        save_subscription(cur, schema, payment, payment_id)
     conn.commit()
     cur.close()
     conn.close()

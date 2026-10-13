@@ -4,6 +4,7 @@ import CabinetLogin from "@/components/cabinet/CabinetLogin";
 import CabinetOverview from "@/components/cabinet/CabinetOverview";
 import CabinetAchievements from "@/components/cabinet/CabinetAchievements";
 import CabinetRating from "@/components/cabinet/CabinetRating";
+import CabinetSubscription from "@/components/cabinet/CabinetSubscription";
 import CabinetYear from "@/components/cabinet/CabinetYear";
 import { CabinetFeed, CabinetMessages } from "@/components/cabinet/CabinetInbox";
 import { CabinetDocs, CabinetProfile } from "@/components/cabinet/CabinetProfileDocs";
@@ -17,6 +18,7 @@ const TABS = [
   { id: "messages", label: "Сообщения", icon: "Mail" },
   { id: "feed", label: "Для своих", icon: "Newspaper" },
   { id: "rating", label: "Рейтинг", icon: "Trophy" },
+  { id: "subscription", label: "Подписка", icon: "Repeat" },
   { id: "year", label: "Итог года", icon: "Sparkles" },
   { id: "docs", label: "Документы", icon: "FileText" },
   { id: "profile", label: "Профиль", icon: "UserCog" },
@@ -105,6 +107,7 @@ export default function Cabinet() {
             {tab === "messages" && <CabinetMessages onRead={load} />}
             {tab === "feed" && <CabinetFeed />}
             {tab === "rating" && <CabinetRating />}
+            {tab === "subscription" && <CabinetSubscription />}
             {tab === "year" && <CabinetYear years={data.years_available} />}
             {tab === "docs" && <CabinetDocs data={data} />}
             {tab === "profile" && <CabinetProfile data={data} onSaved={load} />}
