@@ -12,6 +12,7 @@ export default function CabinetSubscription() {
   const [confirmId, setConfirmId] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
 
   const load = useCallback(async () => {
     try { setItems((await cabinetGet<{ subscriptions: Subscription[] }>("subscriptions")).subscriptions); }
@@ -42,10 +43,22 @@ export default function CabinetSubscription() {
       {error && <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{error}</p>}
 
       {active.length === 0 && (
-        <div className="bg-white border border-beige-dark rounded-2xl p-6 text-center space-y-3">
-          <Icon name="HeartHandshake" size={28} className="mx-auto text-ink/40" />
-          <p className="text-sm text-ink/60">Активных ежемесячных подписок нет</p>
-          <a href="/donate" className="inline-block px-4 py-2 rounded-xl bg-sage text-white text-sm font-semibold hover:bg-sage-dark transition-colors">Оформить подписку</a>
+        <div className="bg-white border border-beige-dark rounded-2xl p-5 space-y-4">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-base font-semibold text-ink">Активных ежемесячных подписок нет</p>
+              <p className="text-sm text-ink/60 mt-1 flex items-center gap-1.5"><Icon name="CreditCard" size={14} />Привязанных карт нет</p>
+            </div>
+            <span className="text-xs px-2.5 py-1 rounded-full bg-beige-mid text-ink/60 border border-beige-dark">Не подключена</span>
+          </div>
+          {notice && <p className="text-sm text-ink/70 bg-beige-mid rounded-lg px-3 py-2">{notice}</p>}
+          <div className="flex gap-2 flex-wrap">
+            <button onClick={() => setNotice("Отключать нечего: у вас нет активных подписок. Если вы оформите ежемесячное пожертвование, здесь появится кнопка отключения, и действовать она будет сразу.")}
+              className="px-4 py-2 rounded-xl border border-red-300 text-red-600 text-sm font-semibold hover:bg-red-50 transition-colors flex items-center gap-1.5">
+              <Icon name="Unlink" size={14} />Отключить подписку и отвязать карту
+            </button>
+            <a href="/donate" className="px-4 py-2 rounded-xl bg-sage text-white text-sm font-semibold hover:bg-sage-dark transition-colors">Оформить подписку</a>
+          </div>
         </div>
       )}
 
