@@ -55,7 +55,10 @@ export default function Donate() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [goals, setGoals] = useState<FundraisingGoal[]>([]);
-  const [activeGoal, setActiveGoal] = useState<FundraisingGoal | null>(null);
+  const [activeGoalId, setActiveGoalId] = useState<number | null>(null);
+  const activeGoal = goals.find(g => g.id === activeGoalId) || null;
+  const handleGoalPaid = (value: number) =>
+    setGoals(prev => prev.map(g => g.id === activeGoalId ? { ...g, collected_amount: g.collected_amount + value } : g));
   const [selectedNeed, setSelectedNeed] = useState<number | null>(null);
   const [referrerCode] = useState(() => {
     const fromUrl = new URLSearchParams(window.location.search).get("ref");
@@ -220,7 +223,7 @@ export default function Donate() {
               <div className="bg-white rounded-2xl shadow-sm p-6">
                 <h3 className="font-cormorant text-ink text-xl font-semibold mb-4">Текущие цели</h3>
                 <div className="space-y-5">
-                  {goals.map(g => <GoalProgress key={g.id} goal={g} onSelect={setActiveGoal} />)}
+                  {goals.map(g => <GoalProgress key={g.id} goal={g} onSelect={(g) => setActiveGoalId(g.id)} />)}
                 </div>
               </div>
             )}
@@ -247,7 +250,8 @@ export default function Donate() {
 
       <TargetDonationModal
         open={!!activeGoal}
-        onClose={() => setActiveGoal(null)}
+        onClose={() => setActiveGoalId(null)}
+        onPaid={handleGoalPaid}
         goalId={activeGoal?.id}
         title={activeGoal?.title || ""}
         currentAmount={activeGoal?.collected_amount || 0}

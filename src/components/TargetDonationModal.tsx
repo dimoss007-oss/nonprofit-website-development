@@ -9,6 +9,7 @@ const QUICK_AMOUNTS = [300, 500, 1000];
 interface TargetDonationModalProps {
   open: boolean;
   onClose: () => void;
+  onPaid?: (amount: number) => void;
   goalId?: number;
   title: string;
   currentAmount: number;
@@ -19,7 +20,7 @@ type Stage = "form" | "qr" | "paid";
 
 const fmt = (n: number) => `${Math.round(n).toLocaleString("ru")} ₽`;
 
-export default function TargetDonationModal({ open, onClose, goalId, title, currentAmount, targetAmount }: TargetDonationModalProps) {
+export default function TargetDonationModal({ open, onClose, onPaid, goalId, title, currentAmount, targetAmount }: TargetDonationModalProps) {
   const [amount, setAmount] = useState<number>(500);
   const [custom, setCustom] = useState("");
   const [email, setEmail] = useState("");
@@ -52,7 +53,7 @@ export default function TargetDonationModal({ open, onClose, goalId, title, curr
       try {
         const r = await fetch(`${YOOKASSA_URL}?payment_id=${paymentId}`);
         const d = await r.json();
-        if (d.status === "succeeded") { stopPolling(); setStage("paid"); }
+        if (d.status === "succeeded") { stopPolling(); setStage("paid"); onPaid?.(finalAmount); }
         if (d.status === "canceled") { stopPolling(); setStage("form"); setError("Платёж не прошёл. Попробуйте ещё раз."); }
       } catch { /* повторим на следующем тике */ }
     }, 3000);
