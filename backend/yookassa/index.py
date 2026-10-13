@@ -33,13 +33,28 @@ def handler(event: dict, context) -> dict:
     if event.get("httpMethod") == "OPTIONS":
         return {"statusCode": 200, "headers": CORS, "body": ""}
 
-    if event.get("httpMethod") != "POST":
-        return err("Method not allowed", 405)
-
     shop_id = os.environ.get("YOOKASSA_SHOP_ID", "")
     secret_key = os.environ.get("YOOKASSA_SECRET_KEY", "")
     if not shop_id or not secret_key:
         return err("ЮКасса не настроена", 500)
+
+    if event.get("httpMethod") == "GET":
+        payment_id = (event.get("queryStringParameters") or {}).get("payment_id", "")
+        if not payment_id:
+            return err("Не указан платёж")
+        check = Request(
+            f"{YOOKASSA_API}/{payment_id}",
+            headers={"Authorization": "Basic " + base64.b64encode(f"{shop_id}:{secret_key}".encode()).decode()},
+            method="GET",
+        )
+        try:
+            with urlopen(check) as resp:
+                return ok({"status": json.loads(resp.read().decode()).get("status")})
+        except HTTPError:
+            return err("Не удалось проверить платёж", 502)
+
+    if event.get("httpMethod") != "POST":
+        return err("Method not allowed", 405)
 
     body = json.loads(event.get("body") or "{}")
     amount = float(body.get("amount", 0))
@@ -48,11 +63,17 @@ def handler(event: dict, context) -> dict:
     success_url = str(body.get("success_url", "")).strip()
     monthly = bool(body.get("monthly", False))
     referrer_code = "".join(ch for ch in str(body.get("referrer_code", "")).upper() if ch.isalnum())[:16] or None
+    goal_title = str(body.get("goal_title", "")).strip()[:80]
+    use_qr = body.get("payment_method") == "sbp_qr"
     description_base = "Пожертвование АНО Спасение надежды"
     description = (f"Ежемесячное {description_base.lower()}" if monthly else description_base)
+    if goal_title:
+        description = f"Благотворительное пожертвование: {goal_title}"
 
     if amount < 1:
         return err("Сумма должна быть не менее 1 ₽")
+    if use_qr:
+        monthly = False
     if monthly and "@" not in user_email:
         return err("Для ежемесячного пожертвования укажите email: по нему вы сможете отключить подписку в личном кабинете")
 
@@ -74,11 +95,17 @@ def handler(event: dict, context) -> dict:
         },
     }
 
+    if use_qr:
+        payload["payment_method_data"] = {"type": "sbp"}
+        payload["confirmation"] = {"type": "qr", "return_url": success_url or "https://spasenienadezhdi.ru/donate"}
+    if goal_title:
+        payload["metadata"]["goal_title"] = goal_title
+
     if user_email:
         payload["receipt"] = {
             "customer": {"email": user_email},
             "items": [{
-                "description": description,
+                "description": description[:128],
                 "quantity": "1.00",
                 "amount": {"value": f"{amount:.2f}", "currency": "RUB"},
                 "vat_code": 1,
@@ -111,7 +138,9 @@ def handler(event: dict, context) -> dict:
         return err("Не удалось создать платёж. Попробуйте ещё раз чуть позже", 502)
 
     payment_id = data.get("id")
-    confirmation_url = data.get("confirmation", {}).get("confirmation_url", "")
+    confirmation = data.get("confirmation", {})
+    confirmation_url = confirmation.get("confirmation_url", "")
+    qr_data = confirmation.get("confirmation_data", "")
 
     # Сохраняем платёж в БД
     schema = os.environ.get("MAIN_DB_SCHEMA", "public")
@@ -123,7 +152,7 @@ def handler(event: dict, context) -> dict:
             f"""INSERT INTO {schema}.orders
                 (order_number, user_name, user_email, user_phone, amount, status, order_comment, referrer_code)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""",
-            (order_number, user_name, user_email or None, None, round(amount, 2), "pending", f"yookassa:{payment_id}{'|monthly' if monthly else ''}", referrer_code)
+            (order_number, user_name, user_email or None, None, round(amount, 2), "pending", f"yookassa:{payment_id}{'|monthly' if monthly else ''}{'|goal:' + goal_title if goal_title else ''}", referrer_code)
         )
         conn.commit()
         cur.close()
@@ -131,4 +160,4 @@ def handler(event: dict, context) -> dict:
     except Exception:
         pass
 
-    return ok({"payment_url": confirmation_url, "payment_id": payment_id})
+    return ok({"payment_url": confirmation_url, "qr_data": qr_data, "payment_id": payment_id})

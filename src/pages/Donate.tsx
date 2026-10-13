@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import Icon from "@/components/ui/icon";
+import TargetDonationModal from "@/components/TargetDonationModal";
 import { FundraisingGoal, FUNDRAISING_URL, fmt } from "@/components/admin/fundraising.types";
 
 const YOOKASSA_URL = "https://functions.poehali.dev/96a24ba0-1990-499e-97df-59219cdda4af";
@@ -16,13 +17,14 @@ const NEEDS = [
 
 const AMOUNTS = [300, 500, 1000, 3000, 5000, 10000];
 
-function GoalProgress({ goal }: { goal: FundraisingGoal }) {
+function GoalProgress({ goal, onSelect }: { goal: FundraisingGoal; onSelect: (g: FundraisingGoal) => void }) {
   const pct = goal.target_amount > 0
     ? Math.min(100, Math.round((goal.collected_amount / goal.target_amount) * 100))
     : 0;
   return (
-    <div className="space-y-1.5">
-      <div className="flex items-center justify-between text-sm">
+    <button type="button" onClick={() => onSelect(goal)}
+      className="group w-full text-left space-y-1.5 p-3 -m-3 rounded-xl cursor-pointer hover:bg-beige-mid/60 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-sage">
+      <div className="flex items-center justify-between gap-2 text-sm">
         <span className="font-medium text-ink">{goal.title}</span>
         <span className="text-ink/50 text-xs">{pct}%</span>
       </div>
@@ -37,7 +39,10 @@ function GoalProgress({ goal }: { goal: FundraisingGoal }) {
         <span>{fmt(goal.collected_amount)} собрано</span>
         <span>цель: {fmt(goal.target_amount)}</span>
       </div>
-    </div>
+      <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-sage group-hover:text-sage-dark transition-colors">
+        <Icon name="Heart" size={13} />Поддержать
+      </span>
+    </button>
   );
 }
 
@@ -50,6 +55,7 @@ export default function Donate() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [goals, setGoals] = useState<FundraisingGoal[]>([]);
+  const [activeGoal, setActiveGoal] = useState<FundraisingGoal | null>(null);
   const [selectedNeed, setSelectedNeed] = useState<number | null>(null);
   const [referrerCode] = useState(() => {
     const fromUrl = new URLSearchParams(window.location.search).get("ref");
@@ -214,7 +220,7 @@ export default function Donate() {
               <div className="bg-white rounded-2xl shadow-sm p-6">
                 <h3 className="font-cormorant text-ink text-xl font-semibold mb-4">Текущие цели</h3>
                 <div className="space-y-5">
-                  {goals.map(g => <GoalProgress key={g.id} goal={g} />)}
+                  {goals.map(g => <GoalProgress key={g.id} goal={g} onSelect={setActiveGoal} />)}
                 </div>
               </div>
             )}
@@ -238,6 +244,14 @@ export default function Donate() {
 
         </div>
       </div>
+
+      <TargetDonationModal
+        open={!!activeGoal}
+        onClose={() => setActiveGoal(null)}
+        title={activeGoal?.title || ""}
+        currentAmount={activeGoal?.collected_amount || 0}
+        targetAmount={activeGoal?.target_amount || 0}
+      />
     </div>
   );
 }
