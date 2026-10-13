@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import Icon from "@/components/ui/icon";
+import { PhotoQuote, PhotoStrip, useGalleryPhotos } from "@/components/donate/DonatePhotos";
 import TargetDonationModal from "@/components/TargetDonationModal";
 import { FundraisingGoal, FUNDRAISING_URL, fmt } from "@/components/admin/fundraising.types";
 
@@ -51,6 +52,7 @@ export default function Donate() {
   const [customAmount, setCustomAmount] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const photos = useGalleryPhotos(4);
   const [monthly, setMonthly] = useState(false);
   const [justPaid, setJustPaid] = useState(() => new URLSearchParams(window.location.search).get("paid") === "1");
   const [loading, setLoading] = useState(false);
@@ -162,6 +164,8 @@ export default function Donate() {
           <span className="hidden sm:inline-flex items-center gap-1.5 text-sm font-semibold text-sage group-hover:text-sage-dark whitespace-nowrap">Войти<Icon name="ArrowRight" size={15} /></span>
         </a>
 
+        <PhotoStrip photos={photos} />
+
         {/* На что идут деньги */}
         <div>
           <h2 className="font-cormorant text-ink text-2xl font-semibold mb-1">На что идут ваши средства</h2>
@@ -248,6 +252,8 @@ export default function Donate() {
                 </div>
               </div>
             )}
+
+            <PhotoQuote photo={photos[3]} />
 
             <div className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
               <h3 className="font-cormorant text-ink text-xl font-semibold">Почему это важно</h3>
