@@ -9,7 +9,7 @@ import time
 from datetime import date, datetime
 from decimal import Decimal
 from email.mime.text import MIMEText
-from email.utils import formataddr
+from email.utils import formataddr, formatdate, make_msgid
 
 import psycopg2
 
@@ -270,7 +270,12 @@ def send_mail(server, to_email: str, subject: str, body: str, org_name: str):
     sender = ascii_addr(os.environ["SMTP_USER"])
     msg["From"] = formataddr((org_name, sender))
     msg["To"] = to_email
-    server.sendmail(sender, [to_email], msg.as_string())
+    msg["Date"] = formatdate(localtime=False)
+    msg["Message-ID"] = make_msgid(domain=sender.rpartition("@")[2] or None)
+    refused = server.sendmail(sender, [to_email], msg.as_string())
+    if refused:
+        raise smtplib.SMTPRecipientsRefused(refused)
+    print(f"mail accepted by smtp server for {to_email}, message-id={msg['Message-ID']}")
 
 
 def process_queue(cur, conn, budget_seconds: float = 3.0) -> dict:
