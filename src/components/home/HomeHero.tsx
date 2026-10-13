@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Icon from "@/components/ui/icon";
 import SiteNav from "@/components/shared/SiteNav";
 
@@ -34,6 +34,16 @@ export default function HomeHero({ onScrollTo, activeSection, setActiveSection }
   const [slideIndex, setSlideIndex] = useState(0);
   const [slides, setSlides] = useState<string[]>(FALLBACK_IMGS);
   const [fromGallery, setFromGallery] = useState(false);
+  const touchStartX = useRef<number | null>(null);
+
+  const onTouchStart = (e: React.TouchEvent) => { touchStartX.current = e.touches[0].clientX; };
+  const onTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    touchStartX.current = null;
+    if (Math.abs(dx) < 40) return;
+    setSlideIndex(i => (dx < 0 ? (i + 1) % slides.length : (i - 1 + slides.length) % slides.length));
+  };
 
   useEffect(() => {
     fetch(GALLERY_URL)
@@ -54,7 +64,7 @@ export default function HomeHero({ onScrollTo, activeSection, setActiveSection }
       setSlideIndex(i => (i + 1) % slides.length);
     }, 5000);
     return () => clearInterval(timer);
-  }, [slides.length]);
+  }, [slides.length, slideIndex]);
 
   return (
     <>
@@ -110,7 +120,9 @@ export default function HomeHero({ onScrollTo, activeSection, setActiveSection }
           <div className="animate-fade-up delay-300 relative">
             <div
               className="relative rounded-2xl overflow-hidden shadow-2xl"
-              style={{ aspectRatio: "4/3" }}
+              style={{ aspectRatio: "4/3", touchAction: "pan-y" }}
+              onTouchStart={onTouchStart}
+              onTouchEnd={onTouchEnd}
               role="img"
               aria-label="Фотографии кризисного центра Спасение надежды"
             >
