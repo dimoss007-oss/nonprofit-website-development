@@ -141,6 +141,17 @@ export default function Donate() {
 
       <div className="max-w-4xl mx-auto px-4 py-10 space-y-10">
 
+        <a href="/cabinet" className="flex items-center gap-4 bg-white border border-sage/30 rounded-2xl p-4 sm:p-5 shadow-sm hover:border-sage transition-colors group">
+          <div className="w-11 h-11 rounded-xl bg-sage/15 flex items-center justify-center flex-shrink-0">
+            <Icon name="UserRound" size={22} className="text-sage" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold text-ink text-sm sm:text-base">После пожертвования вам доступен личный кабинет</p>
+            <p className="text-xs sm:text-sm text-ink/60 mt-0.5">История помощи, сертификат благодарности, справка для налогового вычета, управление ежемесячной подпиской. Вход по коду на вашу почту.</p>
+          </div>
+          <span className="hidden sm:inline-flex items-center gap-1.5 text-sm font-semibold text-sage group-hover:text-sage-dark whitespace-nowrap">Войти<Icon name="ArrowRight" size={15} /></span>
+        </a>
+
         {/* На что идут деньги */}
         <div>
           <h2 className="font-cormorant text-ink text-2xl font-semibold mb-1">На что идут ваши средства</h2>

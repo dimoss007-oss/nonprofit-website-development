@@ -157,7 +157,12 @@ export default function TargetDonationModal({ open, onClose, onPaid, goalId, tit
             <div className="w-14 h-14 rounded-full bg-sage/15 mx-auto flex items-center justify-center"><Icon name="HeartHandshake" size={28} className="text-sage" /></div>
             <p className="font-cormorant text-ink text-2xl font-semibold">Спасибо за помощь!</p>
             <p className="text-sm text-ink/60">Пожертвование {fmt(finalAmount)} на «{title}» получено.</p>
-            <button onClick={onClose} className="px-5 py-2.5 rounded-lg bg-sage text-white text-sm font-semibold hover:bg-sage-dark transition-colors">Закрыть</button>
+            <div className="text-left bg-beige-mid rounded-xl p-4 space-y-2">
+              <p className="text-sm font-semibold text-ink flex items-center gap-1.5"><Icon name="UserRound" size={15} />Ваш личный кабинет</p>
+              <p className="text-xs text-ink/60 leading-relaxed">Там история пожертвований, сертификат благодарности, справка для налогового вычета и награды. Вход по коду, который придёт на {email.trim() || "вашу почту"}.</p>
+              <a href="/cabinet" className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-ink text-beige text-sm font-semibold hover:opacity-90 transition-opacity">Перейти в личный кабинет<Icon name="ArrowRight" size={14} /></a>
+            </div>
+            <button onClick={onClose} className="text-sm text-ink/50 underline">Закрыть</button>
           </div>
         )}
       </DialogContent>
