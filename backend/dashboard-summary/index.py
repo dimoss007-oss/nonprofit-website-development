@@ -2,9 +2,11 @@ import json
 import os
 import hmac
 import hashlib
+import re
 from datetime import date, datetime, timezone
 
 import psycopg2
+import requests
 from psycopg2.extras import RealDictCursor
 
 SCHEMA = os.environ.get('MAIN_DB_SCHEMA', 'public')
@@ -20,10 +22,16 @@ ALERT_PATTERN = (
     'угроз(а|ы|ож) (жизни|себе|окруж)|рецидив|тяжёлый срыв|тяжелый срыв'
 )
 ALERT_DAYS = 3
-DAILY_SUMMARY_PLACEHOLDER = (
-    'Сводка за сутки: Общий эмоциональный фон стабильный. Дежурство прошло без происшествий, '
-    'правила проживания не нарушались. У двух новых семей отмечается положительная динамика в адаптации.'
+YANDEX_GPT_URL = "https://llm.api.cloud.yandex.net/foundationModels/v1/completion"
+SUMMARY_SYSTEM_PROMPT = (
+    "Ты помощник руководителя реабилитационного центра для женщин. По отчётам смены и психолога за сутки "
+    "напиши короткую сводку на русском языке: 2-3 предложения, начни со слов «Сводка за сутки:». "
+    "Опиши общий эмоциональный фон, были ли происшествия или нарушения правил, и заметную динамику. "
+    "Используй только факты из текста, ничего не выдумывай. Не называй имён, диагнозов и не давай оценок риска. "
+    "Если данных мало, так и скажи."
 )
+NO_DATA_SUMMARY = "Сводка за сутки: отчётов от дежурных и психологов за последние сутки не поступало."
+CHUNK_LIMIT = 700
 TASKS_LIMIT = 5
 TREND_TOLERANCE = 0.05
 
@@ -143,7 +151,83 @@ def ai_reports(cur) -> dict:
           AND LOWER(r.report_text) ~ %s
     """, (ALERT_PATTERN,))
     alerts = [f"Тревожные маркеры в отчёте психолога: {r['name']}" for r in cur.fetchall()]
-    return {'weeklyDigestStatus': digest, 'criticalAlerts': alerts, 'dailySummary': DAILY_SUMMARY_PLACEHOLDER}
+    cur.execute(f"""
+        SELECT summary_text, (summary_date = CURRENT_DATE) AS fresh
+        FROM {SCHEMA}.ai_daily_summaries ORDER BY summary_date DESC LIMIT 1
+    """)
+    cached = cur.fetchone()
+    summary_text = cached['summary_text'] if cached else ''
+    fresh = bool(cached and cached['fresh'])
+    return {'weeklyDigestStatus': digest, 'criticalAlerts': alerts, 'dailySummary': summary_text, 'dailySummaryFresh': fresh}
+
+
+def collect_day_texts(cur) -> list:
+    cur.execute(f"SELECT first_name, last_name, middle_name, alias FROM {SCHEMA}.patients")
+    names = set()
+    for p in cur.fetchall():
+        for v in p.values():
+            if v and len(v.strip()) > 1:
+                names.add(v.strip())
+
+    def clean(text: str) -> str:
+        out = (text or '').strip()
+        for n in sorted(names, key=len, reverse=True):
+            out = re.sub(re.escape(n), '[резидент]', out, flags=re.IGNORECASE)
+        return out[:CHUNK_LIMIT]
+
+    texts = []
+    cur.execute(f"SELECT log_text FROM {SCHEMA}.shift_logs WHERE report_date >= CURRENT_DATE - 1 AND log_text <> ''")
+    texts += [('Журнал смены', r['log_text']) for r in cur.fetchall()]
+    cur.execute(f"SELECT notes FROM {SCHEMA}.patient_daily_reports WHERE report_date >= CURRENT_DATE - 1 AND COALESCE(notes, '') <> ''")
+    texts += [('Отчёт дежурного', r['notes']) for r in cur.fetchall()]
+    cur.execute(f"SELECT report_text FROM {SCHEMA}.psychologist_reports WHERE report_date >= CURRENT_DATE - 1")
+    texts += [('Отчёт психолога', r['report_text']) for r in cur.fetchall()]
+    return [f"{label}: {clean(t)}" for label, t in texts if clean(t)]
+
+
+def ask_gpt(material: str):
+    folder_id = (os.environ.get('YANDEX_FOLDER_ID') or '').strip()
+    api_key = (os.environ.get('YANDEX_API_KEY') or '').strip()
+    if not folder_id or not api_key:
+        return None
+    payload = {
+        'modelUri': f'gpt://{folder_id}/yandexgpt/latest',
+        'completionOptions': {'stream': False, 'temperature': 0.2, 'maxTokens': 300},
+        'messages': [
+            {'role': 'system', 'text': SUMMARY_SYSTEM_PROMPT},
+            {'role': 'user', 'text': material},
+        ],
+    }
+    try:
+        r = requests.post(
+            YANDEX_GPT_URL,
+            headers={'Content-Type': 'application/json', 'Authorization': f'Api-Key {api_key}'},
+            json=payload, timeout=40,
+        )
+        if not r.ok:
+            print(f'YandexGPT HTTP {r.status_code}: {r.text[:300]}')
+            return None
+        return r.json()['result']['alternatives'][0]['message']['text'].strip()
+    except Exception as e:
+        print(f'YandexGPT error: {e}')
+        return None
+
+
+def generate_daily_summary(cur) -> dict:
+    texts = collect_day_texts(cur)
+    if not texts:
+        summary = NO_DATA_SUMMARY
+    else:
+        summary = ask_gpt('\n\n'.join(texts)[:6000])
+        if not summary:
+            return {'ok': False, 'error': 'Не удалось получить ответ нейросети'}
+    cur.execute(
+        f"""INSERT INTO {SCHEMA}.ai_daily_summaries (summary_date, summary_text, created_at)
+            VALUES (CURRENT_DATE, %s, NOW())
+            ON CONFLICT (summary_date) DO UPDATE SET summary_text = EXCLUDED.summary_text, created_at = NOW()""",
+        (summary,),
+    )
+    return {'ok': True, 'summary': summary}
 
 
 def system(cur) -> dict:
@@ -160,8 +244,8 @@ def handler(event: dict, context) -> dict:
     body = json.loads(event.get('body') or '{}')
     action = body.get('action') or (event.get('queryStringParameters') or {}).get('action', '')
 
-    if action not in ('get_dashboard_summary', 'set_bed_capacity'):
-        return resp(400, {'error': 'Неизвестное действие', 'availableActions': ['get_dashboard_summary', 'set_bed_capacity']})
+    if action not in ('get_dashboard_summary', 'set_bed_capacity', 'generate_daily_summary'):
+        return resp(400, {'error': 'Неизвестное действие', 'availableActions': ['get_dashboard_summary', 'set_bed_capacity', 'generate_daily_summary']})
 
     conn = psycopg2.connect(os.environ['DATABASE_URL'])
     conn.autocommit = True
@@ -169,6 +253,11 @@ def handler(event: dict, context) -> dict:
     if not is_admin(cur, body.get('auth_login', ''), body.get('auth_password', '')):
         conn.close()
         return resp(403, {'error': 'Доступ только для администратора'})
+
+    if action == 'generate_daily_summary':
+        result = generate_daily_summary(cur)
+        conn.close()
+        return resp(200 if result['ok'] else 502, result)
 
     if action == 'set_bed_capacity':
         try:

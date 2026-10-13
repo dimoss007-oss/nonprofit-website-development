@@ -24,6 +24,7 @@ export interface DashboardSummary {
     weeklyDigestStatus: "ready" | "pending" | "error";
     criticalAlerts: string[];
     dailySummary: string;
+    dailySummaryFresh: boolean;
   };
   system: {
     lastVkSync: string | null;

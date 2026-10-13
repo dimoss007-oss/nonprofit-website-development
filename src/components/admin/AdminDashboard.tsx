@@ -7,7 +7,7 @@ import AiReportsCard from "@/components/admin/dashboard/AiReportsCard";
 import SystemCard from "@/components/admin/dashboard/SystemCard";
 
 export default function AdminDashboard() {
-  const { data, loading, error, reload, saveCapacity } = useDashboardSummary();
+  const { data, loading, error, reload, saveCapacity, summaryLoading, refreshSummary } = useDashboardSummary();
 
   if (error) {
     return (
@@ -28,7 +28,7 @@ export default function AdminDashboard() {
       <FinanceCard data={data?.finance} loading={loading} />
       <SystemCard data={data?.system} loading={loading} />
       <TasksCard data={data?.tasks} loading={loading} />
-      <AiReportsCard data={data?.aiReports} loading={loading} />
+      <AiReportsCard data={data?.aiReports} loading={loading} summaryLoading={summaryLoading} onRefresh={refreshSummary} />
     </div>
   );
 }

@@ -8,7 +8,14 @@ const DIGEST = {
   error: { text: "Ошибка генерации", tone: "bad" as const },
 };
 
-export default function AiReportsCard({ data, loading }: { data?: DashboardSummary["aiReports"]; loading: boolean }) {
+interface Props {
+  data?: DashboardSummary["aiReports"];
+  loading: boolean;
+  summaryLoading: boolean;
+  onRefresh: () => void;
+}
+
+export default function AiReportsCard({ data, loading, summaryLoading, onRefresh }: Props) {
   const digest = data ? DIGEST[data.weeklyDigestStatus] : null;
 
   return (
@@ -32,11 +39,21 @@ export default function AiReportsCard({ data, loading }: { data?: DashboardSumma
               </div>
             ))
           )}
-          {data.dailySummary && (
+          {summaryLoading && !data.dailySummary ? (
+            <p className="text-sm italic text-gray-400 border-l-2 border-beige-dark pl-3 pt-1">Нейросеть готовит сводку за сутки...</p>
+          ) : data.dailySummary ? (
             <p className="text-sm italic text-gray-600 border-l-2 border-beige-dark pl-3 pt-1 leading-relaxed">
               {data.dailySummary}
             </p>
-          )}
+          ) : null}
+          <button
+            onClick={onRefresh}
+            disabled={summaryLoading}
+            className="flex items-center gap-1 text-xs text-ink/50 hover:text-ink disabled:opacity-50"
+          >
+            <Icon name="RefreshCw" size={12} className={summaryLoading ? "animate-spin" : ""} />
+            Обновить сводку
+          </button>
         </div>
       )}
     </DashboardCard>
