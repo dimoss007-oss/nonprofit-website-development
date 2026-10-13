@@ -240,6 +240,17 @@ def smtp_configured() -> bool:
     return all(os.environ.get(k) for k in ("SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASSWORD"))
 
 
+def ascii_addr(addr: str) -> str:
+    local, sep, domain = (addr or "").strip().rpartition("@")
+    if not sep:
+        return addr
+    try:
+        domain = domain.encode("idna").decode("ascii")
+    except UnicodeError:
+        pass
+    return f"{local}@{domain}"
+
+
 def open_smtp():
     host = os.environ["SMTP_HOST"]
     port = int(os.environ["SMTP_PORT"])
@@ -249,16 +260,17 @@ def open_smtp():
     else:
         server = smtplib.SMTP(host, port, timeout=8)
         server.starttls(context=context)
-    server.login(os.environ["SMTP_USER"], os.environ["SMTP_PASSWORD"])
+    server.login(ascii_addr(os.environ["SMTP_USER"]), os.environ["SMTP_PASSWORD"])
     return server
 
 
 def send_mail(server, to_email: str, subject: str, body: str, org_name: str):
     msg = MIMEText(body, "plain", "utf-8")
     msg["Subject"] = subject
-    msg["From"] = formataddr((org_name, os.environ["SMTP_USER"]))
+    sender = ascii_addr(os.environ["SMTP_USER"])
+    msg["From"] = formataddr((org_name, sender))
     msg["To"] = to_email
-    server.sendmail(os.environ["SMTP_USER"], [to_email], msg.as_string())
+    server.sendmail(sender, [to_email], msg.as_string())
 
 
 def process_queue(cur, conn, budget_seconds: float = 3.0) -> dict:

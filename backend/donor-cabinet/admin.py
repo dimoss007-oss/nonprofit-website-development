@@ -1,9 +1,10 @@
 import hmac
 import json
 import os
+import smtplib
 
 from common import (SCHEMA, add_message, compute_stats, err, evaluate_achievements,
-                    get_donations, get_levels, get_settings, grant_award, ok, process_queue,
+                    get_donations, get_levels, get_settings, grant_award, ok, open_smtp, process_queue,
                     queue_email, sha, smtp_configured, sync_accounts, totals_by_email)
 
 KINDS = ("first_donation", "total_amount", "donation_count", "monthly_streak", "anniversary_years", "manual")
@@ -301,6 +302,21 @@ def list_broadcasts(cur, conn, body):
     return ok({"broadcasts": [dict(r) for r in cur.fetchall()]})
 
 
+def smtp_check(cur, conn, body):
+    if not smtp_configured():
+        return ok({"ok": False, "error": "Заданы не все настройки почты"})
+    host = os.environ.get("SMTP_HOST", "")
+    port = os.environ.get("SMTP_PORT", "")
+    try:
+        server = open_smtp()
+        server.quit()
+    except smtplib.SMTPAuthenticationError:
+        return ok({"ok": False, "host": host, "port": port, "error": "Сервер доступен, но логин или пароль приложения не подошли"})
+    except Exception as e:
+        return ok({"ok": False, "host": host, "port": port, "error": f"Не удалось подключиться: {str(e)[:200]}"})
+    return ok({"ok": True, "host": host, "port": port})
+
+
 def run_queue(cur, conn, body):
     return ok({"queue": process_queue(cur, conn)})
 
@@ -443,6 +459,7 @@ ADMIN_ACTIONS = {
     "broadcast": send_broadcast,
     "broadcasts": list_broadcasts,
     "run_queue": run_queue,
+    "smtp_check": smtp_check,
     "retry_failed": retry_failed,
     "gifts": list_gifts,
     "add_gift": add_gift,
