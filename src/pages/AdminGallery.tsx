@@ -412,7 +412,7 @@ export default function AdminGallery() {
                       <div key={p.id} className={`relative aspect-square rounded-sm overflow-hidden group ${isSel ? "ring-4 ring-sage" : ""}`}>
                         <img src={p.photo_url} alt={p.title || ""} className="w-full h-full object-cover" />
                         <button onClick={() => toggleSelect(p.id)} aria-label="Выбрать фото"
-                          className={`absolute top-2 left-2 w-7 h-7 rounded-full flex items-center justify-center border-2 transition-all ${isSel ? "bg-sage border-sage opacity-100" : "bg-black/40 border-white opacity-0 group-hover:opacity-100"}`}>
+                          className={`absolute top-2 left-2 w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all ${isSel ? "bg-sage border-sage" : "bg-black/40 border-white"}`}>
                           {isSel && <Icon name="Check" size={14} className="text-white" />}
                         </button>
                         {(p.tags || []).length > 0 && (
@@ -425,7 +425,7 @@ export default function AdminGallery() {
                         <button
                           onClick={() => handleDelete(p.id)}
                           disabled={deleting === p.id}
-                          className="absolute top-2 right-2 w-8 h-8 bg-black/60 hover:bg-red-600 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all disabled:opacity-40"
+                          className="absolute top-2 right-2 w-8 h-8 bg-black/60 hover:bg-red-600 rounded-full flex items-center justify-center md:opacity-0 md:group-hover:opacity-100 transition-all disabled:opacity-40"
                         >
                           <Icon name="Trash2" size={14} className="text-white" />
                         </button>
