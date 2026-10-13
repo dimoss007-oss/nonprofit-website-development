@@ -1,0 +1,1 @@
+ALTER TABLE t_p59822815_nonprofit_website_de.crm_settings ADD COLUMN IF NOT EXISTS bed_capacity INTEGER NULL;

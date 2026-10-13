@@ -4,12 +4,14 @@ export interface DashboardTask {
   author: string;
   date: string;
   isUrgent: boolean;
+  isOverdue: boolean;
+  hasDeadline: boolean;
 }
 
 export interface DashboardSummary {
   residents: {
     totalActive: number;
-    freeBeds: number;
+    freeBeds: number | null;
     newThisWeek: number;
   };
   finance: {
@@ -23,6 +25,6 @@ export interface DashboardSummary {
     criticalAlerts: string[];
   };
   system: {
-    lastVkSync: string;
+    lastVkSync: string | null;
   };
 }

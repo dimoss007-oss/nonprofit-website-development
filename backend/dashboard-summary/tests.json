@@ -1,5 +1,5 @@
 {"tests": [
   {"name": "OPTIONS preflight", "method": "OPTIONS", "path": "/", "expectedStatus": 200},
-  {"name": "Dashboard summary", "method": "GET", "path": "/?action=get_dashboard_summary", "expectedStatus": 200, "expectedBody": {"residents": {"totalActive": 14}}, "bodyMatcher": "partial"},
-  {"name": "Unknown action", "method": "GET", "path": "/?action=nope", "expectedStatus": 400}
+  {"name": "Без авторизации доступ закрыт", "method": "POST", "path": "/", "body": {"action": "get_dashboard_summary"}, "expectedStatus": 403},
+  {"name": "Unknown action", "method": "POST", "path": "/", "body": {"action": "nope"}, "expectedStatus": 400}
 ]}

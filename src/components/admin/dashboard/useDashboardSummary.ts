@@ -2,6 +2,23 @@ import { useCallback, useEffect, useState } from "react";
 import type { DashboardSummary } from "./dashboard.types";
 
 const DASHBOARD_URL = "https://functions.poehali.dev/a668d9fc-6079-4be9-bf2b-8999423d46cb";
+const SESSION_KEY = "admin_auth";
+
+const authFields = () => {
+  try {
+    const s = JSON.parse(sessionStorage.getItem(SESSION_KEY) || "null");
+    return { auth_login: s?.login || "", auth_password: s?.password || "" };
+  } catch {
+    return { auth_login: "", auth_password: "" };
+  }
+};
+
+const call = (payload: object) =>
+  fetch(DASHBOARD_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ...payload, ...authFields() }),
+  });
 
 export function useDashboardSummary() {
   const [data, setData] = useState<DashboardSummary | null>(null);
@@ -11,7 +28,7 @@ export function useDashboardSummary() {
   const load = useCallback(() => {
     setLoading(true);
     setError(false);
-    fetch(`${DASHBOARD_URL}?action=get_dashboard_summary`)
+    call({ action: "get_dashboard_summary" })
       .then(r => {
         if (!r.ok) throw new Error("bad status");
         return r.json();
@@ -23,5 +40,11 @@ export function useDashboardSummary() {
 
   useEffect(() => { load(); }, [load]);
 
-  return { data, loading, error, reload: load };
+  const saveCapacity = useCallback(async (capacity: number) => {
+    const r = await call({ action: "set_bed_capacity", capacity });
+    if (r.ok) load();
+    return r.ok;
+  }, [load]);
+
+  return { data, loading, error, reload: load, saveCapacity };
 }
