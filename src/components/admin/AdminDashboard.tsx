@@ -4,6 +4,7 @@ import ResidentsCard from "@/components/admin/dashboard/ResidentsCard";
 import FinanceCard from "@/components/admin/dashboard/FinanceCard";
 import TasksCard from "@/components/admin/dashboard/TasksCard";
 import AiReportsCard from "@/components/admin/dashboard/AiReportsCard";
+import NewsCard from "@/components/admin/dashboard/NewsCard";
 import SystemCard from "@/components/admin/dashboard/SystemCard";
 
 export default function AdminDashboard() {
@@ -29,6 +30,7 @@ export default function AdminDashboard() {
       <SystemCard data={data?.system} loading={loading} />
       <TasksCard data={data?.tasks} loading={loading} />
       <AiReportsCard data={data?.aiReports} loading={loading} summaryLoading={summaryLoading} onRefresh={refreshSummary} />
+      <NewsCard data={data?.news} loading={loading} />
     </div>
   );
 }

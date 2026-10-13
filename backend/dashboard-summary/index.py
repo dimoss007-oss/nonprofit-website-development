@@ -33,6 +33,8 @@ SUMMARY_SYSTEM_PROMPT = (
 NO_DATA_SUMMARY = "Сводка за сутки: отчётов от дежурных и психологов за последние сутки не поступало."
 CHUNK_LIMIT = 700
 TASKS_LIMIT = 5
+NEWS_LIMIT = 3
+NEWS_SNIPPET = 140
 TREND_TOLERANCE = 0.05
 
 
@@ -231,6 +233,28 @@ def generate_daily_summary(cur) -> dict:
     return {'ok': True, 'summary': summary, 'date': date.today().isoformat()}
 
 
+def news(cur) -> list:
+    cur.execute(f"""
+        SELECT id, title, LEFT(text, 600) AS text, photos[1] AS photo, COALESCE(published_at, created_at) AS published
+        FROM {SCHEMA}.news
+        ORDER BY COALESCE(published_at, created_at) DESC
+        LIMIT {NEWS_LIMIT}
+    """)
+    items = []
+    for r in cur.fetchall():
+        snippet = re.sub(r'\s+', ' ', r['text'] or '').strip()
+        if len(snippet) > NEWS_SNIPPET:
+            snippet = snippet[:NEWS_SNIPPET].rsplit(' ', 1)[0] + '…'
+        items.append({
+            'id': str(r['id']),
+            'title': r['title'],
+            'snippet': snippet,
+            'photo': r['photo'],
+            'date': r['published'].date().isoformat(),
+        })
+    return items
+
+
 def system(cur) -> dict:
     cur.execute(f"SELECT MAX(created_at) AS last_sync FROM {SCHEMA}.news WHERE vk_id IS NOT NULL")
     last = cur.fetchone()['last_sync']
@@ -278,6 +302,7 @@ def handler(event: dict, context) -> dict:
         'finance': finance(cur),
         'tasks': tasks(cur),
         'aiReports': ai_reports(cur),
+        'news': news(cur),
         'system': system(cur),
     }
     conn.close()

@@ -8,6 +8,14 @@ export interface DashboardTask {
   hasDeadline: boolean;
 }
 
+export interface DashboardNews {
+  id: string;
+  title: string;
+  snippet: string;
+  photo: string | null;
+  date: string;
+}
+
 export interface DashboardSummary {
   residents: {
     totalActive: number;
@@ -27,6 +35,7 @@ export interface DashboardSummary {
     dailySummaryFresh: boolean;
     dailySummaryDate: string | null;
   };
+  news: DashboardNews[];
   system: {
     lastVkSync: string | null;
   };
