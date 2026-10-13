@@ -1,0 +1,5 @@
+{"tests": [
+  {"name": "OPTIONS preflight", "method": "OPTIONS", "path": "/", "expectedStatus": 200},
+  {"name": "Dashboard summary", "method": "GET", "path": "/?action=get_dashboard_summary", "expectedStatus": 200, "expectedBody": {"residents": {"totalActive": 14}}, "bodyMatcher": "partial"},
+  {"name": "Unknown action", "method": "GET", "path": "/?action=nope", "expectedStatus": 400}
+]}

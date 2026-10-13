@@ -12,6 +12,7 @@ import AdminGovTab from "@/components/admin/AdminGovTab";
 import AdminShiftLogsTab from "@/components/admin/AdminShiftLogsTab";
 import AdminTasksWidget from "@/components/admin/AdminTasksWidget";
 import AdminResidentsYearWidget from "@/components/admin/AdminResidentsYearWidget";
+import AdminDashboard from "@/components/admin/AdminDashboard";
 import AdminAiSettingsTab from "@/components/admin/AdminAiSettingsTab";
 import AiChatModal from "@/components/admin/AiChatModal";
 import type { Task } from "@/components/admin/taskTypes";
@@ -20,7 +21,7 @@ const AUTH_URL = "https://functions.poehali.dev/e6567f16-b3db-4b0d-9c1f-abed808c
 const LOGO_IMG = "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/4ca974da-fec3-4fd3-834d-c7dccc97fca9.jpg";
 const SESSION_KEY = "admin_auth";
 
-type Tab = TabId | "ai_settings";
+type Tab = TabId | "ai_settings" | "dashboard";
 type Role = "admin" | "user";
 
 interface Session { login: string; password: string; role: Role; full_name: string; permissions?: string | null }
@@ -118,7 +119,7 @@ export default function AdminPanel() {
 
   useEffect(() => {
     if (!session || session.role === "admin") return;
-    if (tab === "ai_settings") {
+    if (tab === "ai_settings" || tab === "dashboard") {
       setTab("tasks");
       return;
     }
@@ -158,6 +159,7 @@ export default function AdminPanel() {
   const userPerms = parsePermissions(session.permissions);
 
   const TABS: { id: Tab; label: string; icon: string; active: string; inactive: string }[] = [
+    { id: "dashboard",   label: "Дашборд",       icon: "LayoutDashboard", active: "bg-indigo-100 text-indigo-700 shadow-sm", inactive: "text-indigo-400 hover:bg-indigo-50 hover:text-indigo-600" },
     { id: "crm",         label: "Пациенты",     icon: "Users",         active: "bg-blue-100 text-blue-700 shadow-sm",     inactive: "text-blue-400 hover:bg-blue-50 hover:text-blue-600" },
     { id: "sop",         label: "СОП",           icon: "ShieldAlert",   active: "bg-red-100 text-red-700 shadow-sm",       inactive: "text-red-400 hover:bg-red-50 hover:text-red-600" },
     { id: "news",        label: "Новости",       icon: "Newspaper",     active: "bg-amber-100 text-amber-700 shadow-sm",   inactive: "text-amber-400 hover:bg-amber-50 hover:text-amber-600" },
@@ -174,7 +176,7 @@ export default function AdminPanel() {
   // "Настройки ИИ" — строго для администраторов, независимо от списка permissions (там её нет и быть не может)
   const visibleTabs = isAdmin
     ? TABS
-    : TABS.filter(t => t.id !== "ai_settings" && (userPerms ? userPerms.includes(t.id as TabId) : true));
+    : TABS.filter(t => t.id !== "ai_settings" && t.id !== "dashboard" && (userPerms ? userPerms.includes(t.id as TabId) : true));
 
   return (
     <div className="min-h-screen bg-beige-mid font-golos">
@@ -224,6 +226,7 @@ export default function AdminPanel() {
       </header>
 
       <main className="pb-16 max-w-6xl mx-auto px-4" style={{ paddingTop: headerHeight + 16 }}>
+        {tab === "dashboard" && isAdmin && <AdminDashboard />}
         {tab === "crm" && <AdminCrmTab isAdmin={isAdmin} authorName={session.full_name || session.login} focusPatientId={focusPatientId} onFocusHandled={() => setFocusPatientId(null)} onViewShiftHistory={goToShiftHistory} />}
         {tab === "sop" && <AdminSopTab isAdmin={isAdmin} />}
         {tab === "news" && <AdminNewsTab isAdmin={isAdmin} />}
