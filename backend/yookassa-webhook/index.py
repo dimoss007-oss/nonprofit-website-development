@@ -2,6 +2,7 @@ import json
 import os
 import base64
 import calendar
+import re
 import psycopg2
 from datetime import datetime
 from urllib.request import urlopen, Request
@@ -89,9 +90,18 @@ def handler(event: dict, context) -> dict:
     cur.execute(
         f"""UPDATE {schema}.orders
             SET status = %s, updated_at = NOW(), paid_at = CASE WHEN %s = 'paid' THEN NOW() ELSE paid_at END
-            WHERE order_comment LIKE %s AND status = 'pending'""",
+            WHERE order_comment LIKE %s AND status = 'pending'
+            RETURNING amount, order_comment""",
         (new_status, new_status, f"yookassa:{payment_id}%")
     )
+    if new_status == "paid":
+        for amount, comment in cur.fetchall():
+            m = re.search(r"\|gid:(\d+)", comment or "")
+            if m:
+                cur.execute(
+                    f"UPDATE {schema}.fundraising_goals SET collected_amount = collected_amount + %s WHERE id = %s",
+                    (amount, int(m.group(1))),
+                )
     meta = payment.get("metadata") or {}
     if meta.get("subscription_id"):
         if status == "succeeded":

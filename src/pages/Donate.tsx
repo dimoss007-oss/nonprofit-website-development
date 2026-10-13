@@ -248,6 +248,7 @@ export default function Donate() {
       <TargetDonationModal
         open={!!activeGoal}
         onClose={() => setActiveGoal(null)}
+        goalId={activeGoal?.id}
         title={activeGoal?.title || ""}
         currentAmount={activeGoal?.collected_amount || 0}
         targetAmount={activeGoal?.target_amount || 0}

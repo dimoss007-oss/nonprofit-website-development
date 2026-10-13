@@ -9,6 +9,7 @@ const QUICK_AMOUNTS = [300, 500, 1000];
 interface TargetDonationModalProps {
   open: boolean;
   onClose: () => void;
+  goalId?: number;
   title: string;
   currentAmount: number;
   targetAmount: number;
@@ -18,7 +19,7 @@ type Stage = "form" | "qr" | "paid";
 
 const fmt = (n: number) => `${Math.round(n).toLocaleString("ru")} ₽`;
 
-export default function TargetDonationModal({ open, onClose, title, currentAmount, targetAmount }: TargetDonationModalProps) {
+export default function TargetDonationModal({ open, onClose, goalId, title, currentAmount, targetAmount }: TargetDonationModalProps) {
   const [amount, setAmount] = useState<number>(500);
   const [custom, setCustom] = useState("");
   const [stage, setStage] = useState<Stage>("form");
@@ -66,6 +67,7 @@ export default function TargetDonationModal({ open, onClose, title, currentAmoun
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           amount: finalAmount,
+          goal_id: goalId,
           goal_title: title,
           payment_method: "sbp_qr",
           success_url: `${window.location.origin}/donate`,
