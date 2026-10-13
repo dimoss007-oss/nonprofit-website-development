@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import Icon from "@/components/ui/icon";
+import { GALLERY_TAGS, tagLabel } from "@/lib/galleryTags";
 
 const GALLERY_URL = "https://functions.poehali.dev/abf6fa73-1b43-4ff7-af96-8b6e8ca2b46a";
 
@@ -8,6 +9,7 @@ interface GalleryPhoto {
   title: string;
   photo_url: string;
   created_at: string;
+  tags?: string[];
 }
 
 function compressAndConvert(file: File, maxWidth = 1600, quality = 0.82): Promise<string> {
@@ -45,6 +47,31 @@ export default function AdminGalleryTab() {
   const dragIdx = useRef<number | null>(null);
   const dragOverIdx = useRef<number | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const [uploadTags, setUploadTags] = useState<string[]>([]);
+  const [filterTag, setFilterTag] = useState("all");
+  const [selected, setSelected] = useState<number[]>([]);
+  const [tagBusy, setTagBusy] = useState(false);
+
+  const toggleUploadTag = (id: string) =>
+    setUploadTags((prev) => (prev.includes(id) ? prev.filter((t) => t !== id) : [...prev, id]));
+
+  const toggleSelect = (id: number) =>
+    setSelected((prev) => (prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]));
+
+  const matchesFilter = (p: GalleryPhoto) =>
+    filterTag === "all" || (filterTag === "none" ? !(p.tags || []).length : (p.tags || []).includes(filterTag));
+
+  const applyTag = async (tag: string, mode: "add" | "remove") => {
+    if (!selected.length) return;
+    setTagBusy(true);
+    await fetch(GALLERY_URL, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ids: selected, tags: [tag], mode }),
+    });
+    setTagBusy(false);
+    loadPhotos();
+  };
 
   const loadPhotos = () => {
     setLoading(true);
@@ -80,7 +107,7 @@ export default function AdminGalleryTab() {
         await fetch(GALLERY_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ photo: b64, title: photoTitle }),
+          body: JSON.stringify({ photo: b64, title: photoTitle, tags: uploadTags }),
         });
         setSavedCount((c) => c + 1);
       }
@@ -186,6 +213,18 @@ export default function AdminGalleryTab() {
             </div>
           )}
 
+          <div>
+            <label className="block text-xs uppercase tracking-widest text-ink/50 mb-2">Метки (где показывать на сайте)</label>
+            <div className="flex flex-wrap gap-2">
+              {GALLERY_TAGS.map((t) => (
+                <button key={t.id} type="button" onClick={() => toggleUploadTag(t.id)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${uploadTags.includes(t.id) ? "bg-ink text-beige border-ink" : "bg-white text-ink/70 border-beige-dark hover:border-ink"}`}>
+                  #{t.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <button
             type="submit"
             disabled={saving || pendingFiles.length === 0}
@@ -223,6 +262,46 @@ export default function AdminGalleryTab() {
           </p>
         )}
 
+        {!loading && photos.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2 mb-4">
+            {[{ id: "all", label: "Все" }, ...GALLERY_TAGS, { id: "none", label: "Без метки" }].map((t) => (
+              <button key={t.id} onClick={() => setFilterTag(t.id)}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${filterTag === t.id ? "bg-ink text-beige border-ink" : "bg-white text-ink/70 border-beige-dark hover:border-ink"}`}>
+                {t.id === "all" || t.id === "none" ? t.label : `#${t.label}`}
+              </button>
+            ))}
+            <button
+              onClick={() => setSelected(photos.filter(matchesFilter).map((p) => p.id))}
+              className="ml-auto text-xs text-ink underline"
+            >
+              Выбрать все показанные
+            </button>
+          </div>
+        )}
+
+        {selected.length > 0 && (
+          <div className="sticky top-2 z-20 bg-white border border-ink/20 rounded-xl shadow-lg p-4 mb-4 space-y-3">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-sm text-ink font-medium">Выбрано фото: {selected.length}</p>
+              <button onClick={() => setSelected([])} className="text-xs text-ink/50 underline">Снять выбор</button>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs text-ink/50">Добавить метку:</span>
+              {GALLERY_TAGS.map((t) => (
+                <button key={t.id} disabled={tagBusy} onClick={() => applyTag(t.id, "add")}
+                  className="px-3 py-1.5 rounded-full text-xs font-medium bg-ink text-beige hover:bg-ink/90 transition-colors disabled:opacity-50">+ #{t.label}</button>
+              ))}
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs text-ink/50">Убрать метку:</span>
+              {GALLERY_TAGS.map((t) => (
+                <button key={t.id} disabled={tagBusy} onClick={() => applyTag(t.id, "remove")}
+                  className="px-3 py-1.5 rounded-full text-xs font-medium border border-red-300 text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50">− #{t.label}</button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {loading ? (
           <div className="flex items-center justify-center py-16 text-ink/30">
             <Icon name="Loader2" size={24} className="animate-spin mr-3" />
@@ -235,27 +314,33 @@ export default function AdminGalleryTab() {
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {photos.map((photo, idx) => (
+            {photos.map((photo, idx) => matchesFilter(photo) && (
               <div
                 key={photo.id}
-                draggable
+                draggable={filterTag === "all"}
                 onDragStart={() => handleDragStart(idx)}
                 onDragEnter={() => handleDragEnter(idx)}
                 onDragEnd={handleDragEnd}
                 onDragOver={(e) => e.preventDefault()}
-                className="relative group aspect-square rounded-xl overflow-hidden bg-beige-mid cursor-grab active:cursor-grabbing select-none transition-transform active:scale-95"
+                className={`relative group aspect-square rounded-xl overflow-hidden bg-beige-mid select-none ${selected.includes(photo.id) ? "ring-4 ring-ink" : ""} ${filterTag === "all" ? "cursor-grab active:cursor-grabbing" : ""}`}
               >
                 <img src={photo.photo_url} alt={photo.title} className="w-full h-full object-cover pointer-events-none" />
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors" />
 
-                {/* Иконка перетаскивания */}
-                <div className="absolute top-2 left-2 bg-black/50 text-white rounded-lg p-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Icon name="GripVertical" size={13} />
-                </div>
+                <button
+                  type="button"
+                  onClick={() => toggleSelect(photo.id)}
+                  aria-label="Выбрать фото"
+                  className={`absolute top-2 left-2 w-7 h-7 rounded-full flex items-center justify-center border-2 transition-colors ${selected.includes(photo.id) ? "bg-ink border-ink" : "bg-black/40 border-white"}`}
+                >
+                  {selected.includes(photo.id) && <Icon name="Check" size={14} className="text-white" />}
+                </button>
 
-                {photo.title && (
-                  <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-                    <div className="text-white text-xs truncate">{photo.title}</div>
+                {(photo.tags || []).length > 0 && (
+                  <div className="absolute bottom-0 left-0 right-0 p-1.5 flex flex-wrap gap-1 bg-gradient-to-t from-black/70 to-transparent">
+                    {(photo.tags || []).map((t) => (
+                      <span key={t} className="text-[10px] leading-none px-1.5 py-1 rounded-full bg-white/90 text-ink">#{tagLabel(t)}</span>
+                    ))}
                   </div>
                 )}
 
