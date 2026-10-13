@@ -12,6 +12,7 @@ import AdminGovTab from "@/components/admin/AdminGovTab";
 import AdminShiftLogsTab from "@/components/admin/AdminShiftLogsTab";
 import AdminTasksWidget from "@/components/admin/AdminTasksWidget";
 import AdminResidentsYearWidget from "@/components/admin/AdminResidentsYearWidget";
+import PasswordResetForm from "@/components/admin/PasswordResetForm";
 import AdminDashboard from "@/components/admin/AdminDashboard";
 import AdminAiSettingsTab from "@/components/admin/AdminAiSettingsTab";
 import AiChatModal from "@/components/admin/AiChatModal";
@@ -33,6 +34,7 @@ function LoginScreen({ onAuth }: { onAuth: (s: Session) => void }) {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPass, setShowPass] = useState(false);
+  const [resetMode, setResetMode] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,6 +59,7 @@ function LoginScreen({ onAuth }: { onAuth: (s: Session) => void }) {
           <div className="font-cormorant text-ink text-2xl font-semibold">Спасение надежды</div>
           <div className="text-ink/40 text-xs uppercase tracking-widest mt-1">Панель управления</div>
         </div>
+        {resetMode ? <PasswordResetForm initialLogin={login} onBack={() => setResetMode(false)} /> : (
         <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-8 shadow-sm space-y-4">
           <div>
             <label className="block text-xs uppercase tracking-widest text-ink/50 mb-2">Логин</label>
@@ -75,7 +78,11 @@ function LoginScreen({ onAuth }: { onAuth: (s: Session) => void }) {
           <button type="submit" disabled={loading} className="w-full bg-ink text-beige py-3.5 rounded-xl font-semibold text-sm hover:bg-ink/90 transition-colors disabled:opacity-60">
             {loading ? "Проверяем..." : "Войти"}
           </button>
+          <button type="button" onClick={() => setResetMode(true)} className="w-full text-xs text-ink/50 hover:text-ink transition-colors">
+            Забыли пароль?
+          </button>
         </form>
+        )}
         <div className="text-center mt-6">
           <a href="/" className="text-ink/40 hover:text-ink/70 text-sm transition-colors">← На главную</a>
         </div>

@@ -29,6 +29,32 @@
         "action": "list_full"
       },
       "expectedStatus": 403
+    },
+    {
+      "name": "Сброс: неизвестный логин не раскрывается",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "request_reset",
+        "login": "no_such_user_xyz"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "ok": true
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Подтверждение сброса с неверным кодом",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "confirm_reset",
+        "login": "no_such_user_xyz",
+        "code": "000000",
+        "new_password": "abcdef"
+      },
+      "expectedStatus": 400
     }
   ]
 }

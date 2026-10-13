@@ -4,6 +4,8 @@ import hashlib
 import hmac
 import base64
 import uuid
+import secrets
+import requests
 import boto3
 import psycopg2
 from psycopg2.extras import RealDictCursor
@@ -32,6 +34,33 @@ def verify_master(login: str, password: str) -> bool:
     master_login = os.environ.get("ADMIN_LOGIN", "")
     master_password = os.environ.get("ADMIN_PASSWORD", "")
     return hmac.compare_digest(login, master_login) and hmac.compare_digest(password, master_password)
+
+MAX_API_URL = "https://platform-api.max.ru"
+RESET_TTL_MIN = 10
+RESET_MAX_ATTEMPTS = 5
+RESET_RESEND_SEC = 60
+RESET_GENERIC = "Если сотрудник найден и подключён к боту Max, код отправлен в мессенджер."
+
+def hash_code(user_id: int, code: str) -> str:
+    return hashlib.sha256(f"{user_id}:{code}".encode()).hexdigest()
+
+def send_reset_code(max_chat_id: int, code: str) -> bool:
+    token = os.environ.get("MAX_TASKS_BOT_TOKEN", "")
+    if not token or not max_chat_id:
+        return False
+    try:
+        r = requests.post(
+            f"{MAX_API_URL}/messages",
+            params={"user_id": max_chat_id},
+            headers={"Authorization": token},
+            json={"text": f"🔐 Код для восстановления пароля: {code}\nДействует {RESET_TTL_MIN} минут. Если вы не запрашивали восстановление, проигнорируйте это сообщение."},
+            timeout=5,
+        )
+        print(f"reset code send status={r.status_code}")
+        return r.status_code == 200
+    except Exception as e:
+        print(f"reset code send error: {e}")
+        return False
 
 PUBLIC_COLS = "id, login, role, full_name, phone, created_at, permissions, position, photo_url, (max_chat_id IS NOT NULL) AS max_linked"
 FULL_COLS = PUBLIC_COLS + ", birth_date, passport_series, passport_number, passport_issued_by, passport_issued_date"
@@ -70,6 +99,65 @@ def handler(event: dict, context) -> dict:
             return ok({"ok": False, "error": "Неверный логин или пароль"}, 401)
 
         return ok({"ok": True, "role": user["role"], "full_name": user["full_name"] or login, "login": login, "permissions": user.get("permissions")})
+
+    # ── Восстановление пароля через Max ──────────────────
+    if method == "POST" and body.get("action") == "request_reset":
+        login = (body.get("login") or "").strip()
+        if not login:
+            return err("Укажите логин")
+        conn = get_conn()
+        conn.autocommit = True
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        cur.execute(f"SELECT id, max_chat_id FROM {SCHEMA}.admin_users WHERE login = %s", (login,))
+        user = cur.fetchone()
+        if user and user["max_chat_id"]:
+            cur.execute(
+                f"SELECT 1 FROM {SCHEMA}.password_resets WHERE user_id = %s AND created_at > NOW() - (%s || ' seconds')::interval",
+                (user["id"], str(RESET_RESEND_SEC)),
+            )
+            if not cur.fetchone():
+                code = f"{secrets.randbelow(1000000):06d}"
+                cur.execute(
+                    f"""INSERT INTO {SCHEMA}.password_resets (user_id, code_hash, expires_at, attempts, created_at)
+                        VALUES (%s, %s, NOW() + (%s || ' minutes')::interval, 0, NOW())
+                        ON CONFLICT (user_id) DO UPDATE SET code_hash = EXCLUDED.code_hash,
+                            expires_at = EXCLUDED.expires_at, attempts = 0, created_at = NOW()""",
+                    (user["id"], hash_code(user["id"], code), str(RESET_TTL_MIN)),
+                )
+                send_reset_code(user["max_chat_id"], code)
+        conn.close()
+        return ok({"ok": True, "message": RESET_GENERIC})
+
+    if method == "POST" and body.get("action") == "confirm_reset":
+        login = (body.get("login") or "").strip()
+        code = (body.get("code") or "").strip()
+        new_password = (body.get("new_password") or "").strip()
+        if not login or not code or not new_password:
+            return err("Заполните все поля")
+        if len(new_password) < 6:
+            return err("Пароль должен быть не короче 6 символов")
+        conn = get_conn()
+        conn.autocommit = True
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        cur.execute(
+            f"""SELECT u.id, r.code_hash, r.attempts, (r.expires_at > NOW()) AS alive
+                FROM {SCHEMA}.admin_users u JOIN {SCHEMA}.password_resets r ON r.user_id = u.id
+                WHERE u.login = %s""",
+            (login,),
+        )
+        row = cur.fetchone()
+        bad = "Неверный или просроченный код"
+        if not row or not row["alive"] or row["attempts"] >= RESET_MAX_ATTEMPTS:
+            conn.close()
+            return err(bad, 400)
+        if not hmac.compare_digest(hash_code(row["id"], code), row["code_hash"]):
+            cur.execute(f"UPDATE {SCHEMA}.password_resets SET attempts = attempts + 1 WHERE user_id = %s", (row["id"],))
+            conn.close()
+            return err(bad, 400)
+        cur.execute(f"UPDATE {SCHEMA}.admin_users SET password_hash = %s WHERE id = %s", (hash_password(new_password), row["id"]))
+        cur.execute(f"UPDATE {SCHEMA}.password_resets SET expires_at = NOW() - interval '1 second' WHERE user_id = %s", (row["id"],))
+        conn.close()
+        return ok({"ok": True})
 
     # ── Список пользователей ──────────────────────────────
     if method == "GET":
