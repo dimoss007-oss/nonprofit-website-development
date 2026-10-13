@@ -23,6 +23,7 @@ export interface DashboardSummary {
   aiReports: {
     weeklyDigestStatus: "ready" | "pending" | "error";
     criticalAlerts: string[];
+    dailySummary: string;
   };
   system: {
     lastVkSync: string | null;

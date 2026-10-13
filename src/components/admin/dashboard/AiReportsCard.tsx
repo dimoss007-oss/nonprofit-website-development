@@ -32,6 +32,11 @@ export default function AiReportsCard({ data, loading }: { data?: DashboardSumma
               </div>
             ))
           )}
+          {data.dailySummary && (
+            <p className="text-sm italic text-gray-600 border-l-2 border-beige-dark pl-3 pt-1 leading-relaxed">
+              {data.dailySummary}
+            </p>
+          )}
         </div>
       )}
     </DashboardCard>

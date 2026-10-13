@@ -20,6 +20,10 @@ ALERT_PATTERN = (
     'угроз(а|ы|ож) (жизни|себе|окруж)|рецидив|тяжёлый срыв|тяжелый срыв'
 )
 ALERT_DAYS = 3
+DAILY_SUMMARY_PLACEHOLDER = (
+    'Сводка за сутки: Общий эмоциональный фон стабильный. Дежурство прошло без происшествий, '
+    'правила проживания не нарушались. У двух новых семей отмечается положительная динамика в адаптации.'
+)
 TASKS_LIMIT = 5
 TREND_TOLERANCE = 0.05
 
@@ -139,7 +143,7 @@ def ai_reports(cur) -> dict:
           AND LOWER(r.report_text) ~ %s
     """, (ALERT_PATTERN,))
     alerts = [f"Тревожные маркеры в отчёте психолога: {r['name']}" for r in cur.fetchall()]
-    return {'weeklyDigestStatus': digest, 'criticalAlerts': alerts}
+    return {'weeklyDigestStatus': digest, 'criticalAlerts': alerts, 'dailySummary': DAILY_SUMMARY_PLACEHOLDER}
 
 
 def system(cur) -> dict:
