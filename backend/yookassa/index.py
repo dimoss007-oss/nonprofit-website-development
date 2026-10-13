@@ -102,7 +102,11 @@ def handler(event: dict, context) -> dict:
             data = json.loads(resp.read().decode())
     except HTTPError as e:
         error_body = e.read().decode()
-        return err(f"ЮКасса: {error_body}", 502)
+        print(f"yookassa error: {error_body}")
+        if monthly and "recurring" in error_body:
+            return {"statusCode": 409, "headers": {**CORS, "Content-Type": "application/json"},
+                    "body": json.dumps({"error": "Ежемесячные пожертвования пока недоступны. Снимите галочку и сделайте разовое пожертвование, это сработает сразу.", "code": "recurring_unavailable"}, ensure_ascii=False)}
+        return err("Не удалось создать платёж. Попробуйте ещё раз чуть позже", 502)
 
     payment_id = data.get("id")
     confirmation_url = data.get("confirmation", {}).get("confirmation_url", "")

@@ -96,6 +96,7 @@ export default function Donate() {
       if (data.payment_url) {
         window.location.href = data.payment_url;
       } else {
+        if (data.code === "recurring_unavailable") setMonthly(false);
         setError(data.error || "Не удалось создать платёж");
       }
     } catch {
