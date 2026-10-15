@@ -4,8 +4,10 @@ import ChildrenBulkReport from "@/components/admin/crm/ChildrenBulkReport";
 import { ChildWithPatient, fmt, plural } from "@/components/admin/crm/crmShared";
 
 export default function ChildrenList({
-  children, loading, search, setSearch, onSelect, authorName = "",
+  children, loading, search, setSearch, onSelect, authorName = "", section, setSection,
 }: {
+  section: "patients" | "children";
+  setSection: (v: "patients" | "children") => void;
   children: ChildWithPatient[];
   loading: boolean;
   search: string;
@@ -20,9 +22,10 @@ export default function ChildrenList({
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="font-cormorant text-ink text-2xl font-semibold">Дети в стационаре</h2>
+    <div className="space-y-6 font-inter">
+      <div>
+        <h1 className="text-2xl font-bold text-slate-800 tracking-tight">База семей</h1>
+        <p className="text-sm text-slate-500 mt-1">Дети, которые живут в центре вместе с мамами</p>
       </div>
 
       <ChildrenBulkReport authorName={authorName} />
@@ -30,63 +33,70 @@ export default function ChildrenList({
       <ChildrenWeeklyOverview />
 
       {children.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          <div className="bg-white border border-green-200 rounded-2xl px-4 py-3.5 text-center">
-            <p className="font-cormorant text-3xl font-semibold text-green-700">{children.length}</p>
-            <p className="text-xs text-ink/50 mt-0.5">{plural(children.length, "ребёнок", "ребёнка", "детей")} с мамами в центре</p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="bg-white p-4 rounded-2xl border border-green-100 shadow-sm flex flex-col items-center justify-center">
+            <span className="text-2xl font-bold text-green-600">{children.length}</span>
+            <span className="text-xs text-slate-500 font-medium mt-1">{plural(children.length, "ребёнок", "ребёнка", "детей")} с мамами в центре</span>
           </div>
-          <div className="bg-white border border-beige-dark rounded-2xl px-4 py-3.5 text-center">
-            <p className="font-cormorant text-3xl font-semibold text-ink">{children.filter(c => typeof c.latest_avg_score === "number").length}</p>
-            <p className="text-xs text-ink/50 mt-0.5">есть отчёты</p>
+          <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col items-center justify-center">
+            <span className="text-2xl font-bold text-slate-700">{children.filter(c => typeof c.latest_avg_score === "number").length}</span>
+            <span className="text-xs text-slate-500 font-medium mt-1">есть отчёты</span>
           </div>
-          <div className="bg-white border border-red-200 rounded-2xl px-4 py-3.5 text-center">
-            <p className="font-cormorant text-3xl font-semibold text-red-600">{children.filter(c => typeof c.latest_avg_score === "number" && c.latest_avg_score < 5).length}</p>
-            <p className="text-xs text-ink/50 mt-0.5">требуют внимания</p>
+          <div className="bg-white p-4 rounded-2xl border border-red-100 shadow-sm flex flex-col items-center justify-center">
+            <span className="text-2xl font-bold text-red-500">{children.filter(c => typeof c.latest_avg_score === "number" && c.latest_avg_score < 5).length}</span>
+            <span className="text-xs text-slate-500 font-medium mt-1">требуют внимания</span>
           </div>
         </div>
       )}
 
-      <div className="relative">
-        <Icon name="Search" size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink/30" />
-        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Поиск по фамилии, имени, отчеству ребёнка..." className="w-full bg-white border border-beige-dark rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-ink" />
+      <div className="bg-white p-2 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center flex-1 min-w-[220px] bg-slate-50 rounded-xl px-4 py-2 border border-slate-100 focus-within:border-indigo-300 transition">
+          <Icon name="Search" size={15} className="text-slate-400" />
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Поиск по фамилии, имени, отчеству ребёнка..." className="bg-transparent border-none outline-none text-sm text-slate-700 w-full ml-3 placeholder:text-slate-400" />
+        </div>
+        <div className="flex items-center gap-2 bg-slate-50 p-1 rounded-xl border border-slate-100">
+          <button onClick={() => setSection("patients")} className={`px-4 py-1.5 text-sm font-medium rounded-lg transition ${section === "patients" ? "bg-white text-slate-800 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}>Матери</button>
+          <button onClick={() => setSection("children")} className={`px-4 py-1.5 text-sm font-medium rounded-lg transition ${section === "children" ? "bg-white text-slate-800 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}>Дети</button>
+        </div>
       </div>
 
       {loading ? (
-        <div className="flex justify-center py-16"><div className="w-6 h-6 border-2 border-ink border-t-transparent rounded-full animate-spin" /></div>
+        <div className="flex justify-center py-16"><div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" /></div>
       ) : children.length === 0 ? (
-        <div className="text-center py-16 text-ink/40">
+        <div className="text-center py-16 text-slate-400">
           <Icon name="Baby" size={40} className="mx-auto mb-3 opacity-30" />
           <p>{search ? "Ничего не найдено" : "Детей пока нет"}</p>
         </div>
       ) : (
-        <div className="space-y-2">
-          {children.map(c => (
-            <button key={c.id} onClick={() => onSelect(c.id)} className="w-full bg-white border border-beige-dark rounded-2xl px-5 py-4 text-left hover:border-ink transition-colors group">
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className="w-10 h-10 rounded-full overflow-hidden bg-beige-mid flex items-center justify-center flex-shrink-0 border border-beige-dark">
-                    {c.photo_url ? <img src={c.photo_url} alt="" className="w-full h-full object-cover" /> : <Icon name="Baby" size={16} className="text-ink/30" />}
+        <div className="space-y-3">
+          {children.map(c => {
+            const initials = `${(c.last_name || "")[0] ?? ""}${(c.first_name || "")[0] ?? ""}`.toUpperCase();
+            return (
+              <div key={c.id} onClick={() => onSelect(c.id)} className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between gap-3 cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-md group">
+                <div className="flex items-center gap-4 flex-1 min-w-0">
+                  <div className="w-12 h-12 bg-slate-100 rounded-full overflow-hidden flex items-center justify-center text-slate-500 font-bold text-lg flex-shrink-0">
+                    {c.photo_url ? <img src={c.photo_url} alt="" className="w-full h-full object-cover" /> : initials}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <p className="font-semibold text-ink">{[c.last_name, c.first_name, c.middle_name].filter(Boolean).join(" ")}</p>
-                      {c.alias && <span className="text-xs text-ink/50">({c.alias})</span>}
-                      {typeof c.current_age === "number" && <span className="text-xs text-ink/40 flex-shrink-0">{c.current_age} лет</span>}
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 sm:gap-3 mb-1 flex-wrap">
+                      <h3 className="font-semibold text-slate-800">{[c.last_name, c.first_name, c.middle_name].filter(Boolean).join(" ")}{c.alias && <span className="text-slate-400 font-normal"> ({c.alias})</span>}</h3>
+                      {typeof c.current_age === "number" && <span className="px-2 py-0.5 bg-slate-50 text-slate-600 text-xs font-medium rounded-full border border-slate-200">{c.current_age} лет</span>}
                       {scoreBadge(c.latest_avg_score)}
                     </div>
-                    <div className="flex items-center gap-4 mt-1 flex-wrap">
-                      {c.birth_date && <span className="text-xs text-ink/40">Р. {fmt(c.birth_date)}</span>}
-                      <span className="text-xs text-ink/40">
-                        Мама: {[c.patient_last_name, c.patient_first_name, c.patient_middle_name].filter(Boolean).join(" ")}
-                        {c.patient_alias && ` (${c.patient_alias})`}
-                      </span>
-                    </div>
+                    <p className="text-xs text-slate-500">
+                      {[
+                        c.birth_date && `Р. ${fmt(c.birth_date)}`,
+                        `Мама: ${[c.patient_last_name, c.patient_first_name, c.patient_middle_name].filter(Boolean).join(" ")}${c.patient_alias ? ` (${c.patient_alias})` : ""}`,
+                      ].filter(Boolean).join(" • ")}
+                    </p>
                   </div>
                 </div>
-                <Icon name="ChevronRight" size={16} className="text-ink/30 group-hover:text-ink transition-colors flex-shrink-0" />
+                <div className="w-8 h-8 rounded-full bg-slate-50 text-slate-400 group-hover:text-indigo-600 group-hover:bg-indigo-50 flex items-center justify-center transition flex-shrink-0">
+                  <Icon name="ChevronRight" size={14} />
+                </div>
               </div>
-            </button>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

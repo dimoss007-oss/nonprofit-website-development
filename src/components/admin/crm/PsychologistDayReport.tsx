@@ -9,8 +9,9 @@ const today = () => {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 };
 
-export default function PsychologistDayReport() {
-  const [open, setOpen] = useState(false);
+export default function PsychologistDayReport({ embedded = false }: { embedded?: boolean }) {
+  const [openState, setOpen] = useState(false);
+  const open = embedded || openState;
   const [date, setDate] = useState(today);
   const [reports, setReports] = useState<DayReport[]>([]);
   const [loading, setLoading] = useState(false);
@@ -53,15 +54,15 @@ export default function PsychologistDayReport() {
   };
 
   return (
-    <div className="bg-white border border-beige-dark rounded-2xl">
-      <button onClick={() => setOpen(!open)} className="w-full flex items-center justify-between px-5 py-3.5 text-left">
+    <div className={embedded ? "" : "bg-white border border-beige-dark rounded-2xl"}>
+      {!embedded && <button onClick={() => setOpen(!openState)} className="w-full flex items-center justify-between px-5 py-3.5 text-left">
         <span className="flex items-center gap-2 font-semibold text-ink text-sm">
           <Icon name="Brain" size={16} /> Отчёт психолога по всем пациентам
         </span>
         <Icon name={open ? "ChevronUp" : "ChevronDown"} size={16} className="text-ink/40" />
-      </button>
+      </button>}
       {open && (
-        <div className="px-5 pb-5 pt-4 border-t border-beige-dark space-y-4">
+        <div className={`${embedded ? "" : "px-5 pb-5 pt-4 border-t border-beige-dark"} space-y-4`}>
           <div className="flex items-center gap-3 flex-wrap">
             <input type="date" value={date} onChange={(e) => e.target.value && setDate(e.target.value)} className="border border-beige-dark rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-ink" />
             <span className="text-xs text-ink/50">Пациенток с отчётом: {reports.length}</span>

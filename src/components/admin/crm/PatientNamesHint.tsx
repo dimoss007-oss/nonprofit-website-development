@@ -4,8 +4,9 @@ import { Patient } from "@/components/admin/crm/crmShared";
 
 const shortName = (p: Patient) => (p.first_name || "").trim().toLowerCase();
 
-export default function PatientNamesHint({ patients }: { patients: Patient[] }) {
-  const [open, setOpen] = useState(false);
+export default function PatientNamesHint({ patients, embedded = false }: { patients: Patient[]; embedded?: boolean }) {
+  const [openState, setOpen] = useState(false);
+  const open = embedded || openState;
   const [copied, setCopied] = useState(false);
 
   const active = patients.filter((p) => !p.discharge_date);
@@ -23,15 +24,15 @@ export default function PatientNamesHint({ patients }: { patients: Patient[] }) 
   };
 
   return (
-    <div className="bg-white border border-beige-dark rounded-2xl">
-      <button onClick={() => setOpen(!open)} className="w-full flex items-center justify-between px-5 py-3.5 text-left">
+    <div className={embedded ? "" : "bg-white border border-beige-dark rounded-2xl"}>
+      {!embedded && <button onClick={() => setOpen(!openState)} className="w-full flex items-center justify-between px-5 py-3.5 text-left">
         <span className="flex items-center gap-2 font-semibold text-ink text-sm">
           <Icon name="ListChecks" size={16} /> Как писать имена в отчёте для бота
         </span>
         <Icon name={open ? "ChevronUp" : "ChevronDown"} size={16} className="text-ink/40" />
-      </button>
+      </button>}
       {open && (
-        <div className="px-5 pb-5 pt-4 border-t border-beige-dark space-y-3">
+        <div className={`${embedded ? "" : "px-5 pb-5 pt-4 border-t border-beige-dark"} space-y-3`}>
           <p className="text-xs text-ink/60">Начинайте каждую строку отчёта с имени, как в списке ниже, затем тире и текст. Если в центре несколько человек с одним именем, одного имени «Таня» недостаточно — бот не сохранит такую строку.</p>
           <div className="grid sm:grid-cols-2 gap-2">
             {active.map((p) => {

@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { API, Patient, EMPTY_FORM, CareStage, ChildWithPatient } from "@/components/admin/crm/crmShared";
 import PatientCard from "@/components/admin/crm/PatientCard";
 import PatientList from "@/components/admin/crm/PatientList";
@@ -95,13 +94,6 @@ export default function AdminCrmTab({ isAdmin = true, authorName = "Сотруд
 
   return (
     <div className="space-y-6">
-      <Tabs value={section} onValueChange={(v) => setSection(v as Section)}>
-        <TabsList>
-          <TabsTrigger value="patients">Пациенты</TabsTrigger>
-          <TabsTrigger value="children">Дети</TabsTrigger>
-        </TabsList>
-      </Tabs>
-
       {section === "patients" ? (
         <PatientList
           allPatients={stagePatients}
@@ -117,6 +109,8 @@ export default function AdminCrmTab({ isAdmin = true, authorName = "Сотруд
           postTreatmentCount={postTreatmentCount}
           onCreatePatient={createPatient}
           onSelect={setSelectedId}
+          section={section}
+          setSection={setSection}
         />
       ) : (
         <ChildrenList
@@ -126,6 +120,8 @@ export default function AdminCrmTab({ isAdmin = true, authorName = "Сотруд
           setSearch={setChildSearch}
           onSelect={setSelectedChildId}
           authorName={authorName}
+          section={section}
+          setSection={setSection}
         />
       )}
     </div>
