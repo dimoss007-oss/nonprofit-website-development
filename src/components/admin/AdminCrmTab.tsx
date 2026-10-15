@@ -51,7 +51,7 @@ export default function AdminCrmTab({ isAdmin = true, authorName = "Сотруд
     onFocusHandled?.();
   }, [focusPatientId]);
 
-  const stagePatients = allPatients.filter(p => (p.care_stage ?? "inpatient") === careStage);
+  const stagePatients = allPatients.filter(p => (p.care_stage ?? "inpatient") === careStage && (careStage === "posttreatment" || !p.discharge_date));
   const postTreatmentCount = allPatients.filter(p => p.care_stage === "posttreatment").length;
 
   const q = search.toLowerCase();
