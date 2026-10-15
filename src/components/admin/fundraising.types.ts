@@ -175,7 +175,7 @@ export const CAMPAIGN_STATUS_LABELS: Record<CampaignStatus, string> = {
 export const CAMPAIGN_STATUS_COLORS: Record<CampaignStatus, string> = {
   planned: "bg-blue-100 text-blue-700",
   active: "bg-green-100 text-green-700",
-  completed: "bg-beige-dark text-ink/50",
+  completed: "bg-slate-100 text-slate-400",
   cancelled: "bg-red-100 text-red-500",
 };
 export const PROJECT_STATUS_LABELS: Record<ProjectStatus, string> = {
@@ -230,7 +230,7 @@ export const STATUS_LABELS: Record<Status, string> = {
 export const STATUS_COLORS: Record<Status, string> = {
   active: "bg-green-100 text-green-700",
   potential: "bg-blue-100 text-blue-700",
-  inactive: "bg-beige-dark text-ink/40",
+  inactive: "bg-slate-100 text-slate-400",
   lost: "bg-red-100 text-red-500",
 };
 
@@ -244,7 +244,7 @@ export const DONOR_CATEGORY_LABELS: Record<DonorCategory, string> = {
 };
 
 export const DONOR_CATEGORY_COLORS: Record<DonorCategory, string> = {
-  donation: "bg-beige-dark text-ink/60",
+  donation: "bg-slate-100 text-slate-500",
   grant: "bg-violet-100 text-violet-700",
   subsidy: "bg-sky-100 text-sky-700",
   targeted: "bg-amber-100 text-amber-700",

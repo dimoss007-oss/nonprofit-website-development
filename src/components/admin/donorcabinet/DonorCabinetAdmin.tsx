@@ -34,13 +34,13 @@ export default function DonorCabinetAdmin({ authLogin, authPassword }: { authLog
   const loadOverview = () => adminCall<Overview>(creds, "overview").then(setOv).catch((e) => setError(e instanceof Error ? e.message : "Ошибка"));
   useEffect(() => { loadOverview(); }, []);
 
-  if (!authPassword) return <p className="text-sm text-ink/50">Войдите в админ-панель заново, чтобы управлять кабинетом.</p>;
+  if (!authPassword) return <p className="text-sm text-slate-400">Войдите в админ-панель заново, чтобы управлять кабинетом.</p>;
 
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div><h2 className="font-cormorant text-ink text-2xl font-semibold">Личный кабинет жертвователей</h2><p className="text-xs text-ink/50">Страница для жертвователей: <span className="font-mono">/cabinet</span></p></div>
-        <a href="/cabinet" target="_blank" rel="noreferrer" className="text-sm px-3 py-1.5 rounded-lg border border-beige-dark hover:border-ink transition-colors flex items-center gap-1.5"><Icon name="ExternalLink" size={14} />Открыть кабинет</a>
+        <div><h2 className="font-inter font-bold text-slate-800 text-2xl font-semibold">Личный кабинет жертвователей</h2><p className="text-xs text-slate-400">Страница для жертвователей: <span className="font-mono">/cabinet</span></p></div>
+        <a href="/cabinet" target="_blank" rel="noreferrer" className="text-sm px-3 py-1.5 rounded-lg border border-slate-200 hover:border-indigo-300 transition-colors flex items-center gap-1.5"><Icon name="ExternalLink" size={14} />Открыть кабинет</a>
       </div>
 
       {error && <p className="text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2">{error}</p>}
@@ -52,14 +52,14 @@ export default function DonorCabinetAdmin({ authLogin, authPassword }: { authLog
             { label: "Выдано наград", value: String(ov.awards) },
             { label: "Подарков ждёт", value: String(ov.gifts_planned), hint: `собрано всего ${money(ov.total_amount)}` },
           ].map((c) => (
-            <div key={c.label} className="bg-white border border-beige-dark rounded-2xl p-4"><p className="text-xs text-ink/40">{c.label}</p><p className="font-cormorant text-ink text-3xl font-semibold leading-none mt-1">{c.value}</p>{c.hint && <p className="text-[11px] text-ink/40 mt-1.5">{c.hint}</p>}</div>
+            <div key={c.label} className="bg-white border border-slate-200 rounded-2xl p-4"><p className="text-xs text-slate-400">{c.label}</p><p className="font-inter font-bold text-slate-800 text-3xl font-semibold leading-none mt-1">{c.value}</p>{c.hint && <p className="text-[11px] text-slate-400 mt-1.5">{c.hint}</p>}</div>
           ))}
         </div>
       )}
 
       <div className="flex gap-1.5 overflow-x-auto pb-1">
         {SUBS.map((t) => (
-          <button key={t.id} onClick={() => setSub(t.id)} className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-colors ${sub === t.id ? "bg-ink text-beige" : "bg-white text-ink/60 border border-beige-dark hover:text-ink"}`}><Icon name={t.icon} size={14} />{t.label}</button>
+          <button key={t.id} onClick={() => setSub(t.id)} className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-colors ${sub === t.id ? "bg-indigo-600 text-white" : "bg-white text-slate-500 border border-slate-200 hover:text-slate-800"}`}><Icon name={t.icon} size={14} />{t.label}</button>
         ))}
       </div>
 

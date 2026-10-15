@@ -2,12 +2,12 @@ import { useEffect, useState } from "react";
 import Icon from "@/components/ui/icon";
 import { CRM_URL, fmt, OrgProject, ProjectStatus, PROJECT_STATUS_LABELS } from "./fundraising.types";
 
-const inp = "w-full border border-beige-dark rounded-xl px-3 py-2 text-sm text-ink focus:outline-none focus:border-ink bg-beige/40";
-const lbl = "block text-xs uppercase tracking-widest text-ink/50 mb-1";
+const inp = "w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-800 focus:outline-none focus:border-indigo-400 bg-slate-50";
+const lbl = "block text-xs uppercase tracking-widest text-slate-400 mb-1";
 
 const STATUS_COLORS: Record<ProjectStatus, string> = {
   active: "bg-green-100 text-green-700",
-  completed: "bg-beige-dark text-ink/50",
+  completed: "bg-slate-100 text-slate-400",
   paused: "bg-amber-100 text-amber-700",
   cancelled: "bg-red-100 text-red-500",
 };
@@ -30,8 +30,8 @@ function ProjectForm({ initial, onSave, onCancel }: {
   };
 
   return (
-    <form onSubmit={submit} className="bg-white border border-beige-dark rounded-2xl p-5 space-y-4">
-      <h3 className="font-semibold text-ink text-sm">{initial?.id ? "Редактировать проект" : "Новый проект"}</h3>
+    <form onSubmit={submit} className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4">
+      <h3 className="font-semibold text-slate-800 text-sm">{initial?.id ? "Редактировать проект" : "Новый проект"}</h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="sm:col-span-2">
           <label className={lbl}>Название *</label>
@@ -65,8 +65,8 @@ function ProjectForm({ initial, onSave, onCancel }: {
         </div>
       </div>
       <div className="flex gap-2">
-        <button type="submit" disabled={saving} className="bg-ink text-beige px-5 py-2 rounded-xl text-sm font-semibold hover:bg-ink/90 disabled:opacity-50">{saving ? "Сохраняем..." : "Сохранить"}</button>
-        <button type="button" onClick={onCancel} className="px-5 py-2 rounded-xl text-sm border border-beige-dark text-ink/60 hover:text-ink">Отмена</button>
+        <button type="submit" disabled={saving} className="bg-indigo-600 text-white px-5 py-2 rounded-xl text-sm font-semibold hover:bg-slate-100 disabled:opacity-50">{saving ? "Сохраняем..." : "Сохранить"}</button>
+        <button type="button" onClick={onCancel} className="px-5 py-2 rounded-xl text-sm border border-slate-200 text-slate-500 hover:text-slate-800">Отмена</button>
       </div>
     </form>
   );
@@ -105,10 +105,10 @@ export default function FundraisingProjectsTab() {
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="font-cormorant text-ink text-2xl font-semibold">Проекты организации</h2>
-          <p className="text-xs text-ink/40 mt-0.5">{projects.filter(p => p.status === "active").length} активных</p>
+          <h2 className="font-inter font-bold text-slate-800 text-2xl font-semibold">Проекты организации</h2>
+          <p className="text-xs text-slate-400 mt-0.5">{projects.filter(p => p.status === "active").length} активных</p>
         </div>
-        <button onClick={() => { setShowForm(true); setEditing(null); }} className="flex items-center gap-2 bg-ink text-beige px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-ink/90">
+        <button onClick={() => { setShowForm(true); setEditing(null); }} className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-100">
           <Icon name="Plus" size={15} /> Добавить
         </button>
       </div>
@@ -117,34 +117,34 @@ export default function FundraisingProjectsTab() {
       {editing && <ProjectForm initial={editing} onSave={save} onCancel={() => setEditing(null)} />}
 
       {loading ? (
-        <div className="flex justify-center py-12"><div className="w-6 h-6 border-2 border-ink border-t-transparent rounded-full animate-spin" /></div>
+        <div className="flex justify-center py-12"><div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" /></div>
       ) : projects.length === 0 ? (
-        <div className="text-center py-12 text-ink/40"><Icon name="FolderOpen" size={36} className="mx-auto mb-3 opacity-30" /><p>Проектов пока нет</p></div>
+        <div className="text-center py-12 text-slate-400"><Icon name="FolderOpen" size={36} className="mx-auto mb-3 opacity-30" /><p>Проектов пока нет</p></div>
       ) : (
         <div className="space-y-3">
           {projects.map(p => (
-            <div key={p.id} className="bg-white rounded-2xl border border-beige-dark p-5 shadow-sm">
+            <div key={p.id} className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap mb-1">
-                    <span className="font-semibold text-ink">{p.title}</span>
+                    <span className="font-semibold text-slate-800">{p.title}</span>
                     <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${STATUS_COLORS[p.status]}`}>{PROJECT_STATUS_LABELS[p.status]}</span>
                   </div>
-                  {p.description && <p className="text-xs text-ink/60 mb-2">{p.description}</p>}
-                  <div className="flex flex-wrap gap-x-5 gap-y-1 text-xs text-ink/50">
+                  {p.description && <p className="text-xs text-slate-500 mb-2">{p.description}</p>}
+                  <div className="flex flex-wrap gap-x-5 gap-y-1 text-xs text-slate-400">
                     {p.budget && <span className="flex items-center gap-1"><Icon name="Wallet" size={11} />{fmt(p.budget)}</span>}
                     {(p.start_date || p.end_date) && <span className="flex items-center gap-1"><Icon name="Calendar" size={11} />{fmtDate(p.start_date) || "..."} — {fmtDate(p.end_date) || "..."}</span>}
                     {totalDonors(p) > 0 && <span className="flex items-center gap-1"><Icon name="Users" size={11} />{totalDonors(p)} доноров · {fmt(totalIncome(p))}</span>}
                   </div>
                   {p.result && (
-                    <div className="mt-2 pt-2 border-t border-beige-dark/50">
+                    <div className="mt-2 pt-2 border-t border-slate-200">
                       <p className="text-xs text-green-700 flex items-start gap-1"><Icon name="CheckCircle" size={11} className="mt-0.5 flex-shrink-0" />{p.result}</p>
                     </div>
                   )}
                   {p.donors && p.donors.length > 0 && (
                     <div className="mt-2 flex flex-wrap gap-1.5">
                       {p.donors.map((d, i) => (
-                        <span key={i} className="text-[10px] bg-beige-mid text-ink/60 px-2 py-0.5 rounded-full">
+                        <span key={i} className="text-[10px] bg-slate-50 text-slate-500 px-2 py-0.5 rounded-full">
                           {d.donor_name}{d.amount ? ` · ${fmt(d.amount)}` : ""}
                         </span>
                       ))}
@@ -152,8 +152,8 @@ export default function FundraisingProjectsTab() {
                   )}
                 </div>
                 <div className="flex gap-1 flex-shrink-0">
-                  <button onClick={() => { setEditing(p); setShowForm(false); }} className="p-1.5 text-ink/30 hover:text-ink rounded-lg hover:bg-beige-mid"><Icon name="Pencil" size={14} /></button>
-                  <button onClick={() => del(p.id)} className="p-1.5 text-ink/30 hover:text-red-500 rounded-lg hover:bg-red-50"><Icon name="Trash2" size={14} /></button>
+                  <button onClick={() => { setEditing(p); setShowForm(false); }} className="p-1.5 text-slate-300 hover:text-slate-800 rounded-lg hover:bg-slate-50"><Icon name="Pencil" size={14} /></button>
+                  <button onClick={() => del(p.id)} className="p-1.5 text-slate-300 hover:text-red-500 rounded-lg hover:bg-red-50"><Icon name="Trash2" size={14} /></button>
                 </div>
               </div>
             </div>

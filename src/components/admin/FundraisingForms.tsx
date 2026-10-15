@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Org, Person, Status, DonorCategory, SOURCE_OPTIONS, DONOR_CATEGORY_LABELS, STATUS_LABELS } from "./fundraising.types";
 
-const inp = "w-full border border-beige-dark rounded-xl px-4 py-2.5 text-sm text-ink focus:outline-none focus:border-ink bg-beige/40";
-const lbl = "block text-xs uppercase tracking-widest text-ink/50 mb-1";
+const inp = "w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:border-indigo-400 bg-slate-50";
+const lbl = "block text-xs uppercase tracking-widest text-slate-400 mb-1";
 
 export function OrgForm({ initial, adminUsers, onSave, onCancel }: {
   initial?: Partial<Org>;
@@ -95,10 +95,10 @@ export function OrgForm({ initial, adminUsers, onSave, onCancel }: {
         </div>
       </div>
       <div className="flex gap-3 pt-1">
-        <button type="submit" disabled={saving} className="bg-ink text-beige px-6 py-2.5 rounded-xl text-sm font-semibold hover:bg-ink/90 transition-colors disabled:opacity-50">
+        <button type="submit" disabled={saving} className="bg-indigo-600 text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-100 transition-colors disabled:opacity-50">
           {saving ? "Сохраняем..." : "Сохранить"}
         </button>
-        <button type="button" onClick={onCancel} className="px-6 py-2.5 rounded-xl text-sm text-ink/60 hover:text-ink border border-beige-dark transition-colors">
+        <button type="button" onClick={onCancel} className="px-6 py-2.5 rounded-xl text-sm text-slate-500 hover:text-slate-800 border border-slate-200 transition-colors">
           Отмена
         </button>
       </div>
@@ -180,10 +180,10 @@ export function PersonForm({ initial, onSave, onCancel }: {
         </div>
       </div>
       <div className="flex gap-3 pt-1">
-        <button type="submit" disabled={saving} className="bg-ink text-beige px-6 py-2.5 rounded-xl text-sm font-semibold hover:bg-ink/90 transition-colors disabled:opacity-50">
+        <button type="submit" disabled={saving} className="bg-indigo-600 text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-100 transition-colors disabled:opacity-50">
           {saving ? "Сохраняем..." : "Сохранить"}
         </button>
-        <button type="button" onClick={onCancel} className="px-6 py-2.5 rounded-xl text-sm text-ink/60 hover:text-ink border border-beige-dark transition-colors">
+        <button type="button" onClick={onCancel} className="px-6 py-2.5 rounded-xl text-sm text-slate-500 hover:text-slate-800 border border-slate-200 transition-colors">
           Отмена
         </button>
       </div>

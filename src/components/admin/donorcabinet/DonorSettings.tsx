@@ -48,7 +48,7 @@ export default function DonorSettings({ creds, onChanged }: { creds: Creds; onCh
     finally { setRunning(false); }
   };
 
-  if (!s) return <div className="flex justify-center py-10"><div className="w-6 h-6 border-2 border-ink border-t-transparent rounded-full animate-spin" /></div>;
+  if (!s) return <div className="flex justify-center py-10"><div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" /></div>;
 
   return (
     <div className="space-y-5 max-w-3xl">
@@ -66,35 +66,35 @@ export default function DonorSettings({ creds, onChanged }: { creds: Creds; onCh
         )}
       </div>
 
-      <div className="bg-white border border-beige-dark rounded-2xl p-5 space-y-3">
-        <h3 className="font-semibold text-ink">Реквизиты для документов</h3>
-        <p className="text-xs text-ink/50">Попадают в справку о пожертвованиях и сертификат.</p>
+      <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3">
+        <h3 className="font-semibold text-slate-800">Реквизиты для документов</h3>
+        <p className="text-xs text-slate-400">Попадают в справку о пожертвованиях и сертификат.</p>
         <div className="grid sm:grid-cols-2 gap-3">
-          <div className="sm:col-span-2"><label className="text-xs text-ink/50 mb-1 block">Название организации</label><input value={s.org_name} onChange={(e) => set("org_name", e.target.value)} className={inputCls} /></div>
-          <div><label className="text-xs text-ink/50 mb-1 block">ИНН</label><input value={s.org_inn || ""} onChange={(e) => set("org_inn", e.target.value)} className={inputCls} /></div>
-          <div><label className="text-xs text-ink/50 mb-1 block">ОГРН</label><input value={s.org_ogrn || ""} onChange={(e) => set("org_ogrn", e.target.value)} className={inputCls} /></div>
-          <div className="sm:col-span-2"><label className="text-xs text-ink/50 mb-1 block">Адрес</label><input value={s.org_address || ""} onChange={(e) => set("org_address", e.target.value)} className={inputCls} /></div>
-          <div><label className="text-xs text-ink/50 mb-1 block">Подписант (ФИО)</label><input value={s.org_signer || ""} onChange={(e) => set("org_signer", e.target.value)} className={inputCls} /></div>
-          <div><label className="text-xs text-ink/50 mb-1 block">Должность подписанта</label><input value={s.org_signer_post || ""} onChange={(e) => set("org_signer_post", e.target.value)} placeholder="Генеральный директор" className={inputCls} /></div>
-          <div className="sm:col-span-2"><label className="text-xs text-ink/50 mb-1 block">Адрес сайта (для ссылок в письмах)</label><input value={s.site_url} onChange={(e) => set("site_url", e.target.value)} className={inputCls} /></div>
+          <div className="sm:col-span-2"><label className="text-xs text-slate-400 mb-1 block">Название организации</label><input value={s.org_name} onChange={(e) => set("org_name", e.target.value)} className={inputCls} /></div>
+          <div><label className="text-xs text-slate-400 mb-1 block">ИНН</label><input value={s.org_inn || ""} onChange={(e) => set("org_inn", e.target.value)} className={inputCls} /></div>
+          <div><label className="text-xs text-slate-400 mb-1 block">ОГРН</label><input value={s.org_ogrn || ""} onChange={(e) => set("org_ogrn", e.target.value)} className={inputCls} /></div>
+          <div className="sm:col-span-2"><label className="text-xs text-slate-400 mb-1 block">Адрес</label><input value={s.org_address || ""} onChange={(e) => set("org_address", e.target.value)} className={inputCls} /></div>
+          <div><label className="text-xs text-slate-400 mb-1 block">Подписант (ФИО)</label><input value={s.org_signer || ""} onChange={(e) => set("org_signer", e.target.value)} className={inputCls} /></div>
+          <div><label className="text-xs text-slate-400 mb-1 block">Должность подписанта</label><input value={s.org_signer_post || ""} onChange={(e) => set("org_signer_post", e.target.value)} placeholder="Генеральный директор" className={inputCls} /></div>
+          <div className="sm:col-span-2"><label className="text-xs text-slate-400 mb-1 block">Адрес сайта (для ссылок в письмах)</label><input value={s.site_url} onChange={(e) => set("site_url", e.target.value)} className={inputCls} /></div>
         </div>
       </div>
 
-      <div className="bg-white border border-beige-dark rounded-2xl p-5 space-y-3">
-        <h3 className="font-semibold text-ink">Автонапоминания и поздравления</h3>
+      <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3">
+        <h3 className="font-semibold text-slate-800">Автонапоминания и поздравления</h3>
         <div className="grid sm:grid-cols-2 gap-3">
-          <div><label className="text-xs text-ink/50 mb-1 block">Считать «давно не жертвовал» через, дней</label><input type="number" min={7} value={s.lapsed_days} onChange={(e) => set("lapsed_days", Number(e.target.value))} className={inputCls} /></div>
-          <div><label className="text-xs text-ink/50 mb-1 block">Не напоминать чаще, чем раз в, дней</label><input type="number" min={7} value={s.reminder_cooldown_days} onChange={(e) => set("reminder_cooldown_days", Number(e.target.value))} className={inputCls} /></div>
+          <div><label className="text-xs text-slate-400 mb-1 block">Считать «давно не жертвовал» через, дней</label><input type="number" min={7} value={s.lapsed_days} onChange={(e) => set("lapsed_days", Number(e.target.value))} className={inputCls} /></div>
+          <div><label className="text-xs text-slate-400 mb-1 block">Не напоминать чаще, чем раз в, дней</label><input type="number" min={7} value={s.reminder_cooldown_days} onChange={(e) => set("reminder_cooldown_days", Number(e.target.value))} className={inputCls} /></div>
         </div>
-        <p className="text-xs text-ink/50">Кнопка ниже выдаёт недостающие награды, поздравляет с годовщиной помощи и мягко напоминает тем, кто давно не жертвовал. Каждое поздравление уходит один раз. Автоматического запуска по расписанию пока нет, запускайте вручную.</p>
-        <button onClick={runAuto} disabled={running} className="px-4 py-2 rounded-xl border border-ink text-ink text-sm font-semibold hover:bg-ink hover:text-beige disabled:opacity-60 transition-colors flex items-center gap-1.5">
+        <p className="text-xs text-slate-400">Кнопка ниже выдаёт недостающие награды, поздравляет с годовщиной помощи и мягко напоминает тем, кто давно не жертвовал. Каждое поздравление уходит один раз. Автоматического запуска по расписанию пока нет, запускайте вручную.</p>
+        <button onClick={runAuto} disabled={running} className="px-4 py-2 rounded-xl border border-indigo-600 text-slate-800 text-sm font-semibold hover:bg-indigo-600 hover:text-beige disabled:opacity-60 transition-colors flex items-center gap-1.5">
           <Icon name={running ? "Loader" : "Play"} size={14} className={running ? "animate-spin" : ""} />Запустить проверку сейчас
         </button>
       </div>
 
       {msg && <p className="text-sm text-green-700 bg-green-50 rounded-lg px-3 py-2">{msg}</p>}
       {error && <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{error}</p>}
-      <button onClick={save} disabled={busy} className="px-5 py-2.5 rounded-xl bg-ink text-beige text-sm font-semibold hover:bg-ink/90 disabled:opacity-60 transition-colors">{busy ? "Сохранение..." : "Сохранить настройки"}</button>
+      <button onClick={save} disabled={busy} className="px-5 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-slate-100 disabled:opacity-60 transition-colors">{busy ? "Сохранение..." : "Сохранить настройки"}</button>
     </div>
   );
 }

@@ -70,7 +70,7 @@ function DonorTaskButton({ donor, users }: { donor: Donor; users: { login: strin
         onClick={() => setOpen(o => !o)}
         title="Добавить в задачи"
         className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg transition-colors font-medium ${
-          done ? "bg-violet-100 text-violet-700" : "text-ink/60 bg-beige-mid hover:bg-beige-dark"
+          done ? "bg-violet-100 text-violet-700" : "text-slate-500 bg-slate-50 hover:bg-slate-200"
         }`}
       >
         <Icon name={done ? "CalendarCheck" : "ListPlus"} size={13} />
@@ -78,14 +78,14 @@ function DonorTaskButton({ donor, users }: { donor: Donor; users: { login: strin
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-1 z-20 bg-white rounded-xl shadow-lg border border-beige-dark p-3 min-w-[260px] space-y-2">
-          <p className="text-xs font-medium text-ink mb-1">Добавить задачу</p>
+        <div className="absolute right-0 top-full mt-1 z-20 bg-white rounded-xl shadow-lg border border-slate-200 p-3 min-w-[260px] space-y-2">
+          <p className="text-xs font-medium text-slate-800 mb-1">Добавить задачу</p>
 
           <input
             value={title}
             onChange={e => setTitle(e.target.value)}
             placeholder="Название задачи"
-            className="w-full border border-beige-dark rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-ink"
+            className="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-indigo-400"
           />
 
           <div className="flex gap-2">
@@ -93,12 +93,12 @@ function DonorTaskButton({ donor, users }: { donor: Donor; users: { login: strin
               type="date"
               value={date}
               onChange={e => setDate(e.target.value)}
-              className="flex-1 border border-beige-dark rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-ink"
+              className="flex-1 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-indigo-400"
             />
             <select
               value={assignee}
               onChange={e => setAssignee(e.target.value)}
-              className="flex-1 border border-beige-dark rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-ink"
+              className="flex-1 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-indigo-400"
             >
               <option value="">Не назначен</option>
               {users.map(u => <option key={u.login} value={u.login}>{u.full_name || u.login}</option>)}
@@ -106,7 +106,7 @@ function DonorTaskButton({ donor, users }: { donor: Donor; users: { login: strin
           </div>
 
           <div>
-            <p className="text-[10px] text-ink/40 uppercase tracking-wider mb-1">Напоминание в MAX</p>
+            <p className="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Напоминание в MAX</p>
             <div className="grid grid-cols-2 gap-1">
               {FREQ_OPTIONS.map(opt => (
                 <button
@@ -114,7 +114,7 @@ function DonorTaskButton({ donor, users }: { donor: Donor; users: { login: strin
                   type="button"
                   onClick={() => setFrequency(opt.value)}
                   className={`text-[11px] px-2 py-1.5 rounded-lg font-medium transition-colors ${
-                    frequency === opt.value ? "bg-ink text-beige" : "bg-beige/60 text-ink/50 hover:bg-beige-dark"
+                    frequency === opt.value ? "bg-indigo-600 text-white" : "bg-slate-50 text-slate-400 hover:bg-slate-200"
                   }`}
                 >
                   {opt.label}
@@ -126,7 +126,7 @@ function DonorTaskButton({ donor, users }: { donor: Donor; users: { login: strin
           <button
             onClick={create}
             disabled={saving || !date || !title.trim()}
-            className="w-full bg-ink text-beige text-xs font-semibold py-1.5 rounded-lg hover:bg-ink/90 transition-colors disabled:opacity-50"
+            className="w-full bg-indigo-600 text-white text-xs font-semibold py-1.5 rounded-lg hover:bg-slate-100 transition-colors disabled:opacity-50"
           >
             {saving ? "Создаём..." : "Добавить в задачи"}
           </button>

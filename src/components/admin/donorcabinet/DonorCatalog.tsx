@@ -19,7 +19,7 @@ const HEADINGS: Record<Entity, { title: string; hint: string; add: string }> = {
 };
 
 function Field({ label, children, wide }: { label: string; children: React.ReactNode; wide?: boolean }) {
-  return <div className={wide ? "sm:col-span-2" : ""}><label className="text-xs text-ink/50 mb-1 block">{label}</label>{children}</div>;
+  return <div className={wide ? "sm:col-span-2" : ""}><label className="text-xs text-slate-400 mb-1 block">{label}</label>{children}</div>;
 }
 
 function IconColor({ item, set, colors = true }: { item: Item; set: (k: string, v: unknown) => void; colors?: boolean }) {
@@ -28,7 +28,7 @@ function IconColor({ item, set, colors = true }: { item: Item; set: (k: string, 
       <Field label="Значок">
         <div className="flex flex-wrap gap-1.5">
           {ICON_CHOICES.map((n) => (
-            <button key={n} type="button" onClick={() => set("icon", n)} className={`w-8 h-8 rounded-lg flex items-center justify-center border ${item.icon === n ? "bg-ink text-beige border-ink" : "bg-white text-ink/60 border-beige-dark hover:border-ink"}`}><Icon name={n} size={15} /></button>
+            <button key={n} type="button" onClick={() => set("icon", n)} className={`w-8 h-8 rounded-lg flex items-center justify-center border ${item.icon === n ? "bg-indigo-600 text-white border-indigo-600" : "bg-white text-slate-500 border-slate-200 hover:border-indigo-300"}`}><Icon name={n} size={15} /></button>
           ))}
         </div>
       </Field>
@@ -36,7 +36,7 @@ function IconColor({ item, set, colors = true }: { item: Item; set: (k: string, 
         <Field label="Цвет">
           <div className="flex gap-2">
             {COLOR_KEYS.map((c) => (
-              <button key={c} type="button" onClick={() => set("color", c)} className={`w-8 h-8 rounded-full border-2 ${colorOf(c).bg} ${item.color === c ? "border-ink" : "border-transparent"}`} aria-label={c} />
+              <button key={c} type="button" onClick={() => set("color", c)} className={`w-8 h-8 rounded-full border-2 ${colorOf(c).bg} ${item.color === c ? "border-indigo-600" : "border-transparent"}`} aria-label={c} />
             ))}
           </div>
         </Field>
@@ -86,14 +86,14 @@ export default function DonorCatalog({ creds, entity }: { creds: Creds; entity: 
   return (
     <div className="space-y-4">
       <div className="flex items-start justify-between gap-3 flex-wrap">
-        <div><h3 className="font-semibold text-ink">{head.title}</h3><p className="text-xs text-ink/50 mt-0.5 max-w-xl">{head.hint}</p></div>
-        <button onClick={() => { setEditing({ ...EMPTY[entity] }); setError(""); }} className="flex items-center gap-1.5 bg-ink text-beige px-4 py-2 rounded-xl text-sm font-semibold hover:bg-ink/90 transition-colors"><Icon name="Plus" size={14} />{head.add}</button>
+        <div><h3 className="font-semibold text-slate-800">{head.title}</h3><p className="text-xs text-slate-400 mt-0.5 max-w-xl">{head.hint}</p></div>
+        <button onClick={() => { setEditing({ ...EMPTY[entity] }); setError(""); }} className="flex items-center gap-1.5 bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-slate-100 transition-colors"><Icon name="Plus" size={14} />{head.add}</button>
       </div>
 
       {error && <p className="text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2">{error}</p>}
 
       {editing && (
-        <div className="bg-white border border-ink/20 rounded-2xl p-5 space-y-4">
+        <div className="bg-white border border-slate-300 rounded-2xl p-5 space-y-4">
           <div className="grid sm:grid-cols-2 gap-3">
             <Field label="Название *"><input value={editing.title || ""} onChange={(e) => set("title", e.target.value)} className={inputCls} /></Field>
             {entity !== "impact" && <Field label="Описание"><input value={editing.description || ""} onChange={(e) => set("description", e.target.value)} className={inputCls} /></Field>}
@@ -123,38 +123,38 @@ export default function DonorCatalog({ creds, entity }: { creds: Creds; entity: 
             <Field label="Порядок в списке"><input type="number" value={editing.sort_order} onChange={(e) => set("sort_order", e.target.value)} className={inputCls} /></Field>
           </div>
           <div className="flex gap-2 justify-end">
-            <button onClick={() => setEditing(null)} className="px-4 py-2 text-sm rounded-lg border border-beige-dark hover:border-ink transition-colors">Отмена</button>
-            <button onClick={save} disabled={saving} className="px-4 py-2 text-sm rounded-lg bg-ink text-beige hover:bg-ink/90 disabled:opacity-60 transition-colors">{saving ? "Сохранение..." : "Сохранить"}</button>
+            <button onClick={() => setEditing(null)} className="px-4 py-2 text-sm rounded-lg border border-slate-200 hover:border-indigo-300 transition-colors">Отмена</button>
+            <button onClick={save} disabled={saving} className="px-4 py-2 text-sm rounded-lg bg-indigo-600 text-white hover:bg-slate-100 disabled:opacity-60 transition-colors">{saving ? "Сохранение..." : "Сохранить"}</button>
           </div>
         </div>
       )}
 
       {loading ? (
-        <div className="flex justify-center py-10"><div className="w-6 h-6 border-2 border-ink border-t-transparent rounded-full animate-spin" /></div>
+        <div className="flex justify-center py-10"><div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" /></div>
       ) : (
         <div className="space-y-2">
           {items.map((it) => {
             const c = colorOf(it.color);
             return (
-              <div key={it.id} className={`bg-white border border-beige-dark rounded-2xl px-4 py-3 flex items-center gap-3 group ${it.is_active === false ? "opacity-50" : ""}`}>
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${entity === "impact" ? "bg-beige-mid text-ink/60" : `${c.bg} ${c.text}`}`}><Icon name={it.icon} fallback="Heart" size={18} /></div>
+              <div key={it.id} className={`bg-white border border-slate-200 rounded-2xl px-4 py-3 flex items-center gap-3 group ${it.is_active === false ? "opacity-50" : ""}`}>
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${entity === "impact" ? "bg-slate-50 text-slate-500" : `${c.bg} ${c.text}`}`}><Icon name={it.icon} fallback="Heart" size={18} /></div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-sm text-ink">{it.title}</p>
-                  <p className="text-xs text-ink/50 truncate">
+                  <p className="font-semibold text-sm text-slate-800">{it.title}</p>
+                  <p className="text-xs text-slate-400 truncate">
                     {entity === "achievement" && `${KIND_LABELS[it.kind]}${it.kind !== "manual" && it.kind !== "first_donation" ? `: ${Number(it.threshold)}` : ""} · выдана ${it.awarded_count ?? 0}${it.certificate ? " · сертификат" : ""}${it.gift_title ? ` · подарок: ${it.gift_title}` : ""}`}
                     {entity === "level" && `от ${Number(it.min_amount).toLocaleString("ru-RU")} ₽ ${it.description ? "· " + it.description : ""}`}
                     {entity === "impact" && `${Number(it.unit_cost).toLocaleString("ru-RU")} ₽ = 1 единица: ${it.unit_label}`}
                   </p>
                 </div>
                 <div className="flex items-center gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
-                  {it.is_active !== undefined && <button onClick={() => toggleActive(it)} className="p-1.5 text-ink/40 hover:text-ink" title={it.is_active ? "Отключить" : "Включить"}><Icon name={it.is_active ? "Eye" : "EyeOff"} size={15} /></button>}
-                  <button onClick={() => { setEditing({ ...it }); setError(""); }} className="p-1.5 text-ink/40 hover:text-ink"><Icon name="Pencil" size={15} /></button>
-                  <button onClick={() => remove(it)} className="p-1.5 text-ink/30 hover:text-red-500"><Icon name="Trash2" size={15} /></button>
+                  {it.is_active !== undefined && <button onClick={() => toggleActive(it)} className="p-1.5 text-slate-400 hover:text-slate-800" title={it.is_active ? "Отключить" : "Включить"}><Icon name={it.is_active ? "Eye" : "EyeOff"} size={15} /></button>}
+                  <button onClick={() => { setEditing({ ...it }); setError(""); }} className="p-1.5 text-slate-400 hover:text-slate-800"><Icon name="Pencil" size={15} /></button>
+                  <button onClick={() => remove(it)} className="p-1.5 text-slate-300 hover:text-red-500"><Icon name="Trash2" size={15} /></button>
                 </div>
               </div>
             );
           })}
-          {!items.length && <p className="text-center text-sm text-ink/40 py-8">Пока ничего нет</p>}
+          {!items.length && <p className="text-center text-sm text-slate-400 py-8">Пока ничего нет</p>}
         </div>
       )}
     </div>

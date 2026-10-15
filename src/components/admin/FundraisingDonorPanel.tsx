@@ -98,12 +98,12 @@ export function DonorPanel({ donorType, donorId, donorName, onClose, apiUrl }: {
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 px-0 sm:px-4">
       <div className="bg-white w-full sm:max-w-lg rounded-t-2xl sm:rounded-2xl shadow-xl max-h-[90vh] flex flex-col">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-beige-dark">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
           <div>
-            <div className="font-semibold text-ink">{donorName}</div>
-            <div className="text-xs text-ink/50">История пожертвований</div>
+            <div className="font-semibold text-slate-800">{donorName}</div>
+            <div className="text-xs text-slate-400">История пожертвований</div>
           </div>
-          <button onClick={onClose} className="text-ink/40 hover:text-ink transition-colors">
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-800 transition-colors">
             <Icon name="X" size={20} />
           </button>
         </div>
@@ -115,68 +115,68 @@ export function DonorPanel({ donorType, donorId, donorName, onClose, apiUrl }: {
             </div>
           )}
 
-          <form onSubmit={addDonation} className="bg-beige/50 rounded-xl p-4 space-y-3">
-            <div className="text-xs uppercase tracking-widest text-ink/50 font-medium">Добавить пожертвование</div>
+          <form onSubmit={addDonation} className="bg-slate-50 rounded-xl p-4 space-y-3">
+            <div className="text-xs uppercase tracking-widest text-slate-400 font-medium">Добавить пожертвование</div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs text-ink/50 mb-1">Сумма (₽) *</label>
+                <label className="block text-xs text-slate-400 mb-1">Сумма (₽) *</label>
                 <input type="number" min="1" step="0.01" required
                   value={form.amount} onChange={e => setForm(f => ({ ...f, amount: e.target.value }))}
                   placeholder="0"
-                  className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm text-ink focus:outline-none focus:border-ink bg-white" />
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:border-indigo-400 bg-white" />
               </div>
               <div>
-                <label className="block text-xs text-ink/50 mb-1">Дата</label>
+                <label className="block text-xs text-slate-400 mb-1">Дата</label>
                 <input type="date"
                   value={form.donated_at} onChange={e => setForm(f => ({ ...f, donated_at: e.target.value }))}
-                  className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm text-ink focus:outline-none focus:border-ink bg-white" />
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:border-indigo-400 bg-white" />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs text-ink/50 mb-1">Тип</label>
+                <label className="block text-xs text-slate-400 mb-1">Тип</label>
                 <select value={form.donation_type} onChange={e => setForm(f => ({ ...f, donation_type: e.target.value as DonationType }))}
-                  className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm text-ink focus:outline-none focus:border-ink bg-white">
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:border-indigo-400 bg-white">
                   {(Object.entries(DONATION_TYPE_LABELS) as [DonationType, string][]).map(([k, v]) => (
                     <option key={k} value={k}>{v}</option>
                   ))}
                 </select>
               </div>
               <div>
-                <label className="block text-xs text-ink/50 mb-1">Цель сбора</label>
+                <label className="block text-xs text-slate-400 mb-1">Цель сбора</label>
                 <select value={form.goal_id} onChange={e => setForm(f => ({ ...f, goal_id: e.target.value }))}
-                  className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm text-ink focus:outline-none focus:border-ink bg-white">
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:border-indigo-400 bg-white">
                   <option value="">— не указана —</option>
                   {goals.map(g => <option key={g.id} value={g.id}>{g.title}</option>)}
                 </select>
               </div>
             </div>
             <div>
-              <label className="block text-xs text-ink/50 mb-1">Комментарий</label>
+              <label className="block text-xs text-slate-400 mb-1">Комментарий</label>
               <input value={form.comment} onChange={e => setForm(f => ({ ...f, comment: e.target.value }))}
                 placeholder="Необязательно"
-                className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm text-ink focus:outline-none focus:border-ink bg-white" />
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:border-indigo-400 bg-white" />
             </div>
             <button type="submit" disabled={saving}
-              className="w-full bg-ink text-beige py-2 rounded-lg text-sm font-semibold hover:bg-ink/90 transition-colors disabled:opacity-50">
+              className="w-full bg-indigo-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-slate-100 transition-colors disabled:opacity-50">
               {saving ? "Сохраняем..." : "Добавить"}
             </button>
           </form>
 
           {loading ? (
-            <div className="text-center py-6 text-ink/30 text-sm">Загружаем...</div>
+            <div className="text-center py-6 text-slate-300 text-sm">Загружаем...</div>
           ) : donations.length === 0 ? (
-            <div className="text-center py-6 text-ink/30 text-sm">Пожертвований пока нет</div>
+            <div className="text-center py-6 text-slate-300 text-sm">Пожертвований пока нет</div>
           ) : (
             <div className="space-y-2">
               {donations.map(d => (
-                <div key={d.id} className="rounded-xl border border-beige-dark px-4 py-3">
+                <div key={d.id} className="rounded-xl border border-slate-200 px-4 py-3">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-semibold text-sm text-green-700">{fmt(d.amount)}</span>
                         {d.donation_type && d.donation_type !== "money" && (
-                          <span className="text-xs bg-beige-dark text-ink/60 px-2 py-0.5 rounded-full">
+                          <span className="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">
                             {DONATION_TYPE_LABELS[d.donation_type]}
                           </span>
                         )}
@@ -186,7 +186,7 @@ export function DonorPanel({ donorType, donorId, donorName, onClose, apiUrl }: {
                           </span>
                         )}
                       </div>
-                      <div className="text-xs text-ink/40 mt-0.5">
+                      <div className="text-xs text-slate-400 mt-0.5">
                         {new Date(d.donated_at).toLocaleDateString("ru-RU")}
                         {d.comment && <> · {d.comment}</>}
                         {d.goal_id && goals.find(g => g.id === d.goal_id) && (
@@ -198,12 +198,12 @@ export function DonorPanel({ donorType, donorId, donorName, onClose, apiUrl }: {
                       {!d.thank_you_sent && (
                         <button onClick={() => openThankYou(d)}
                           title="Написать благодарность"
-                          className="text-ink/30 hover:text-amber-500 transition-colors p-1">
+                          className="text-slate-300 hover:text-amber-500 transition-colors p-1">
                           <Icon name="Mail" size={14} />
                         </button>
                       )}
                       <button onClick={() => deleteDonation(d.id)}
-                        className="text-ink/25 hover:text-red-500 transition-colors p-1">
+                        className="text-slate-300 hover:text-red-500 transition-colors p-1">
                         <Icon name="Trash2" size={14} />
                       </button>
                     </div>
@@ -218,15 +218,15 @@ export function DonorPanel({ donorType, donorId, donorName, onClose, apiUrl }: {
       {thankYouModal && (
         <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/50 px-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-beige-dark">
-              <h3 className="font-semibold text-ink">Письмо благодарности</h3>
-              <button onClick={() => setThankYouModal(null)} className="text-ink/40 hover:text-ink">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
+              <h3 className="font-semibold text-slate-800">Письмо благодарности</h3>
+              <button onClick={() => setThankYouModal(null)} className="text-slate-400 hover:text-slate-800">
                 <Icon name="X" size={18} />
               </button>
             </div>
             <div className="overflow-y-auto flex-1 p-6 space-y-4">
               <div>
-                <p className="text-xs text-ink/50 mb-2 uppercase tracking-widest">Шаблон</p>
+                <p className="text-xs text-slate-400 mb-2 uppercase tracking-widest">Шаблон</p>
                 <div className="flex flex-wrap gap-2">
                   {THANK_YOU_TEMPLATES.map((t, i) => (
                     <button key={i}
@@ -234,7 +234,7 @@ export function DonorPanel({ donorType, donorId, donorName, onClose, apiUrl }: {
                         setSelectedTemplate(i);
                         setCustomBody(t.body(donorName, fmt(thankYouModal.donation.amount)));
                       }}
-                      className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${selectedTemplate === i ? "bg-ink text-beige border-ink" : "border-beige-dark text-ink/60 hover:border-ink"}`}>
+                      className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${selectedTemplate === i ? "bg-indigo-600 text-white border-indigo-600" : "border-slate-200 text-slate-500 hover:border-indigo-300"}`}>
                       {t.label}
                     </button>
                   ))}
@@ -243,37 +243,37 @@ export function DonorPanel({ donorType, donorId, donorName, onClose, apiUrl }: {
 
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <p className="text-xs text-ink/50 uppercase tracking-widest">Тема письма</p>
+                  <p className="text-xs text-slate-400 uppercase tracking-widest">Тема письма</p>
                   <button onClick={() => copyText(THANK_YOU_TEMPLATES[selectedTemplate].subject)}
-                    className="text-xs text-ink/40 hover:text-ink flex items-center gap-1">
+                    className="text-xs text-slate-400 hover:text-slate-800 flex items-center gap-1">
                     <Icon name="Copy" size={12} /> Копировать
                   </button>
                 </div>
-                <div className="bg-beige/50 rounded-lg px-3 py-2 text-sm text-ink border border-beige-dark">
+                <div className="bg-slate-50 rounded-lg px-3 py-2 text-sm text-slate-800 border border-slate-200">
                   {THANK_YOU_TEMPLATES[selectedTemplate].subject}
                 </div>
               </div>
 
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <p className="text-xs text-ink/50 uppercase tracking-widest">Текст письма</p>
+                  <p className="text-xs text-slate-400 uppercase tracking-widest">Текст письма</p>
                   <button onClick={() => copyText(customBody)}
-                    className="text-xs text-ink/40 hover:text-ink flex items-center gap-1">
+                    className="text-xs text-slate-400 hover:text-slate-800 flex items-center gap-1">
                     <Icon name="Copy" size={12} /> Копировать
                   </button>
                 </div>
                 <textarea value={customBody} onChange={e => setCustomBody(e.target.value)}
                   rows={10}
-                  className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm text-ink focus:outline-none focus:border-ink bg-white resize-none" />
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:border-indigo-400 bg-white resize-none" />
               </div>
             </div>
-            <div className="px-6 py-4 border-t border-beige-dark flex gap-3">
+            <div className="px-6 py-4 border-t border-slate-200 flex gap-3">
               <button onClick={() => { markThankYou(thankYouModal.donation.id); setThankYouModal(null); }}
-                className="flex-1 bg-ink text-beige py-2.5 rounded-xl text-sm font-semibold hover:bg-ink/90 transition-colors flex items-center justify-center gap-2">
+                className="flex-1 bg-indigo-600 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-100 transition-colors flex items-center justify-center gap-2">
                 <Icon name="CheckCheck" size={15} /> Отметить как отправленное
               </button>
               <button onClick={() => setThankYouModal(null)}
-                className="px-4 py-2.5 rounded-xl text-sm border border-beige-dark text-ink/60 hover:text-ink transition-colors">
+                className="px-4 py-2.5 rounded-xl text-sm border border-slate-200 text-slate-500 hover:text-slate-800 transition-colors">
                 Закрыть
               </button>
             </div>

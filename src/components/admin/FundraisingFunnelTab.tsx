@@ -5,8 +5,8 @@ import {
   DONOR_CATEGORY_LABELS, DONOR_CATEGORY_COLORS, fmt,
 } from "./fundraising.types";
 
-const inp = "w-full border border-beige-dark rounded-xl px-3 py-2 text-sm text-ink focus:outline-none focus:border-ink bg-white";
-const lbl = "block text-xs text-ink/50 mb-1";
+const inp = "w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-800 focus:outline-none focus:border-indigo-400 bg-white";
+const lbl = "block text-xs text-slate-400 mb-1";
 
 const EMPTY_FORM: Partial<FunnelCard> = {
   name: "", donor_type: "org", donor_category: "donation",
@@ -92,10 +92,10 @@ function CardForm({ initial, onSave, onCancel }: {
         </div>
       </div>
       <div className="flex gap-2 pt-1">
-        <button type="submit" disabled={saving} className="bg-ink text-beige px-5 py-2 rounded-xl text-sm font-semibold hover:bg-ink/90 disabled:opacity-50">
+        <button type="submit" disabled={saving} className="bg-indigo-600 text-white px-5 py-2 rounded-xl text-sm font-semibold hover:bg-slate-100 disabled:opacity-50">
           {saving ? "Сохраняем..." : "Сохранить"}
         </button>
-        <button type="button" onClick={onCancel} className="px-5 py-2 rounded-xl text-sm border border-beige-dark text-ink/60 hover:text-ink">
+        <button type="button" onClick={onCancel} className="px-5 py-2 rounded-xl text-sm border border-slate-200 text-slate-500 hover:text-slate-800">
           Отмена
         </button>
       </div>
@@ -127,28 +127,28 @@ function KanbanCard({ card, stages, onEdit, onDelete, onMove }: {
   const currentIdx = stages.findIndex(s => s.id === card.stage);
 
   return (
-    <div className="bg-white rounded-xl border border-beige-dark p-3 shadow-sm hover:shadow-md transition-shadow cursor-default group">
+    <div className="bg-white rounded-xl border border-slate-200 p-3 shadow-sm hover:shadow-md transition-shadow cursor-default group">
       <div className="flex items-start justify-between gap-1 mb-2">
-        <p className="font-semibold text-sm text-ink leading-tight flex-1">{card.name}</p>
+        <p className="font-semibold text-sm text-slate-800 leading-tight flex-1">{card.name}</p>
         <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-          <button onClick={onEdit} className="p-1 text-ink/40 hover:text-ink rounded">
+          <button onClick={onEdit} className="p-1 text-slate-400 hover:text-slate-800 rounded">
             <Icon name="Pencil" size={12} />
           </button>
-          <button onClick={onDelete} className="p-1 text-ink/40 hover:text-red-500 rounded">
+          <button onClick={onDelete} className="p-1 text-slate-400 hover:text-red-500 rounded">
             <Icon name="Trash2" size={12} />
           </button>
         </div>
       </div>
 
       {card.donor_category && card.donor_category !== "donation" && (
-        <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${DONOR_CATEGORY_COLORS[cat] ?? "bg-beige-dark text-ink/60"}`}>
+        <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${DONOR_CATEGORY_COLORS[cat] ?? "bg-slate-100 text-slate-500"}`}>
           {DONOR_CATEGORY_LABELS[cat]}
         </span>
       )}
 
       <div className="mt-2 space-y-1">
         {card.contact_person && (
-          <p className="text-xs text-ink/50 flex items-center gap-1">
+          <p className="text-xs text-slate-400 flex items-center gap-1">
             <Icon name="User" size={10} /> {card.contact_person}
           </p>
         )}
@@ -156,10 +156,10 @@ function KanbanCard({ card, stages, onEdit, onDelete, onMove }: {
           <p className="text-xs text-green-700 font-semibold">{fmt(card.potential_amount)}</p>
         )}
         {card.next_action_at && (
-          <p className={`text-xs flex items-center gap-1 ${overdue ? "text-red-500 font-medium" : "text-ink/40"}`}>
+          <p className={`text-xs flex items-center gap-1 ${overdue ? "text-red-500 font-medium" : "text-slate-400"}`}>
             <Icon name="Clock" size={10} />
             {overdue ? "Просрочено: " : ""}{fmtDate(card.next_action_at)}
-            {card.next_action_note && <span className="text-ink/40"> · {card.next_action_note}</span>}
+            {card.next_action_note && <span className="text-slate-400"> · {card.next_action_note}</span>}
           </p>
         )}
       </div>
@@ -169,7 +169,7 @@ function KanbanCard({ card, stages, onEdit, onDelete, onMove }: {
         <button
           disabled={currentIdx === 0}
           onClick={() => onMove(stages[currentIdx - 1].id)}
-          className="p-1 text-ink/30 hover:text-ink disabled:opacity-20 rounded hover:bg-beige-mid transition-colors"
+          className="p-1 text-slate-300 hover:text-slate-800 disabled:opacity-20 rounded hover:bg-slate-50 transition-colors"
           title="Назад"
         >
           <Icon name="ChevronLeft" size={13} />
@@ -177,15 +177,15 @@ function KanbanCard({ card, stages, onEdit, onDelete, onMove }: {
         <div className="relative flex-1" ref={menuRef}>
           <button
             onClick={() => setMenu(m => !m)}
-            className="w-full text-[10px] text-ink/40 hover:text-ink text-center py-0.5 rounded hover:bg-beige-mid transition-colors truncate"
+            className="w-full text-[10px] text-slate-400 hover:text-slate-800 text-center py-0.5 rounded hover:bg-slate-50 transition-colors truncate"
           >
             переместить ↕
           </button>
           {menu && (
-            <div className="absolute bottom-full left-0 right-0 mb-1 bg-white border border-beige-dark rounded-xl shadow-xl z-20 py-1 max-h-52 overflow-y-auto">
+            <div className="absolute bottom-full left-0 right-0 mb-1 bg-white border border-slate-200 rounded-xl shadow-xl z-20 py-1 max-h-52 overflow-y-auto">
               {stages.map((s, i) => (
                 <button key={s.id} onClick={() => { onMove(s.id); setMenu(false); }}
-                  className={`w-full text-left px-3 py-1.5 text-xs hover:bg-beige-mid transition-colors flex items-center gap-2 ${s.id === card.stage ? "text-ink font-semibold" : "text-ink/60"}`}>
+                  className={`w-full text-left px-3 py-1.5 text-xs hover:bg-slate-50 transition-colors flex items-center gap-2 ${s.id === card.stage ? "text-slate-800 font-semibold" : "text-slate-500"}`}>
                   <span className="w-4 text-center opacity-50">{i + 1}</span>
                   {s.label}
                 </button>
@@ -196,7 +196,7 @@ function KanbanCard({ card, stages, onEdit, onDelete, onMove }: {
         <button
           disabled={currentIdx === stages.length - 1}
           onClick={() => onMove(stages[currentIdx + 1].id)}
-          className="p-1 text-ink/30 hover:text-ink disabled:opacity-20 rounded hover:bg-beige-mid transition-colors"
+          className="p-1 text-slate-300 hover:text-slate-800 disabled:opacity-20 rounded hover:bg-slate-50 transition-colors"
           title="Вперёд"
         >
           <Icon name="ChevronRight" size={13} />
@@ -258,8 +258,8 @@ export default function FundraisingFunnelTab({ adminUsers = [] }: { adminUsers?:
       {/* Шапка */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h2 className="font-cormorant text-ink text-2xl font-semibold">Воронка фандрайзинга</h2>
-          <div className="flex items-center gap-4 mt-1 text-xs text-ink/50">
+          <h2 className="font-inter font-bold text-slate-800 text-2xl font-semibold">Воронка фандрайзинга</h2>
+          <div className="flex items-center gap-4 mt-1 text-xs text-slate-400">
             <span>{allCards.length} доноров в работе</span>
             {totalPotential > 0 && <span>Потенциал: {fmt(totalPotential)}</span>}
             {overdueCount > 0 && (
@@ -271,7 +271,7 @@ export default function FundraisingFunnelTab({ adminUsers = [] }: { adminUsers?:
         </div>
         <button
           onClick={() => { setDefaultStage("identified"); setAdding("identified"); setEditing(null); }}
-          className="flex items-center gap-2 bg-ink text-beige px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-ink/90 transition-colors"
+          className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-100 transition-colors"
         >
           <Icon name="Plus" size={15} /> Добавить
         </button>
@@ -279,8 +279,8 @@ export default function FundraisingFunnelTab({ adminUsers = [] }: { adminUsers?:
 
       {/* Форма добавления / редактирования поверх */}
       {(adding || editing) && (
-        <div className="bg-white border border-beige-dark rounded-2xl p-5 shadow-sm">
-          <h3 className="font-semibold text-ink mb-4 text-sm">
+        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+          <h3 className="font-semibold text-slate-800 mb-4 text-sm">
             {editing ? "Редактировать карточку" : "Новый донор в воронку"}
           </h3>
           <CardForm
@@ -293,7 +293,7 @@ export default function FundraisingFunnelTab({ adminUsers = [] }: { adminUsers?:
 
       {loading ? (
         <div className="flex justify-center py-16">
-          <div className="w-6 h-6 border-2 border-ink border-t-transparent rounded-full animate-spin" />
+          <div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
         </div>
       ) : (
         /* Горизонтальный скролл с колонками */
@@ -310,15 +310,15 @@ export default function FundraisingFunnelTab({ adminUsers = [] }: { adminUsers?:
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1.5">
                         <Icon name={stage.icon} size={13} className="opacity-60" />
-                        <span className="text-xs font-semibold text-ink/80 leading-tight">{stage.label}</span>
+                        <span className="text-xs font-semibold text-slate-600 leading-tight">{stage.label}</span>
                       </div>
                       <div className="flex items-center gap-1">
-                        <span className="text-xs font-bold text-ink/60 bg-white/60 rounded-full w-5 h-5 flex items-center justify-center">
+                        <span className="text-xs font-bold text-slate-500 bg-white/60 rounded-full w-5 h-5 flex items-center justify-center">
                           {cards.length}
                         </span>
                         <button
                           onClick={() => { setDefaultStage(stage.id); setAdding(stage.id); setEditing(null); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-                          className="w-5 h-5 flex items-center justify-center text-ink/40 hover:text-ink hover:bg-white/60 rounded transition-colors"
+                          className="w-5 h-5 flex items-center justify-center text-slate-400 hover:text-slate-800 hover:bg-white/60 rounded transition-colors"
                           title="Добавить в этот этап"
                         >
                           <Icon name="Plus" size={12} />
@@ -326,7 +326,7 @@ export default function FundraisingFunnelTab({ adminUsers = [] }: { adminUsers?:
                       </div>
                     </div>
                     {stagePotential > 0 && (
-                      <p className="text-[10px] text-ink/50 mt-0.5">{fmt(stagePotential)}</p>
+                      <p className="text-[10px] text-slate-400 mt-0.5">{fmt(stagePotential)}</p>
                     )}
                   </div>
 
@@ -343,8 +343,8 @@ export default function FundraisingFunnelTab({ adminUsers = [] }: { adminUsers?:
                       />
                     ))}
                     {cards.length === 0 && (
-                      <div className="border-2 border-dashed border-beige-dark rounded-xl h-16 flex items-center justify-center">
-                        <span className="text-xs text-ink/20">пусто</span>
+                      <div className="border-2 border-dashed border-slate-200 rounded-xl h-16 flex items-center justify-center">
+                        <span className="text-xs text-slate-300">пусто</span>
                       </div>
                     )}
                   </div>
@@ -357,8 +357,8 @@ export default function FundraisingFunnelTab({ adminUsers = [] }: { adminUsers?:
 
       {/* Легенда прогресса */}
       {allCards.length > 0 && (
-        <div className="bg-white border border-beige-dark rounded-2xl p-4">
-          <p className="text-xs text-ink/40 mb-3 uppercase tracking-widest">Прогресс по воронке</p>
+        <div className="bg-white border border-slate-200 rounded-2xl p-4">
+          <p className="text-xs text-slate-400 mb-3 uppercase tracking-widest">Прогресс по воронке</p>
           <div className="flex items-center gap-0.5 h-3 rounded-full overflow-hidden">
             {FUNNEL_STAGES.map(s => {
               const cnt = (grouped[s.id] || []).length;
@@ -366,7 +366,7 @@ export default function FundraisingFunnelTab({ adminUsers = [] }: { adminUsers?:
               if (pct === 0) return null;
               return (
                 <div key={s.id} style={{ width: `${pct}%` }}
-                  className="h-full bg-ink/10 hover:bg-ink/30 transition-colors cursor-default first:rounded-l-full last:rounded-r-full"
+                  className="h-full bg-slate-100 hover:bg-slate-100 transition-colors cursor-default first:rounded-l-full last:rounded-r-full"
                   title={`${s.label}: ${cnt}`} />
               );
             })}
@@ -376,7 +376,7 @@ export default function FundraisingFunnelTab({ adminUsers = [] }: { adminUsers?:
               const cnt = (grouped[s.id] || []).length;
               if (cnt === 0) return null;
               return (
-                <span key={s.id} className="text-[10px] text-ink/50 flex items-center gap-1">
+                <span key={s.id} className="text-[10px] text-slate-400 flex items-center gap-1">
                   <Icon name={s.icon} size={10} /> {s.label}: {cnt}
                 </span>
               );
