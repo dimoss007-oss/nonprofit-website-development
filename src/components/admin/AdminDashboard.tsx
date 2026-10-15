@@ -61,9 +61,9 @@ export default function AdminDashboard({ onNavigate, session, users }: { onNavig
 
       <div className="grid gap-4 grid-cols-1 lg:grid-cols-3 [&>*]:min-w-0">
         <ResidentsCard data={data?.residents} loading={loading} onSaveCapacity={saveCapacity} />
-        <SystemCard data={data?.system} loading={loading} />
-        <TasksCalendarCard session={session} users={users} />
         <AiReportsCard data={data?.aiReports} loading={loading} summaryLoading={summaryLoading} onRefresh={refreshSummary} />
+        <TasksCalendarCard session={session} users={users} />
+        <SystemCard data={data?.system} loading={loading} />
         <NewsCard data={data?.news} loading={loading} />
       </div>
     </div>
