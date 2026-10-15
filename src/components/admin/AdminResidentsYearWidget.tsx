@@ -24,10 +24,10 @@ export default function AdminResidentsYearWidget() {
   }, []);
 
   if (loading) return (
-    <div className="bg-white rounded-2xl border border-beige-dark p-5">
+    <div className="bg-white rounded-2xl border border-slate-200 p-5">
       <div className="animate-pulse space-y-3">
-        <div className="h-4 bg-beige-dark rounded w-1/2" />
-        <div className="h-8 bg-beige-dark rounded w-1/3" />
+        <div className="h-4 bg-slate-100 rounded w-1/2" />
+        <div className="h-8 bg-slate-100 rounded w-1/3" />
       </div>
     </div>
   );
@@ -35,29 +35,29 @@ export default function AdminResidentsYearWidget() {
   if (!stats) return null;
 
   return (
-    <div className="bg-white rounded-2xl border border-beige-dark p-5">
+    <div className="bg-white rounded-2xl border border-slate-200 p-5">
       <div className="flex items-center gap-2 mb-3">
         <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
           <Icon name="HeartHandshake" size={16} className="text-blue-600" />
         </div>
-        <h3 className="font-semibold text-ink text-sm">Оказана помощь за {stats.year} год</h3>
+        <h3 className="font-semibold text-slate-800 text-sm">Оказана помощь за {stats.year} год</h3>
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <div className="flex items-center gap-1.5 text-ink/50 mb-0.5">
+          <div className="flex items-center gap-1.5 text-slate-400 mb-0.5">
             <Icon name="Users" size={13} />
             <span className="text-xs">Взрослых</span>
           </div>
-          <p className="font-cormorant text-4xl font-semibold text-ink">{stats.total_residents_this_year}</p>
-          <p className="text-xs text-ink/40 mt-0.5">{stats.admitted_this_year} поступили · {stats.carried_over} с прошлого года</p>
+          <p className="font-inter font-bold text-4xl font-semibold text-slate-800">{stats.total_residents_this_year}</p>
+          <p className="text-xs text-slate-400 mt-0.5">{stats.admitted_this_year} поступили · {stats.carried_over} с прошлого года</p>
         </div>
         <div>
-          <div className="flex items-center gap-1.5 text-ink/50 mb-0.5">
+          <div className="flex items-center gap-1.5 text-slate-400 mb-0.5">
             <Icon name="Baby" size={13} />
             <span className="text-xs">Детей</span>
           </div>
-          <p className="font-cormorant text-4xl font-semibold text-ink">{stats.total_children_this_year}</p>
-          <p className="text-xs text-ink/40 mt-0.5">{stats.children_admitted_this_year} поступили · {stats.children_carried_over} с прошлого года</p>
+          <p className="font-inter font-bold text-4xl font-semibold text-slate-800">{stats.total_children_this_year}</p>
+          <p className="text-xs text-slate-400 mt-0.5">{stats.children_admitted_this_year} поступили · {stats.children_carried_over} с прошлого года</p>
         </div>
       </div>
     </div>

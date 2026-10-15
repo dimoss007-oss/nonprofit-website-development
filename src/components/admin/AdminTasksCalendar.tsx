@@ -26,13 +26,13 @@ const LINK_LABELS: Record<string, { label: string; icon: string }> = {
 };
 
 const PRIORITY_DOT: Record<Priority, string> = {
-  low: "bg-ink/30",
+  low: "bg-slate-100",
   medium: "bg-blue-400",
   high: "bg-red-400",
 };
 
 const STATUS_COLOR: Record<Status, string> = {
-  new: "border-l-beige-dark",
+  new: "border-l-slate-300",
   in_progress: "border-l-yellow-400",
   done: "border-l-green-400",
 };
@@ -57,7 +57,7 @@ function toYMD(date: Date) {
   return date.toISOString().slice(0, 10);
 }
 
-const inp = "w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink bg-white";
+const inp = "w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400 bg-white";
 
 // ─── Форма быстрого добавления задачи ─────────────────────────────────────
 function QuickAddForm({
@@ -86,8 +86,8 @@ function QuickAddForm({
   };
 
   return (
-    <form onSubmit={submit} className="bg-beige/50 rounded-xl border border-beige-dark p-3 space-y-2">
-      <p className="text-xs font-medium text-ink/50 uppercase tracking-wider">Новая задача</p>
+    <form onSubmit={submit} className="bg-slate-50 rounded-xl border border-slate-200 p-3 space-y-2">
+      <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Новая задача</p>
       <input
         required
         autoFocus
@@ -109,8 +109,8 @@ function QuickAddForm({
         </select>
       </div>
       <div className="flex gap-2 justify-end">
-        <button type="button" onClick={onCancel} className="px-3 py-1.5 text-xs rounded-lg border border-beige-dark hover:border-ink transition-colors">Отмена</button>
-        <button type="submit" disabled={saving || !title.trim()} className="px-3 py-1.5 text-xs rounded-lg bg-ink text-beige hover:bg-ink/90 transition-colors disabled:opacity-60">
+        <button type="button" onClick={onCancel} className="px-3 py-1.5 text-xs rounded-lg border border-slate-200 hover:border-indigo-300 transition-colors">Отмена</button>
+        <button type="submit" disabled={saving || !title.trim()} className="px-3 py-1.5 text-xs rounded-lg bg-indigo-600 text-white hover:bg-slate-100 transition-colors disabled:opacity-60">
           {saving ? "..." : "Сохранить"}
         </button>
       </div>
@@ -152,16 +152,16 @@ function DayModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="absolute inset-0 bg-ink/20 backdrop-blur-[2px]" />
+      <div className="absolute inset-0 bg-slate-100 backdrop-blur-[2px]" />
       <div
-        className="relative bg-white rounded-2xl shadow-xl border border-beige-dark w-full max-w-md max-h-[80vh] flex flex-col"
+        className="relative bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-md max-h-[80vh] flex flex-col"
         onClick={e => e.stopPropagation()}
       >
         {/* Заголовок */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-beige-dark flex-shrink-0">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 flex-shrink-0">
           <div>
-            <p className="font-semibold text-ink">{dateLabel}</p>
-            <p className="text-xs text-ink/40 mt-0.5">
+            <p className="font-semibold text-slate-800">{dateLabel}</p>
+            <p className="text-xs text-slate-400 mt-0.5">
               {tasks.length === 0 ? "Нет задач" : `${tasks.length} ${tasks.length === 1 ? "задача" : tasks.length < 5 ? "задачи" : "задач"}`}
             </p>
           </div>
@@ -169,12 +169,12 @@ function DayModal({
             {isAdmin && !adding && (
               <button
                 onClick={() => setAdding(true)}
-                className="flex items-center gap-1.5 text-xs bg-ink text-beige px-3 py-1.5 rounded-lg hover:bg-ink/90 transition-colors"
+                className="flex items-center gap-1.5 text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-lg hover:bg-slate-100 transition-colors"
               >
                 <Icon name="Plus" size={12} /> Добавить
               </button>
             )}
-            <button onClick={onClose} className="p-1.5 text-ink/30 hover:text-ink transition-colors">
+            <button onClick={onClose} className="p-1.5 text-slate-300 hover:text-slate-800 transition-colors">
               <Icon name="X" size={16} />
             </button>
           </div>
@@ -192,11 +192,11 @@ function DayModal({
           )}
 
           {tasks.length === 0 && !adding && (
-            <div className="text-center py-8 text-ink/30">
+            <div className="text-center py-8 text-slate-300">
               <Icon name="CalendarDays" size={32} className="mx-auto mb-2 opacity-30" />
               <p className="text-sm">Задач на этот день нет</p>
               {isAdmin && (
-                <button onClick={() => setAdding(true)} className="mt-3 text-xs text-ink/50 hover:text-ink underline underline-offset-2 transition-colors">
+                <button onClick={() => setAdding(true)} className="mt-3 text-xs text-slate-400 hover:text-slate-800 underline underline-offset-2 transition-colors">
                   Добавить первую задачу
                 </button>
               )}
@@ -204,22 +204,22 @@ function DayModal({
           )}
 
           {tasks.map(t => (
-            <div key={t.id} className={`border-l-2 pl-3 py-2.5 pr-2 rounded-r-xl bg-beige/30 ${STATUS_COLOR[t.status]}`}>
+            <div key={t.id} className={`border-l-2 pl-3 py-2.5 pr-2 rounded-r-xl bg-slate-50 ${STATUS_COLOR[t.status]}`}>
               <div className="flex items-start justify-between gap-2">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5 mb-0.5">
                     <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${PRIORITY_DOT[t.priority]}`} />
-                    <p className={`text-sm font-medium text-ink leading-snug ${t.status === "done" ? "line-through text-ink/40" : ""}`}>{t.title}</p>
+                    <p className={`text-sm font-medium text-slate-800 leading-snug ${t.status === "done" ? "line-through text-slate-400" : ""}`}>{t.title}</p>
                   </div>
-                  {t.description && <p className="text-xs text-ink/50 mt-0.5 line-clamp-2 pl-3">{t.description}</p>}
+                  {t.description && <p className="text-xs text-slate-400 mt-0.5 line-clamp-2 pl-3">{t.description}</p>}
                   <div className="flex items-center gap-2 mt-1 pl-3 flex-wrap">
                     <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
-                      t.status === "new" ? "bg-beige-dark text-ink/60"
+                      t.status === "new" ? "bg-slate-100 text-slate-500"
                       : t.status === "in_progress" ? "bg-yellow-100 text-yellow-700"
                       : "bg-green-100 text-green-700"
                     }`}>{STATUS_LABEL[t.status]}</span>
                     {t.assignee_name && (
-                      <span className="text-xs text-ink/40 flex items-center gap-0.5">
+                      <span className="text-xs text-slate-400 flex items-center gap-0.5">
                         <Icon name="User" size={10} />{t.assignee_name}
                       </span>
                     )}
@@ -227,7 +227,7 @@ function DayModal({
                   {t.link_type && LINK_LABELS[t.link_type] && onGoToLink && (
                     <button
                       onClick={() => { onGoToLink(t); onClose(); }}
-                      className="mt-1.5 ml-3 flex items-center gap-1 text-[11px] px-2 py-1 rounded-lg border border-beige-dark hover:border-ink text-ink/50 hover:text-ink transition-colors"
+                      className="mt-1.5 ml-3 flex items-center gap-1 text-[11px] px-2 py-1 rounded-lg border border-slate-200 hover:border-indigo-300 text-slate-400 hover:text-slate-800 transition-colors"
                     >
                       <Icon name={LINK_LABELS[t.link_type].icon} size={11} />{LINK_LABELS[t.link_type].label}
                     </button>
@@ -236,17 +236,17 @@ function DayModal({
                 <div className="flex items-center gap-0.5 flex-shrink-0">
                   <button
                     onClick={() => onStatusChange(t.id, STATUS_NEXT[t.status].status)}
-                    className="p-1.5 text-ink/30 hover:text-ink transition-colors"
+                    className="p-1.5 text-slate-300 hover:text-slate-800 transition-colors"
                     title={STATUS_NEXT[t.status].label}
                   >
                     <Icon name={STATUS_NEXT[t.status].icon} size={13} />
                   </button>
                   {isAdmin && (
                     <>
-                      <button onClick={() => { onEdit(t); onClose(); }} className="p-1.5 text-ink/30 hover:text-ink transition-colors">
+                      <button onClick={() => { onEdit(t); onClose(); }} className="p-1.5 text-slate-300 hover:text-slate-800 transition-colors">
                         <Icon name="Pencil" size={13} />
                       </button>
-                      <button onClick={() => onDelete(t.id)} className="p-1.5 text-ink/20 hover:text-red-400 transition-colors">
+                      <button onClick={() => onDelete(t.id)} className="p-1.5 text-slate-300 hover:text-red-400 transition-colors">
                         <Icon name="Trash2" size={13} />
                       </button>
                     </>
@@ -318,26 +318,26 @@ export default function AdminTasksCalendar({
     <div className="space-y-4">
       {/* Навигация */}
       <div className="flex items-center justify-between">
-        <button onClick={prevMonth} className="p-2 rounded-lg text-ink/40 hover:text-ink hover:bg-beige-mid transition-colors">
+        <button onClick={prevMonth} className="p-2 rounded-lg text-slate-400 hover:text-slate-800 hover:bg-slate-50 transition-colors">
           <Icon name="ChevronLeft" size={18} />
         </button>
-        <h3 className="font-semibold text-ink text-base">{MONTHS_RU[month]} {year}</h3>
-        <button onClick={nextMonth} className="p-2 rounded-lg text-ink/40 hover:text-ink hover:bg-beige-mid transition-colors">
+        <h3 className="font-semibold text-slate-800 text-base">{MONTHS_RU[month]} {year}</h3>
+        <button onClick={nextMonth} className="p-2 rounded-lg text-slate-400 hover:text-slate-800 hover:bg-slate-50 transition-colors">
           <Icon name="ChevronRight" size={18} />
         </button>
       </div>
 
       {/* Сетка */}
-      <div className="bg-white rounded-2xl border border-beige-dark overflow-hidden">
-        <div className="grid grid-cols-7 border-b border-beige-dark">
+      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+        <div className="grid grid-cols-7 border-b border-slate-200">
           {DAYS_RU.map(d => (
-            <div key={d} className={`text-center text-xs font-medium py-2 ${d === "Сб" || d === "Вс" ? "text-ink/30" : "text-ink/50"}`}>{d}</div>
+            <div key={d} className={`text-center text-xs font-medium py-2 ${d === "Сб" || d === "Вс" ? "text-slate-300" : "text-slate-400"}`}>{d}</div>
           ))}
         </div>
 
         <div className="grid grid-cols-7">
           {Array.from({ length: firstDow }).map((_, i) => (
-            <div key={`empty-${i}`} className="min-h-[72px] border-b border-r border-beige-dark/50 bg-beige/20" />
+            <div key={`empty-${i}`} className="min-h-[72px] border-b border-r border-slate-200 bg-slate-50" />
           ))}
 
           {Array.from({ length: daysInMonth }).map((_, i) => {
@@ -354,14 +354,14 @@ export default function AdminTasksCalendar({
               <div
                 key={ymd}
                 onClick={() => setModalDate(ymd)}
-                className={`min-h-[72px] border-b border-r border-beige-dark/50 p-1.5 cursor-pointer transition-colors
-                  ${isSelected ? "bg-ink/5 ring-1 ring-inset ring-ink/20" : "hover:bg-beige/40"}
-                  ${isWeekend ? "bg-beige/10" : ""}
+                className={`min-h-[72px] border-b border-r border-slate-200 p-1.5 cursor-pointer transition-colors
+                  ${isSelected ? "bg-slate-100 ring-1 ring-inset ring-ink/20" : "hover:bg-slate-50"}
+                  ${isWeekend ? "bg-slate-50" : ""}
                 `}
               >
                 <div className="flex items-center justify-between mb-1">
                   <span className={`text-xs font-medium w-6 h-6 flex items-center justify-center rounded-full transition-colors
-                    ${isToday ? "bg-ink text-beige" : isWeekend ? "text-ink/30" : "text-ink/70"}
+                    ${isToday ? "bg-indigo-600 text-white" : isWeekend ? "text-slate-300" : "text-slate-600"}
                   `}>
                     {day}
                   </span>
@@ -371,11 +371,11 @@ export default function AdminTasksCalendar({
                   {dayTasks.slice(0, 3).map(t => (
                     <div key={t.id} className={`flex items-center gap-1 border-l-2 pl-1 rounded-r ${STATUS_COLOR[t.status]} ${t.status === "done" ? "opacity-50" : ""}`}>
                       <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${PRIORITY_DOT[t.priority]}`} />
-                      <p className={`text-[10px] leading-tight truncate text-ink/70 ${t.status === "done" ? "line-through" : ""}`}>{t.title}</p>
+                      <p className={`text-[10px] leading-tight truncate text-slate-600 ${t.status === "done" ? "line-through" : ""}`}>{t.title}</p>
                     </div>
                   ))}
                   {dayTasks.length > 3 && (
-                    <p className="text-[10px] text-ink/40 pl-1">+{dayTasks.length - 3} ещё</p>
+                    <p className="text-[10px] text-slate-400 pl-1">+{dayTasks.length - 3} ещё</p>
                   )}
                 </div>
               </div>
@@ -386,16 +386,16 @@ export default function AdminTasksCalendar({
 
       {/* Задачи без дедлайна */}
       {noDeadline.length > 0 && (
-        <div className="bg-beige/40 rounded-2xl border border-beige-dark p-4 space-y-2">
-          <p className="text-xs font-medium text-ink/50 uppercase tracking-wider">Без дедлайна ({noDeadline.length})</p>
+        <div className="bg-slate-50 rounded-2xl border border-slate-200 p-4 space-y-2">
+          <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Без дедлайна ({noDeadline.length})</p>
           <div className="space-y-1.5">
             {noDeadline.map(t => (
               <div key={t.id} className="flex items-center gap-2">
                 <span className={`w-2 h-2 rounded-full flex-shrink-0 ${PRIORITY_DOT[t.priority]}`} />
-                <p className="text-sm text-ink/70 flex-1 truncate">{t.title}</p>
-                {t.assignee_name && <span className="text-xs text-ink/40 flex-shrink-0">{t.assignee_name}</span>}
+                <p className="text-sm text-slate-600 flex-1 truncate">{t.title}</p>
+                {t.assignee_name && <span className="text-xs text-slate-400 flex-shrink-0">{t.assignee_name}</span>}
                 {isAdmin && (
-                  <button onClick={() => onEdit(t)} className="p-1 text-ink/20 hover:text-ink transition-colors flex-shrink-0">
+                  <button onClick={() => onEdit(t)} className="p-1 text-slate-300 hover:text-slate-800 transition-colors flex-shrink-0">
                     <Icon name="Pencil" size={12} />
                   </button>
                 )}

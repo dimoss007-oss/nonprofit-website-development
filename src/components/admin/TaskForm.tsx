@@ -33,17 +33,17 @@ export default function TaskForm({
   return (
     <div className="space-y-4">
       <div>
-        <label className="text-xs text-ink/50 mb-1 block">Название *</label>
-        <input value={form.title} onChange={set("title")} placeholder="Что нужно сделать?" className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" />
+        <label className="text-xs text-slate-400 mb-1 block">Название *</label>
+        <input value={form.title} onChange={set("title")} placeholder="Что нужно сделать?" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400" />
       </div>
       <div>
-        <label className="text-xs text-ink/50 mb-1 block">Описание</label>
-        <textarea value={form.description} onChange={set("description")} rows={3} className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink resize-none" />
+        <label className="text-xs text-slate-400 mb-1 block">Описание</label>
+        <textarea value={form.description} onChange={set("description")} rows={3} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400 resize-none" />
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
-          <label className="text-xs text-ink/50 mb-1 block">Исполнитель</label>
-          <select value={form.assignee_login} onChange={handleAssignee} className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink bg-white">
+          <label className="text-xs text-slate-400 mb-1 block">Исполнитель</label>
+          <select value={form.assignee_login} onChange={handleAssignee} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400 bg-white">
             <option value="">Не назначен</option>
             <option value="__all__">Все сотрудники</option>
             {users.map(u => (
@@ -52,8 +52,8 @@ export default function TaskForm({
           </select>
         </div>
         <div>
-          <label className="text-xs text-ink/50 mb-1 block">Соисполнитель</label>
-          <select value={form.co_assignee_login} onChange={handleCoAssignee} className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink bg-white">
+          <label className="text-xs text-slate-400 mb-1 block">Соисполнитель</label>
+          <select value={form.co_assignee_login} onChange={handleCoAssignee} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400 bg-white">
             <option value="">Не назначен</option>
             {users.map(u => (
               <option key={u.login} value={u.login}>{u.full_name || u.login}</option>
@@ -61,29 +61,29 @@ export default function TaskForm({
           </select>
         </div>
         <div>
-          <label className="text-xs text-ink/50 mb-1 block">Приоритет</label>
-          <select value={form.priority} onChange={set("priority")} className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink bg-white">
+          <label className="text-xs text-slate-400 mb-1 block">Приоритет</label>
+          <select value={form.priority} onChange={set("priority")} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400 bg-white">
             <option value="low">Низкий</option>
             <option value="medium">Средний</option>
             <option value="high">Высокий</option>
           </select>
         </div>
         <div>
-          <label className="text-xs text-ink/50 mb-1 block">Дата начала</label>
-          <input type="date" value={form.start_date} onChange={set("start_date")} className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" />
+          <label className="text-xs text-slate-400 mb-1 block">Дата начала</label>
+          <input type="date" value={form.start_date} onChange={set("start_date")} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400" />
         </div>
         <div>
-          <label className="text-xs text-ink/50 mb-1 block">Дедлайн</label>
-          <input type="date" value={form.deadline} onChange={set("deadline")} className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" />
+          <label className="text-xs text-slate-400 mb-1 block">Дедлайн</label>
+          <input type="date" value={form.deadline} onChange={set("deadline")} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400" />
         </div>
         <div>
-          <label className="text-xs text-ink/50 mb-1 block">Время</label>
-          <input type="time" value={form.call_time} onChange={set("call_time")} className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" />
+          <label className="text-xs text-slate-400 mb-1 block">Время</label>
+          <input type="time" value={form.call_time} onChange={set("call_time")} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400" />
         </div>
       </div>
       <div className="flex gap-2 justify-end">
-        <button onClick={onCancel} className="px-4 py-2 text-sm rounded-lg border border-beige-dark hover:border-ink transition-colors">Отмена</button>
-        <button onClick={() => onSave(form)} disabled={loading || !form.title.trim()} className="px-4 py-2 text-sm rounded-lg bg-ink text-beige hover:bg-ink/90 transition-colors disabled:opacity-60">
+        <button onClick={onCancel} className="px-4 py-2 text-sm rounded-lg border border-slate-200 hover:border-indigo-300 transition-colors">Отмена</button>
+        <button onClick={() => onSave(form)} disabled={loading || !form.title.trim()} className="px-4 py-2 text-sm rounded-lg bg-indigo-600 text-white hover:bg-slate-100 transition-colors disabled:opacity-60">
           {loading ? "Сохранение..." : "Сохранить"}
         </button>
       </div>

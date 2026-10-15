@@ -57,13 +57,13 @@ export default function TaskFilesSection({ taskId, uploaderLogin }: { taskId: nu
   };
 
   return (
-    <div className="border-t border-beige-dark mt-3 pt-3">
+    <div className="border-t border-slate-200 mt-3 pt-3">
       <div className="flex items-center justify-between mb-2">
-        <p className="text-xs text-ink/40 font-medium uppercase tracking-wider">Файлы</p>
+        <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">Файлы</p>
         <button
           onClick={() => inputRef.current?.click()}
           disabled={uploading}
-          className="flex items-center gap-1 text-xs text-ink/40 hover:text-ink transition-colors disabled:opacity-40"
+          className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-800 transition-colors disabled:opacity-40"
         >
           <Icon name={uploading ? "Loader" : "Paperclip"} size={12} />
           {uploading ? "Загружаем..." : "Прикрепить"}
@@ -72,12 +72,12 @@ export default function TaskFilesSection({ taskId, uploaderLogin }: { taskId: nu
       </div>
 
       {loading ? (
-        <p className="text-xs text-ink/30">Загрузка...</p>
+        <p className="text-xs text-slate-300">Загрузка...</p>
       ) : files.length === 0 ? (
         <div
           onDrop={handleDrop}
           onDragOver={e => e.preventDefault()}
-          className="border border-dashed border-beige-dark rounded-xl py-3 text-center text-xs text-ink/25 cursor-pointer hover:border-ink/20 hover:text-ink/40 transition-colors"
+          className="border border-dashed border-slate-200 rounded-xl py-3 text-center text-xs text-slate-300 cursor-pointer hover:border-slate-300 hover:text-slate-400 transition-colors"
           onClick={() => inputRef.current?.click()}
         >
           Перетащите файл или нажмите для выбора
@@ -86,14 +86,14 @@ export default function TaskFilesSection({ taskId, uploaderLogin }: { taskId: nu
         <div className="space-y-1.5">
           {files.map(f => (
             <div key={f.id} className="flex items-center gap-2 group">
-              <Icon name={fileIcon(f.filename)} size={13} className="text-ink/30 flex-shrink-0" />
-              <a href={f.url} target="_blank" rel="noopener noreferrer" className="flex-1 min-w-0 text-xs text-ink/70 hover:text-ink truncate transition-colors">
+              <Icon name={fileIcon(f.filename)} size={13} className="text-slate-300 flex-shrink-0" />
+              <a href={f.url} target="_blank" rel="noopener noreferrer" className="flex-1 min-w-0 text-xs text-slate-600 hover:text-slate-800 truncate transition-colors">
                 {f.filename}
               </a>
-              {f.size && <span className="text-[10px] text-ink/25 flex-shrink-0">{formatSize(f.size)}</span>}
+              {f.size && <span className="text-[10px] text-slate-300 flex-shrink-0">{formatSize(f.size)}</span>}
               <button
                 onClick={() => handleDelete(f.id)}
-                className="opacity-0 group-hover:opacity-100 p-0.5 text-ink/20 hover:text-red-400 transition-all flex-shrink-0"
+                className="opacity-0 group-hover:opacity-100 p-0.5 text-slate-300 hover:text-red-400 transition-all flex-shrink-0"
               >
                 <Icon name="X" size={11} />
               </button>
@@ -102,7 +102,7 @@ export default function TaskFilesSection({ taskId, uploaderLogin }: { taskId: nu
           <div
             onDrop={handleDrop}
             onDragOver={e => e.preventDefault()}
-            className="text-[10px] text-ink/20 py-1 cursor-pointer hover:text-ink/40 transition-colors"
+            className="text-[10px] text-slate-300 py-1 cursor-pointer hover:text-slate-400 transition-colors"
             onClick={() => inputRef.current?.click()}
           >
             + ещё файл
