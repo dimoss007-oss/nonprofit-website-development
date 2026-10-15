@@ -136,7 +136,7 @@ export default function PatientCard({ patientId, onBack, onDeleted, isAdmin, aut
     load();
   };
 
-  if (loading) return <div className="flex items-center justify-center h-64"><div className="w-6 h-6 border-2 border-ink border-t-transparent rounded-full animate-spin" /></div>;
+  if (loading) return <div className="flex items-center justify-center h-64"><div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" /></div>;
   if (!data) return null;
 
   const { patient, children, documents, latest_risk_level, shift_reports_count, tasks, saved_summaries } = data;
@@ -150,23 +150,23 @@ export default function PatientCard({ patientId, onBack, onDeleted, isAdmin, aut
   return (
     <div className="space-y-6 pt-2">
       <div className="flex items-start gap-3 flex-wrap">
-        <button onClick={onBack} className="p-2 rounded-lg hover:bg-beige-mid transition-colors flex-shrink-0"><Icon name="ArrowLeft" size={18} /></button>
-        <button onClick={() => photoRef.current?.click()} className="relative w-12 h-12 rounded-full overflow-hidden bg-beige-mid flex items-center justify-center flex-shrink-0 border border-beige-dark hover:border-ink transition-colors">
+        <button onClick={onBack} className="p-2 rounded-lg hover:bg-slate-50 transition-colors flex-shrink-0"><Icon name="ArrowLeft" size={18} /></button>
+        <button onClick={() => photoRef.current?.click()} className="relative w-12 h-12 rounded-full overflow-hidden bg-slate-50 flex items-center justify-center flex-shrink-0 border border-slate-200 hover:border-indigo-300 transition-colors">
           {patient.photo_url ? (
             <img src={patient.photo_url} alt="" className="w-full h-full object-cover" />
           ) : (
-            <Icon name="User" size={18} className="text-ink/30" />
+            <Icon name="User" size={18} className="text-slate-300" />
           )}
           {uploadingPhoto && <div className="absolute inset-0 bg-black/30 flex items-center justify-center"><Icon name="Loader" size={14} className="animate-spin text-white" /></div>}
         </button>
         <input ref={photoRef} type="file" accept="image/*" className="hidden" onChange={uploadPatientPhoto} />
         <div className="flex-1 min-w-[200px] pt-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <h2 className="font-cormorant text-ink text-2xl font-semibold leading-snug">{fullName}</h2>
-            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${isActive ? "bg-green-100 text-green-700" : "bg-beige-dark text-ink/50"}`}>
+            <h2 className="font-inter font-bold text-slate-800 text-2xl font-semibold leading-snug">{fullName}</h2>
+            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${isActive ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-400"}`}>
               {isActive ? "В центре" : "Выписана"}
             </span>
-            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${(patient.care_stage ?? "inpatient") === "posttreatment" ? "bg-blue-100 text-blue-700" : "bg-beige-mid text-ink/60"}`}>
+            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${(patient.care_stage ?? "inpatient") === "posttreatment" ? "bg-blue-100 text-blue-700" : "bg-slate-50 text-slate-500"}`}>
               {CARE_STAGE_META[patient.care_stage ?? "inpatient"].label}
             </span>
             <RiskBadge level={latest_risk_level} />
@@ -177,13 +177,13 @@ export default function PatientCard({ patientId, onBack, onDeleted, isAdmin, aut
               </span>
             )}
           </div>
-          <p className="text-ink/50 text-sm">
-            {patient.alias && <span className="text-ink/70">Псевдоним: {patient.alias} · </span>}
+          <p className="text-slate-400 text-sm">
+            {patient.alias && <span className="text-slate-600">Псевдоним: {patient.alias} · </span>}
             Поступила: {fmt(patient.admission_date)}
           </p>
         </div>
         <ContractButton patientId={patientId} defaultDate={patient.admission_date} />
-        <button onClick={() => setEditing(e => !e)} className="px-3 py-1.5 text-sm border border-beige-dark rounded-lg hover:border-ink transition-colors flex items-center gap-1.5">
+        <button onClick={() => setEditing(e => !e)} className="px-3 py-1.5 text-sm border border-slate-200 rounded-lg hover:border-indigo-300 transition-colors flex items-center gap-1.5">
           <Icon name="Pencil" size={14} /> Редактировать
         </button>
         {onViewShiftHistory && (
@@ -210,7 +210,7 @@ export default function PatientCard({ patientId, onBack, onDeleted, isAdmin, aut
             <Icon name="ArrowRightCircle" size={14} /> Перевести на амб. программу
           </button>
         ) : (
-          <button onClick={() => setCareStage("inpatient")} className="px-3 py-1.5 text-sm border border-beige-dark rounded-lg hover:border-ink transition-colors flex items-center gap-1.5">
+          <button onClick={() => setCareStage("inpatient")} className="px-3 py-1.5 text-sm border border-slate-200 rounded-lg hover:border-indigo-300 transition-colors flex items-center gap-1.5">
             <Icon name="ArrowLeftCircle" size={14} /> Вернуть в стационар
           </button>
         )}
@@ -222,8 +222,8 @@ export default function PatientCard({ patientId, onBack, onDeleted, isAdmin, aut
       </div>
 
       {editing && (
-        <div className="bg-white border border-beige-dark rounded-2xl p-6">
-          <h3 className="font-semibold text-ink mb-4">Редактирование</h3>
+        <div className="bg-white border border-slate-200 rounded-2xl p-6">
+          <h3 className="font-semibold text-slate-800 mb-4">Редактирование</h3>
           <PatientForm initial={{ last_name: patient.last_name, first_name: patient.first_name, middle_name: patient.middle_name ?? "", alias: patient.alias ?? "", birth_date: patient.birth_date?.slice(0, 10) ?? "", address: patient.address ?? "", admission_date: patient.admission_date?.slice(0, 10) ?? "", discharge_date: patient.discharge_date?.slice(0, 10) ?? "", case_description: patient.case_description ?? "", passport_series: patient.passport_series ?? "", passport_number: patient.passport_number ?? "", passport_issued_date: patient.passport_issued_date?.slice(0, 10) ?? "", passport_issued_by: patient.passport_issued_by ?? "", benefits_status: patient.benefits_status ?? "", urgent_needs: patient.urgent_needs ?? "", needs_resolution_stage: patient.needs_resolution_stage ?? "", is_pdn: patient.is_pdn ?? false, pdn_details: patient.pdn_details ?? "", is_sop: patient.is_sop ?? false, sop_details: patient.sop_details ?? "" }} onSave={save} onCancel={() => setEditing(false)} loading={saving} />
         </div>
       )}
@@ -242,13 +242,13 @@ export default function PatientCard({ patientId, onBack, onDeleted, isAdmin, aut
           {(duration || postTreatmentDuration) && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {duration && (
-                <div className={`rounded-2xl p-5 flex items-center gap-4 ${isActive ? "bg-green-50 border border-green-200" : "bg-beige border border-beige-dark"}`}>
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${isActive ? "bg-green-100" : "bg-beige-dark"}`}>
-                    <Icon name="Timer" size={18} className={isActive ? "text-green-600" : "text-ink/40"} />
+                <div className={`rounded-2xl p-5 flex items-center gap-4 ${isActive ? "bg-green-50 border border-green-200" : "bg-slate-50 border border-slate-200"}`}>
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${isActive ? "bg-green-100" : "bg-slate-100"}`}>
+                    <Icon name="Timer" size={18} className={isActive ? "text-green-600" : "text-slate-400"} />
                   </div>
                   <div>
-                    <p className="text-xs text-ink/40 uppercase tracking-wide mb-0.5">{isActive ? "Находится в центре" : "Находилась в центре"}</p>
-                    <p className="font-semibold text-ink text-lg leading-tight">{duration}</p>
+                    <p className="text-xs text-slate-400 uppercase tracking-wide mb-0.5">{isActive ? "Находится в центре" : "Находилась в центре"}</p>
+                    <p className="font-semibold text-slate-800 text-lg leading-tight">{duration}</p>
                   </div>
                 </div>
               )}
@@ -258,16 +258,16 @@ export default function PatientCard({ patientId, onBack, onDeleted, isAdmin, aut
                     <Icon name="Timer" size={18} className="text-blue-600" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-xs text-ink/40 uppercase tracking-wide mb-0.5">На амбулаторной программе</p>
-                    <p className="font-semibold text-ink text-lg leading-tight">{postTreatmentDuration}</p>
-                    <p className="text-xs text-ink/50 mt-0.5">с {fmt(patient.care_stage_since)}</p>
+                    <p className="text-xs text-slate-400 uppercase tracking-wide mb-0.5">На амбулаторной программе</p>
+                    <p className="font-semibold text-slate-800 text-lg leading-tight">{postTreatmentDuration}</p>
+                    <p className="text-xs text-slate-400 mt-0.5">с {fmt(patient.care_stage_since)}</p>
                     {editingCareStageSince ? (
                       <div className="flex items-center gap-2 mt-2">
-                        <input type="date" value={careStageSinceInput} onChange={(e) => setCareStageSinceInput(e.target.value)} className="border border-beige-dark rounded-lg px-2 py-1 text-sm bg-white focus:outline-none focus:border-ink" />
-                        <button onClick={saveCareStageSince} disabled={savingCareStageSince} className="px-2.5 py-1 text-xs rounded-lg bg-ink text-beige hover:bg-ink/90 transition-colors disabled:opacity-60">
+                        <input type="date" value={careStageSinceInput} onChange={(e) => setCareStageSinceInput(e.target.value)} className="border border-slate-200 rounded-lg px-2 py-1 text-sm bg-white focus:outline-none focus:border-indigo-400" />
+                        <button onClick={saveCareStageSince} disabled={savingCareStageSince} className="px-2.5 py-1 text-xs rounded-lg bg-indigo-600 text-white hover:bg-slate-100 transition-colors disabled:opacity-60">
                           {savingCareStageSince ? "..." : "Сохранить"}
                         </button>
-                        <button onClick={() => setEditingCareStageSince(false)} className="p-1 text-ink/40 hover:text-ink"><Icon name="X" size={14} /></button>
+                        <button onClick={() => setEditingCareStageSince(false)} className="p-1 text-slate-400 hover:text-slate-800"><Icon name="X" size={14} /></button>
                       </div>
                     ) : (
                       <button onClick={() => { setCareStageSinceInput(patient.care_stage_since?.slice(0, 10) ?? ""); setEditingCareStageSince(true); }} className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1 mt-1">
@@ -281,29 +281,29 @@ export default function PatientCard({ patientId, onBack, onDeleted, isAdmin, aut
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-white border border-beige-dark rounded-2xl p-5 space-y-3">
-              <h3 className="font-semibold text-ink text-sm uppercase tracking-wide">Личные данные</h3>
+            <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3">
+              <h3 className="font-semibold text-slate-800 text-sm uppercase tracking-wide">Личные данные</h3>
               <Row label="Псевдоним" value={patient.alias || "—"} />
               <Row label="Дата рождения" value={fmt(patient.birth_date)} />
               <Row label="Прописка" value={patient.address || "—"} />
               <Row label="Дата поступления" value={fmt(patient.admission_date)} />
               <Row label="Дата выписки" value={fmt(patient.discharge_date)} />
             </div>
-            <div className="bg-white border border-beige-dark rounded-2xl p-5 space-y-3">
-              <h3 className="font-semibold text-ink text-sm uppercase tracking-wide">Паспорт</h3>
+            <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3">
+              <h3 className="font-semibold text-slate-800 text-sm uppercase tracking-wide">Паспорт</h3>
               <Row label="Серия и номер" value={[patient.passport_series, patient.passport_number].filter(Boolean).join(" ") || "—"} />
               <Row label="Дата выдачи" value={fmt(patient.passport_issued_date)} />
               <Row label="Кем выдан" value={patient.passport_issued_by || "—"} />
             </div>
           </div>
 
-          <div className="bg-white border border-beige-dark rounded-2xl p-5">
-            <h3 className="font-semibold text-ink text-sm uppercase tracking-wide mb-3">Описание случая</h3>
-            <p className="text-sm text-ink/70 whitespace-pre-wrap">{patient.case_description || "Не заполнено"}</p>
+          <div className="bg-white border border-slate-200 rounded-2xl p-5">
+            <h3 className="font-semibold text-slate-800 text-sm uppercase tracking-wide mb-3">Описание случая</h3>
+            <p className="text-sm text-slate-600 whitespace-pre-wrap">{patient.case_description || "Не заполнено"}</p>
           </div>
 
-          <div className="bg-white border border-beige-dark rounded-2xl p-5 space-y-3">
-            <h3 className="font-semibold text-ink text-sm uppercase tracking-wide">Социальный статус и потребности</h3>
+          <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3">
+            <h3 className="font-semibold text-slate-800 text-sm uppercase tracking-wide">Социальный статус и потребности</h3>
             <Row label="Статус пособий" value={patient.benefits_status || "—"} />
             <Row label="Насущные бытовые трудности" value={patient.urgent_needs || "—"} />
             <Row label="Стадия решения вопроса" value={patient.needs_resolution_stage || "—"} />
@@ -318,45 +318,45 @@ export default function PatientCard({ patientId, onBack, onDeleted, isAdmin, aut
                   СОП
                 </span>
               )}
-              {!patient.is_pdn && !patient.is_sop && <span className="text-sm text-ink/40">Учёт в ПДН/СОП не зафиксирован</span>}
+              {!patient.is_pdn && !patient.is_sop && <span className="text-sm text-slate-400">Учёт в ПДН/СОП не зафиксирован</span>}
             </div>
-            {patient.is_pdn && patient.pdn_details && <p className="text-xs text-ink/50">ПДН: {patient.pdn_details}</p>}
-            {patient.is_sop && patient.sop_details && <p className="text-xs text-ink/50">СОП: {patient.sop_details}</p>}
+            {patient.is_pdn && patient.pdn_details && <p className="text-xs text-slate-400">ПДН: {patient.pdn_details}</p>}
+            {patient.is_sop && patient.sop_details && <p className="text-xs text-slate-400">СОП: {patient.sop_details}</p>}
           </div>
 
-          <div className="bg-white border border-beige-dark rounded-2xl p-5">
+          <div className="bg-white border border-slate-200 rounded-2xl p-5">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-ink text-sm uppercase tracking-wide">Дети ({children.length})</h3>
-              <button onClick={() => setAddingChild(true)} className="text-sm flex items-center gap-1 text-ink/60 hover:text-ink transition-colors"><Icon name="Plus" size={14} /> Добавить</button>
+              <h3 className="font-semibold text-slate-800 text-sm uppercase tracking-wide">Дети ({children.length})</h3>
+              <button onClick={() => setAddingChild(true)} className="text-sm flex items-center gap-1 text-slate-500 hover:text-slate-800 transition-colors"><Icon name="Plus" size={14} /> Добавить</button>
             </div>
             {addingChild && <div className="mb-4"><ChildForm onAdd={addChild} onCancel={() => setAddingChild(false)} /></div>}
-            {children.length === 0 && !addingChild && <p className="text-ink/40 text-sm">Нет данных о детях</p>}
+            {children.length === 0 && !addingChild && <p className="text-slate-400 text-sm">Нет данных о детях</p>}
             <div className="space-y-1">{children.map(c => <ChildRow key={c.id} child={c} onUpdate={updateChild} onDelete={deleteChild} onUploadPhoto={uploadChildPhoto} isAdmin={isAdmin} authorName={authorName} />)}</div>
           </div>
 
-          <div className="bg-white border border-beige-dark rounded-2xl p-5">
+          <div className="bg-white border border-slate-200 rounded-2xl p-5">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-ink text-sm uppercase tracking-wide">Документы ({documents.length})</h3>
-              <button onClick={() => fileRef.current?.click()} disabled={uploading} className="text-sm flex items-center gap-1 text-ink/60 hover:text-ink transition-colors disabled:opacity-50">
+              <h3 className="font-semibold text-slate-800 text-sm uppercase tracking-wide">Документы ({documents.length})</h3>
+              <button onClick={() => fileRef.current?.click()} disabled={uploading} className="text-sm flex items-center gap-1 text-slate-500 hover:text-slate-800 transition-colors disabled:opacity-50">
                 <Icon name={uploading ? "Loader" : "Upload"} size={14} className={uploading ? "animate-spin" : ""} />
                 {uploading ? "Загрузка..." : "Прикрепить"}
               </button>
               <input ref={fileRef} type="file" multiple className="hidden" onChange={uploadFile} accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" />
             </div>
-            {documents.length === 0 && <p className="text-ink/40 text-sm">Нет прикреплённых документов</p>}
+            {documents.length === 0 && <p className="text-slate-400 text-sm">Нет прикреплённых документов</p>}
             <div className="space-y-2">
               {documents.map(d => {
                 const isImage = d.file_type?.startsWith("image/");
                 return (
-                  <div key={d.id} className="flex items-center gap-3 py-2 border-b border-beige-mid last:border-0">
-                    <div className="w-8 h-8 bg-beige-mid rounded-lg flex items-center justify-center flex-shrink-0">
-                      <Icon name={isImage ? "Image" : "FileText"} size={14} className="text-ink/50" />
+                  <div key={d.id} className="flex items-center gap-3 py-2 border-b border-slate-200-mid last:border-0">
+                    <div className="w-8 h-8 bg-slate-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <Icon name={isImage ? "Image" : "FileText"} size={14} className="text-slate-400" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <a href={d.file_url} target="_blank" rel="noopener noreferrer" className="text-sm text-ink hover:underline truncate block">{d.file_name}</a>
-                      <span className="text-xs text-ink/40">{fmtSize(d.file_size)} · {fmt(d.uploaded_at)}</span>
+                      <a href={d.file_url} target="_blank" rel="noopener noreferrer" className="text-sm text-slate-800 hover:underline truncate block">{d.file_name}</a>
+                      <span className="text-xs text-slate-400">{fmtSize(d.file_size)} · {fmt(d.uploaded_at)}</span>
                     </div>
-                    {isAdmin && <button onClick={() => deleteDoc(d.id)} className="p-1 text-ink/30 hover:text-red-400 transition-colors flex-shrink-0"><Icon name="X" size={14} /></button>}
+                    {isAdmin && <button onClick={() => deleteDoc(d.id)} className="p-1 text-slate-300 hover:text-red-400 transition-colors flex-shrink-0"><Icon name="X" size={14} /></button>}
                   </div>
                 );
               })}

@@ -58,16 +58,16 @@ export default function PatientTasks({ patientId, tasks, taskType, onChanged }: 
 
   return (
     <div className="space-y-6">
-      <div className="bg-white border border-beige-dark rounded-2xl p-5">
-        <h3 className="font-semibold text-ink text-sm uppercase tracking-wide mb-4">{currentLabel}</h3>
+      <div className="bg-white border border-slate-200 rounded-2xl p-5">
+        <h3 className="font-semibold text-slate-800 text-sm uppercase tracking-wide mb-4">{currentLabel}</h3>
         {activeTask ? (
           <div className="space-y-3">
-            <p className="text-sm text-ink whitespace-pre-wrap">{activeTask.description}</p>
-            <div className="flex items-center gap-4 flex-wrap text-xs text-ink/50">
+            <p className="text-sm text-slate-800 whitespace-pre-wrap">{activeTask.description}</p>
+            <div className="flex items-center gap-4 flex-wrap text-xs text-slate-400">
               {activeTask.deadline && (
                 <span className="flex items-center gap-1"><Icon name="CalendarClock" size={13} /> Дедлайн: {fmt(activeTask.deadline)}</span>
               )}
-              <span className="flex items-center gap-1 text-ink/70 font-medium">
+              <span className="flex items-center gap-1 text-slate-600 font-medium">
                 <Icon name="Timer" size={13} /> В работе: <LiveTimer createdAt={activeTask.created_at} />
               </span>
             </div>
@@ -75,7 +75,7 @@ export default function PatientTasks({ patientId, tasks, taskType, onChanged }: 
               <button
                 onClick={() => completeTask(activeTask.id)}
                 disabled={completingId === activeTask.id}
-                className="px-4 py-2 text-sm rounded-lg bg-ink text-beige hover:bg-ink/90 transition-colors disabled:opacity-60 flex items-center gap-1.5"
+                className="px-4 py-2 text-sm rounded-lg bg-indigo-600 text-white hover:bg-slate-100 transition-colors disabled:opacity-60 flex items-center gap-1.5"
               >
                 <Icon name={completingId === activeTask.id ? "Loader" : "Check"} size={14} className={completingId === activeTask.id ? "animate-spin" : ""} />
                 Завершить
@@ -84,31 +84,31 @@ export default function PatientTasks({ patientId, tasks, taskType, onChanged }: 
           </div>
         ) : (
           <div className="space-y-3">
-            <p className="text-ink/40 text-sm">{emptyLabel}</p>
+            <p className="text-slate-400 text-sm">{emptyLabel}</p>
             <div>
-              <label className="text-xs text-ink/60 mb-1 block">Описание задания</label>
+              <label className="text-xs text-slate-500 mb-1 block">Описание задания</label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
                 placeholder="Например: пройти технику «Дневник чувств» и обсудить с психологом..."
-                className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink resize-none"
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400 resize-none"
               />
             </div>
             <div>
-              <label className="text-xs text-ink/60 mb-1 block">Дедлайн (по желанию)</label>
+              <label className="text-xs text-slate-500 mb-1 block">Дедлайн (по желанию)</label>
               <input
                 type="date"
                 value={deadline}
                 onChange={(e) => setDeadline(e.target.value)}
-                className="border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink"
+                className="border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400"
               />
             </div>
             <div className="flex justify-end">
               <button
                 onClick={addTask}
                 disabled={saving || !description.trim()}
-                className="px-4 py-2 text-sm rounded-lg bg-ink text-beige hover:bg-ink/90 transition-colors disabled:opacity-60 flex items-center gap-1.5"
+                className="px-4 py-2 text-sm rounded-lg bg-indigo-600 text-white hover:bg-slate-100 transition-colors disabled:opacity-60 flex items-center gap-1.5"
               >
                 <Icon name={saving ? "Loader" : "Plus"} size={14} className={saving ? "animate-spin" : ""} />
                 {saving ? "Сохранение..." : "Добавить задание"}
@@ -118,14 +118,14 @@ export default function PatientTasks({ patientId, tasks, taskType, onChanged }: 
         )}
       </div>
 
-      <div className="bg-white border border-beige-dark rounded-2xl p-5">
-        <h3 className="font-semibold text-ink text-sm uppercase tracking-wide mb-3">{historyLabel} ({completedTasks.length})</h3>
-        {completedTasks.length === 0 && <p className="text-ink/40 text-sm">Пока нет завершённых заданий</p>}
+      <div className="bg-white border border-slate-200 rounded-2xl p-5">
+        <h3 className="font-semibold text-slate-800 text-sm uppercase tracking-wide mb-3">{historyLabel} ({completedTasks.length})</h3>
+        {completedTasks.length === 0 && <p className="text-slate-400 text-sm">Пока нет завершённых заданий</p>}
         <div className="space-y-2 max-h-[320px] overflow-y-auto pr-1">
           {completedTasks.map(t => (
-            <div key={t.id} className="rounded-xl p-3 bg-beige-mid">
-              <p className="text-sm text-ink whitespace-pre-wrap mb-1">{t.description}</p>
-              <div className="flex items-center gap-3 flex-wrap text-xs text-ink/50">
+            <div key={t.id} className="rounded-xl p-3 bg-slate-50">
+              <p className="text-sm text-slate-800 whitespace-pre-wrap mb-1">{t.description}</p>
+              <div className="flex items-center gap-3 flex-wrap text-xs text-slate-400">
                 <span>Начато: {fmt(t.created_at)}</span>
                 <span>Завершено: {fmt(t.completed_at)}</span>
                 <span className="px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">

@@ -20,10 +20,10 @@ type TextSummary = { summary_text: string; counts?: { red: number; yellow: numbe
 function renderMarkdownLine(line: string, key: number) {
   const parts = line.split(/(\*\*[^*]+\*\*)/g);
   return (
-    <p key={key} className="text-sm text-ink/80 leading-relaxed">
+    <p key={key} className="text-sm text-slate-600 leading-relaxed">
       {parts.map((part, i) =>
         part.startsWith("**") && part.endsWith("**") ? (
-          <span key={i} className="font-semibold text-ink">{part.slice(2, -2)}</span>
+          <span key={i} className="font-semibold text-slate-800">{part.slice(2, -2)}</span>
         ) : (
           <span key={i}>{part}</span>
         )
@@ -133,18 +133,18 @@ export default function PatientAiSummary({ patientId, currentSummary, savedSumma
 
   return (
     <div className="space-y-6">
-      <div className="bg-white border border-beige-dark rounded-2xl p-5 space-y-4">
+      <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-2">
             <Icon name="Sparkles" size={16} className="text-purple-500" />
-            <h3 className="font-semibold text-ink text-sm uppercase tracking-wide">Аналитическая сводка</h3>
+            <h3 className="font-semibold text-slate-800 text-sm uppercase tracking-wide">Аналитическая сводка</h3>
           </div>
-          <div className="flex items-center gap-1 bg-beige-mid rounded-lg p-1">
+          <div className="flex items-center gap-1 bg-slate-50 rounded-lg p-1">
             {PERIODS.map((p) => (
               <button
                 key={p.value}
                 onClick={() => setDays(p.value)}
-                className={`px-3 py-1.5 text-xs rounded-md font-medium transition-colors ${days === p.value ? "bg-white text-ink shadow-sm" : "text-ink/50 hover:text-ink"}`}
+                className={`px-3 py-1.5 text-xs rounded-md font-medium transition-colors ${days === p.value ? "bg-white text-slate-800 shadow-sm" : "text-slate-400 hover:text-slate-800"}`}
               >
                 {p.label}
               </button>
@@ -153,12 +153,12 @@ export default function PatientAiSummary({ patientId, currentSummary, savedSumma
         </div>
 
         <div className="flex items-center justify-between flex-wrap gap-3">
-          <div className="flex items-center gap-1 bg-beige-mid rounded-lg p-1 w-fit">
+          <div className="flex items-center gap-1 bg-slate-50 rounded-lg p-1 w-fit">
             {SOURCES.map((s) => (
               <button
                 key={s.value}
                 onClick={() => setSource(s.value)}
-                className={`px-3 py-1.5 text-xs rounded-md font-medium transition-colors flex items-center gap-1.5 ${source === s.value ? "bg-white text-ink shadow-sm" : "text-ink/50 hover:text-ink"}`}
+                className={`px-3 py-1.5 text-xs rounded-md font-medium transition-colors flex items-center gap-1.5 ${source === s.value ? "bg-white text-slate-800 shadow-sm" : "text-slate-400 hover:text-slate-800"}`}
               >
                 <Icon name={s.icon} size={13} />
                 {s.label}
@@ -205,12 +205,12 @@ export default function PatientAiSummary({ patientId, currentSummary, savedSumma
 
         {loadingSummary ? (
           <div className="flex items-center justify-center py-6">
-            <div className="w-5 h-5 border-2 border-ink border-t-transparent rounded-full animate-spin" />
+            <div className="w-5 h-5 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
           </div>
         ) : textSummary ? (
           <MarkdownText text={textSummary.summary_text} />
         ) : (
-          <p className="text-sm text-ink/70 leading-relaxed whitespace-pre-wrap">
+          <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">
             {currentSummary || "Недостаточно данных для формирования сводки."}
           </p>
         )}
@@ -219,7 +219,7 @@ export default function PatientAiSummary({ patientId, currentSummary, savedSumma
           <button
             onClick={() => loadSummary(days, source)}
             disabled={loadingSummary}
-            className="px-4 py-2 text-sm rounded-lg border border-beige-dark hover:border-ink transition-colors disabled:opacity-60 flex items-center gap-1.5"
+            className="px-4 py-2 text-sm rounded-lg border border-slate-200 hover:border-indigo-300 transition-colors disabled:opacity-60 flex items-center gap-1.5"
           >
             <Icon name="RefreshCw" size={14} className={loadingSummary ? "animate-spin" : ""} />
             Сформировать выжимку
@@ -227,7 +227,7 @@ export default function PatientAiSummary({ patientId, currentSummary, savedSumma
           <button
             onClick={saveSummary}
             disabled={saving || (!textSummary?.summary_text && !currentSummary)}
-            className="px-4 py-2 text-sm rounded-lg bg-ink text-beige hover:bg-ink/90 transition-colors disabled:opacity-60 flex items-center gap-1.5"
+            className="px-4 py-2 text-sm rounded-lg bg-indigo-600 text-white hover:bg-slate-100 transition-colors disabled:opacity-60 flex items-center gap-1.5"
           >
             <Icon name={saving ? "Loader" : "Save"} size={14} className={saving ? "animate-spin" : ""} />
             {saving ? "Сохранение..." : "Сохранить в историю"}
@@ -235,17 +235,17 @@ export default function PatientAiSummary({ patientId, currentSummary, savedSumma
         </div>
       </div>
 
-      <div className="bg-white border border-beige-dark rounded-2xl p-5">
-        <h3 className="font-semibold text-ink text-sm uppercase tracking-wide mb-3">История сводок ({savedSummaries.length})</h3>
-        {savedSummaries.length === 0 && <p className="text-ink/40 text-sm">Пока нет сохранённых сводок</p>}
+      <div className="bg-white border border-slate-200 rounded-2xl p-5">
+        <h3 className="font-semibold text-slate-800 text-sm uppercase tracking-wide mb-3">История сводок ({savedSummaries.length})</h3>
+        {savedSummaries.length === 0 && <p className="text-slate-400 text-sm">Пока нет сохранённых сводок</p>}
         <div className="space-y-2 max-h-[320px] overflow-y-auto pr-1">
           {savedSummaries.map(s => (
-            <div key={s.id} className="rounded-xl p-3 bg-beige-mid">
+            <div key={s.id} className="rounded-xl p-3 bg-slate-50">
               <div className="flex items-center justify-between gap-2 mb-1">
-                <span className="text-sm text-ink whitespace-pre-wrap flex-1">{s.summary_text}</span>
+                <span className="text-sm text-slate-800 whitespace-pre-wrap flex-1">{s.summary_text}</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-xs text-ink/50">{fmtDateTime(s.created_at)}</span>
+                <span className="text-xs text-slate-400">{fmtDateTime(s.created_at)}</span>
                 {s.source === "yandex_gpt" && (
                   <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-purple-100 text-purple-700 font-medium">YandexGPT</span>
                 )}

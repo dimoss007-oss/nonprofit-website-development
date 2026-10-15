@@ -10,34 +10,34 @@ export function PatientForm({ initial, onSave, onCancel, loading }: { initial?: 
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div><label className="text-xs text-ink/50 mb-1 block">Фамилия *</label><input value={form.last_name} onChange={set("last_name")} className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" /></div>
-        <div><label className="text-xs text-ink/50 mb-1 block">Имя *</label><input value={form.first_name} onChange={set("first_name")} className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" /></div>
-        <div><label className="text-xs text-ink/50 mb-1 block">Отчество</label><input value={form.middle_name} onChange={set("middle_name")} className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" /></div>
+        <div><label className="text-xs text-slate-400 mb-1 block">Фамилия *</label><input value={form.last_name} onChange={set("last_name")} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400" /></div>
+        <div><label className="text-xs text-slate-400 mb-1 block">Имя *</label><input value={form.first_name} onChange={set("first_name")} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400" /></div>
+        <div><label className="text-xs text-slate-400 mb-1 block">Отчество</label><input value={form.middle_name} onChange={set("middle_name")} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400" /></div>
       </div>
-      <div><label className="text-xs text-ink/50 mb-1 block">Псевдоним</label><input value={form.alias} onChange={set("alias")} placeholder="Для внутреннего использования" className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" /></div>
+      <div><label className="text-xs text-slate-400 mb-1 block">Псевдоним</label><input value={form.alias} onChange={set("alias")} placeholder="Для внутреннего использования" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400" /></div>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div><label className="text-xs text-ink/50 mb-1 block">Дата рождения</label><input type="date" value={form.birth_date} onChange={set("birth_date")} className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" /></div>
-        <div><label className="text-xs text-ink/50 mb-1 block">Дата поступления</label><input type="date" value={form.admission_date} onChange={set("admission_date")} className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" /></div>
-        <div><label className="text-xs text-ink/50 mb-1 block">Дата выписки</label><input type="date" value={form.discharge_date} onChange={set("discharge_date")} className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" /></div>
+        <div><label className="text-xs text-slate-400 mb-1 block">Дата рождения</label><input type="date" value={form.birth_date} onChange={set("birth_date")} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400" /></div>
+        <div><label className="text-xs text-slate-400 mb-1 block">Дата поступления</label><input type="date" value={form.admission_date} onChange={set("admission_date")} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400" /></div>
+        <div><label className="text-xs text-slate-400 mb-1 block">Дата выписки</label><input type="date" value={form.discharge_date} onChange={set("discharge_date")} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400" /></div>
       </div>
-      <div><label className="text-xs text-ink/50 mb-1 block">Прописка</label><input value={form.address} onChange={set("address")} className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" /></div>
+      <div><label className="text-xs text-slate-400 mb-1 block">Прописка</label><input value={form.address} onChange={set("address")} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400" /></div>
       <div className="pt-1">
-        <p className="text-xs font-semibold text-ink/40 uppercase tracking-wide mb-2">Паспорт</p>
+        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Паспорт</p>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div><label className="text-xs text-ink/50 mb-1 block">Серия</label><input value={form.passport_series} onChange={set("passport_series")} placeholder="1234" className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" /></div>
-          <div><label className="text-xs text-ink/50 mb-1 block">Номер</label><input value={form.passport_number} onChange={set("passport_number")} placeholder="567890" className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" /></div>
-          <div className="col-span-2"><label className="text-xs text-ink/50 mb-1 block">Дата выдачи</label><input type="date" value={form.passport_issued_date} onChange={set("passport_issued_date")} className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" /></div>
+          <div><label className="text-xs text-slate-400 mb-1 block">Серия</label><input value={form.passport_series} onChange={set("passport_series")} placeholder="1234" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400" /></div>
+          <div><label className="text-xs text-slate-400 mb-1 block">Номер</label><input value={form.passport_number} onChange={set("passport_number")} placeholder="567890" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400" /></div>
+          <div className="col-span-2"><label className="text-xs text-slate-400 mb-1 block">Дата выдачи</label><input type="date" value={form.passport_issued_date} onChange={set("passport_issued_date")} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400" /></div>
         </div>
-        <div className="mt-3"><label className="text-xs text-ink/50 mb-1 block">Кем выдан</label><input value={form.passport_issued_by} onChange={set("passport_issued_by")} placeholder="Отделом УФМС России..." className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" /></div>
+        <div className="mt-3"><label className="text-xs text-slate-400 mb-1 block">Кем выдан</label><input value={form.passport_issued_by} onChange={set("passport_issued_by")} placeholder="Отделом УФМС России..." className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400" /></div>
       </div>
-      <div><label className="text-xs text-ink/50 mb-1 block">Описание случая</label><textarea value={form.case_description} onChange={set("case_description")} rows={4} className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink resize-none" /></div>
+      <div><label className="text-xs text-slate-400 mb-1 block">Описание случая</label><textarea value={form.case_description} onChange={set("case_description")} rows={4} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400 resize-none" /></div>
 
       <div className="pt-1">
-        <p className="text-xs font-semibold text-ink/40 uppercase tracking-wide mb-2">Социальный статус и потребности</p>
+        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Социальный статус и потребности</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label className="text-xs text-ink/50 mb-1 block">Статус пособий</label>
-            <select value={form.benefits_status} onChange={set("benefits_status")} className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-ink">
+            <label className="text-xs text-slate-400 mb-1 block">Статус пособий</label>
+            <select value={form.benefits_status} onChange={set("benefits_status")} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-indigo-400">
               <option value="">Не указано</option>
               <option value="Получает">Получает</option>
               <option value="Не получает">Не получает</option>
@@ -45,8 +45,8 @@ export function PatientForm({ initial, onSave, onCancel, loading }: { initial?: 
             </select>
           </div>
           <div>
-            <label className="text-xs text-ink/50 mb-1 block">Стадия решения вопроса</label>
-            <select value={form.needs_resolution_stage} onChange={set("needs_resolution_stage")} className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-ink">
+            <label className="text-xs text-slate-400 mb-1 block">Стадия решения вопроса</label>
+            <select value={form.needs_resolution_stage} onChange={set("needs_resolution_stage")} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-indigo-400">
               <option value="">Не указано</option>
               <option value="Ожидает решения">Ожидает решения</option>
               <option value="В работе">В работе</option>
@@ -55,35 +55,35 @@ export function PatientForm({ initial, onSave, onCancel, loading }: { initial?: 
           </div>
         </div>
         <div className="mt-3">
-          <label className="text-xs text-ink/50 mb-1 block">Насущные бытовые трудности</label>
-          <textarea value={form.urgent_needs} onChange={set("urgent_needs")} rows={2} placeholder="Например: нужен ремонт отопления, одеть детей к зиме" className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink resize-none" />
+          <label className="text-xs text-slate-400 mb-1 block">Насущные бытовые трудности</label>
+          <textarea value={form.urgent_needs} onChange={set("urgent_needs")} rows={2} placeholder="Например: нужен ремонт отопления, одеть детей к зиме" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400 resize-none" />
         </div>
 
         <div className="mt-4 space-y-3">
           <div>
-            <label className="flex items-center gap-2 text-sm text-ink">
+            <label className="flex items-center gap-2 text-sm text-slate-800">
               <input type="checkbox" checked={form.is_pdn} onChange={e => setForm(f => ({ ...f, is_pdn: e.target.checked }))} className="w-4 h-4 accent-ink" />
               Состоит на учёте в ПДН
             </label>
             {form.is_pdn && (
-              <textarea value={form.pdn_details} onChange={set("pdn_details")} rows={2} placeholder="С какого числа, кем поставлен" className="w-full mt-2 border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink resize-none" />
+              <textarea value={form.pdn_details} onChange={set("pdn_details")} rows={2} placeholder="С какого числа, кем поставлен" className="w-full mt-2 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400 resize-none" />
             )}
           </div>
           <div>
-            <label className="flex items-center gap-2 text-sm text-ink">
+            <label className="flex items-center gap-2 text-sm text-slate-800">
               <input type="checkbox" checked={form.is_sop} onChange={e => setForm(f => ({ ...f, is_sop: e.target.checked }))} className="w-4 h-4 accent-ink" />
               Семья в социально опасном положении (СОП)
             </label>
             {form.is_sop && (
-              <textarea value={form.sop_details} onChange={set("sop_details")} rows={2} placeholder="Детали статуса СОП" className="w-full mt-2 border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink resize-none" />
+              <textarea value={form.sop_details} onChange={set("sop_details")} rows={2} placeholder="Детали статуса СОП" className="w-full mt-2 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400 resize-none" />
             )}
           </div>
         </div>
       </div>
 
       <div className="flex gap-2 justify-end">
-        <button onClick={onCancel} className="px-4 py-2 text-sm rounded-lg border border-beige-dark hover:border-ink transition-colors">Отмена</button>
-        <button onClick={() => onSave(form)} disabled={loading || !form.last_name || !form.first_name} className="px-4 py-2 text-sm rounded-lg bg-ink text-beige hover:bg-ink/90 transition-colors disabled:opacity-60">{loading ? "Сохранение..." : "Сохранить"}</button>
+        <button onClick={onCancel} className="px-4 py-2 text-sm rounded-lg border border-slate-200 hover:border-indigo-300 transition-colors">Отмена</button>
+        <button onClick={() => onSave(form)} disabled={loading || !form.last_name || !form.first_name} className="px-4 py-2 text-sm rounded-lg bg-indigo-600 text-white hover:bg-slate-100 transition-colors disabled:opacity-60">{loading ? "Сохранение..." : "Сохранить"}</button>
       </div>
     </div>
   );
@@ -95,23 +95,23 @@ export function ChildForm({ onAdd, onCancel }: { onAdd: (c: Omit<Child, "id">) =
   const [form, setForm] = useState(EMPTY_CHILD_FORM);
   const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) => setForm(f => ({ ...f, [k]: e.target.value }));
   return (
-    <div className="bg-beige-mid rounded-xl p-4 space-y-3">
-      <p className="text-sm font-semibold text-ink">Добавить ребёнка</p>
+    <div className="bg-slate-50 rounded-xl p-4 space-y-3">
+      <p className="text-sm font-semibold text-slate-800">Добавить ребёнка</p>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-        <input placeholder="Фамилия" value={form.last_name} onChange={set("last_name")} className="border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" />
-        <input placeholder="Имя *" value={form.first_name} onChange={set("first_name")} className="border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" />
-        <input placeholder="Отчество" value={form.middle_name} onChange={set("middle_name")} className="border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" />
+        <input placeholder="Фамилия" value={form.last_name} onChange={set("last_name")} className="border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400" />
+        <input placeholder="Имя *" value={form.first_name} onChange={set("first_name")} className="border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400" />
+        <input placeholder="Отчество" value={form.middle_name} onChange={set("middle_name")} className="border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400" />
       </div>
-      <div><label className="text-xs text-ink/50 mb-1 block">Псевдоним</label><input value={form.alias} onChange={set("alias")} placeholder="Как называют в отчётах" className="w-full sm:w-1/3 border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" /></div>
-      <div><label className="text-xs text-ink/50 mb-1 block">Дата рождения</label><input type="date" value={form.birth_date} onChange={set("birth_date")} className="border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" /></div>
+      <div><label className="text-xs text-slate-400 mb-1 block">Псевдоним</label><input value={form.alias} onChange={set("alias")} placeholder="Как называют в отчётах" className="w-full sm:w-1/3 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400" /></div>
+      <div><label className="text-xs text-slate-400 mb-1 block">Дата рождения</label><input type="date" value={form.birth_date} onChange={set("birth_date")} className="border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400" /></div>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-        <div><label className="text-xs text-ink/50 mb-1 block">Школа/сад, откуда прибыл</label><input value={form.previous_education} onChange={set("previous_education")} className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" /></div>
-        <div><label className="text-xs text-ink/50 mb-1 block">Школа/сад на данный момент</label><input value={form.current_education} onChange={set("current_education")} className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" /></div>
-        <div><label className="text-xs text-ink/50 mb-1 block">Секция/кружок</label><input value={form.extracurriculars} onChange={set("extracurriculars")} className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" /></div>
+        <div><label className="text-xs text-slate-400 mb-1 block">Школа/сад, откуда прибыл</label><input value={form.previous_education} onChange={set("previous_education")} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400" /></div>
+        <div><label className="text-xs text-slate-400 mb-1 block">Школа/сад на данный момент</label><input value={form.current_education} onChange={set("current_education")} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400" /></div>
+        <div><label className="text-xs text-slate-400 mb-1 block">Секция/кружок</label><input value={form.extracurriculars} onChange={set("extracurriculars")} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400" /></div>
       </div>
       <div className="flex items-center gap-3">
-        <button onClick={() => form.first_name && onAdd(form)} disabled={!form.first_name} className="px-4 py-2 bg-ink text-beige text-sm rounded-lg hover:bg-ink/90 disabled:opacity-60">Добавить</button>
-        <button onClick={onCancel} className="px-4 py-2 text-sm rounded-lg border border-beige-dark hover:border-ink">Отмена</button>
+        <button onClick={() => form.first_name && onAdd(form)} disabled={!form.first_name} className="px-4 py-2 bg-indigo-600 text-white text-sm rounded-lg hover:bg-slate-100 disabled:opacity-60">Добавить</button>
+        <button onClick={onCancel} className="px-4 py-2 text-sm rounded-lg border border-slate-200 hover:border-indigo-300">Отмена</button>
       </div>
     </div>
   );
@@ -137,34 +137,34 @@ export function ChildRow({ child, onUpdate, onDelete, onUploadPhoto, isAdmin, au
     try { await onUploadPhoto(child.id, file); } finally { setUploadingPhoto(false); }
   };
   if (editing) return (
-    <div className="bg-beige-mid rounded-xl p-3 space-y-2">
+    <div className="bg-slate-50 rounded-xl p-3 space-y-2">
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-        <input placeholder="Фамилия" value={form.last_name} onChange={set("last_name")} className="border border-beige-dark bg-white rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-ink" />
-        <input placeholder="Имя *" value={form.first_name} onChange={set("first_name")} className="border border-beige-dark bg-white rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-ink" />
-        <input placeholder="Отчество" value={form.middle_name} onChange={set("middle_name")} className="border border-beige-dark bg-white rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-ink" />
+        <input placeholder="Фамилия" value={form.last_name} onChange={set("last_name")} className="border border-slate-200 bg-white rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-indigo-400" />
+        <input placeholder="Имя *" value={form.first_name} onChange={set("first_name")} className="border border-slate-200 bg-white rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-indigo-400" />
+        <input placeholder="Отчество" value={form.middle_name} onChange={set("middle_name")} className="border border-slate-200 bg-white rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-indigo-400" />
       </div>
-      <div><label className="text-xs text-ink/50 mb-1 block">Псевдоним</label><input value={form.alias} onChange={set("alias")} placeholder="Как называют в отчётах" className="w-full sm:w-1/3 border border-beige-dark bg-white rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-ink" /></div>
-      <div><label className="text-xs text-ink/50 mb-1 block">Дата рождения</label><input type="date" value={form.birth_date} onChange={set("birth_date")} className="border border-beige-dark bg-white rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-ink" /></div>
+      <div><label className="text-xs text-slate-400 mb-1 block">Псевдоним</label><input value={form.alias} onChange={set("alias")} placeholder="Как называют в отчётах" className="w-full sm:w-1/3 border border-slate-200 bg-white rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-indigo-400" /></div>
+      <div><label className="text-xs text-slate-400 mb-1 block">Дата рождения</label><input type="date" value={form.birth_date} onChange={set("birth_date")} className="border border-slate-200 bg-white rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-indigo-400" /></div>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-        <div><label className="text-xs text-ink/50 mb-1 block">Школа/сад, откуда прибыл</label><input value={form.previous_education} onChange={set("previous_education")} className="w-full border border-beige-dark bg-white rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-ink" /></div>
-        <div><label className="text-xs text-ink/50 mb-1 block">Школа/сад на данный момент</label><input value={form.current_education} onChange={set("current_education")} className="w-full border border-beige-dark bg-white rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-ink" /></div>
-        <div><label className="text-xs text-ink/50 mb-1 block">Секция/кружок</label><input value={form.extracurriculars} onChange={set("extracurriculars")} className="w-full border border-beige-dark bg-white rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-ink" /></div>
+        <div><label className="text-xs text-slate-400 mb-1 block">Школа/сад, откуда прибыл</label><input value={form.previous_education} onChange={set("previous_education")} className="w-full border border-slate-200 bg-white rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-indigo-400" /></div>
+        <div><label className="text-xs text-slate-400 mb-1 block">Школа/сад на данный момент</label><input value={form.current_education} onChange={set("current_education")} className="w-full border border-slate-200 bg-white rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-indigo-400" /></div>
+        <div><label className="text-xs text-slate-400 mb-1 block">Секция/кружок</label><input value={form.extracurriculars} onChange={set("extracurriculars")} className="w-full border border-slate-200 bg-white rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-indigo-400" /></div>
       </div>
       <div className="flex items-center gap-2">
-        <button onClick={save} disabled={!form.first_name} className="px-3 py-1.5 bg-ink text-beige text-sm rounded-lg hover:bg-ink/90 disabled:opacity-60">Сохранить</button>
-        <button onClick={() => setEditing(false)} className="px-3 py-1.5 text-sm rounded-lg border border-beige-dark hover:border-ink">Отмена</button>
+        <button onClick={save} disabled={!form.first_name} className="px-3 py-1.5 bg-indigo-600 text-white text-sm rounded-lg hover:bg-slate-100 disabled:opacity-60">Сохранить</button>
+        <button onClick={() => setEditing(false)} className="px-3 py-1.5 text-sm rounded-lg border border-slate-200 hover:border-indigo-300">Отмена</button>
       </div>
     </div>
   );
   return (
-    <div className="py-3 border-b border-beige-mid last:border-0 group">
+    <div className="py-3 border-b border-slate-200-mid last:border-0 group">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <button onClick={() => photoRef.current?.click()} className="relative w-9 h-9 rounded-full overflow-hidden bg-beige-mid flex items-center justify-center flex-shrink-0 border border-beige-dark hover:border-ink transition-colors">
+          <button onClick={() => photoRef.current?.click()} className="relative w-9 h-9 rounded-full overflow-hidden bg-slate-50 flex items-center justify-center flex-shrink-0 border border-slate-200 hover:border-indigo-300 transition-colors">
             {child.photo_url ? (
               <img src={child.photo_url} alt="" className="w-full h-full object-cover" />
             ) : (
-              <Icon name="User" size={14} className="text-ink/30" />
+              <Icon name="User" size={14} className="text-slate-300" />
             )}
             {uploadingPhoto && <div className="absolute inset-0 bg-black/30 flex items-center justify-center"><Icon name="Loader" size={12} className="animate-spin text-white" /></div>}
           </button>
@@ -179,27 +179,27 @@ export function ChildRow({ child, onUpdate, onDelete, onUploadPhoto, isAdmin, au
                   title={`Средний балл последнего отчёта: ${child.latest_avg_score}`}
                 />
               )}
-              <span className="text-sm text-ink">{[child.last_name, child.first_name, child.middle_name].filter(Boolean).join(" ")}</span>
-              {child.alias && <span className="text-xs text-ink/50">({child.alias})</span>}
+              <span className="text-sm text-slate-800">{[child.last_name, child.first_name, child.middle_name].filter(Boolean).join(" ")}</span>
+              {child.alias && <span className="text-xs text-slate-400">({child.alias})</span>}
             </span>
-            {typeof child.current_age === "number" && <span className="text-xs text-ink/40 ml-2">Возраст: {child.current_age} лет</span>}
-            {child.birth_date && <span className="text-xs text-ink/40 ml-2">({fmt(child.birth_date)})</span>}
+            {typeof child.current_age === "number" && <span className="text-xs text-slate-400 ml-2">Возраст: {child.current_age} лет</span>}
+            {child.birth_date && <span className="text-xs text-slate-400 ml-2">({fmt(child.birth_date)})</span>}
           </div>
         </div>
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button onClick={() => setEditing(true)} className="p-1 text-ink/40 hover:text-ink transition-colors"><Icon name="Pencil" size={13} /></button>
-          {isAdmin && <button onClick={() => onDelete(child.id)} className="p-1 text-ink/30 hover:text-red-400 transition-colors"><Icon name="X" size={14} /></button>}
+          <button onClick={() => setEditing(true)} className="p-1 text-slate-400 hover:text-slate-800 transition-colors"><Icon name="Pencil" size={13} /></button>
+          {isAdmin && <button onClick={() => onDelete(child.id)} className="p-1 text-slate-300 hover:text-red-400 transition-colors"><Icon name="X" size={14} /></button>}
         </div>
       </div>
       {(child.previous_education || child.current_education || child.extracurriculars) && (
-        <div className="flex flex-wrap gap-x-4 gap-y-0.5 mt-1.5 ml-12 text-xs text-ink/50">
+        <div className="flex flex-wrap gap-x-4 gap-y-0.5 mt-1.5 ml-12 text-xs text-slate-400">
           {child.previous_education && <span>Прибыл из: {child.previous_education}</span>}
           {child.current_education && <span>Сейчас: {child.current_education}</span>}
           {child.extracurriculars && <span>Кружок: {child.extracurriculars}</span>}
         </div>
       )}
       <div className="flex items-center gap-2 mt-2 ml-12">
-        <button onClick={() => setReportsOpen(true)} className="text-xs px-2.5 py-1 rounded-lg border border-beige-dark text-ink/60 hover:text-ink hover:border-ink transition-colors flex items-center gap-1">
+        <button onClick={() => setReportsOpen(true)} className="text-xs px-2.5 py-1 rounded-lg border border-slate-200 text-slate-500 hover:text-slate-800 hover:border-indigo-300 transition-colors flex items-center gap-1">
           <Icon name="ClipboardList" size={12} /> Ежедневные отчёты
           {typeof child.latest_avg_score === "number" && (
             <span className={`ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold ${
@@ -207,10 +207,10 @@ export function ChildRow({ child, onUpdate, onDelete, onUploadPhoto, isAdmin, au
             }`}>{child.latest_avg_score}</span>
           )}
         </button>
-        <button disabled className="text-xs px-2.5 py-1 rounded-lg border border-beige-dark text-ink/40 flex items-center gap-1 cursor-not-allowed" title="Скоро">
+        <button disabled className="text-xs px-2.5 py-1 rounded-lg border border-slate-200 text-slate-400 flex items-center gap-1 cursor-not-allowed" title="Скоро">
           <Icon name="ListChecks" size={12} /> Задачи
         </button>
-        <button onClick={() => setDynamicsOpen(true)} className="text-xs px-2.5 py-1 rounded-lg border border-beige-dark text-ink/60 hover:text-ink hover:border-ink transition-colors flex items-center gap-1">
+        <button onClick={() => setDynamicsOpen(true)} className="text-xs px-2.5 py-1 rounded-lg border border-slate-200 text-slate-500 hover:text-slate-800 hover:border-indigo-300 transition-colors flex items-center gap-1">
           <Icon name="TrendingUp" size={12} /> Динамика
         </button>
       </div>
@@ -234,6 +234,6 @@ export function ChildRow({ child, onUpdate, onDelete, onUploadPhoto, isAdmin, au
 
 export function Row({ label, value }: { label: string; value: string }) {
   return (
-    <div><span className="text-xs text-ink/40 uppercase tracking-wide">{label}</span><p className="text-sm text-ink mt-0.5">{value}</p></div>
+    <div><span className="text-xs text-slate-400 uppercase tracking-wide">{label}</span><p className="text-sm text-slate-800 mt-0.5">{value}</p></div>
   );
 }

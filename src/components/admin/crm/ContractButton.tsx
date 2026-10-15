@@ -49,21 +49,21 @@ export default function ContractButton({ patientId, defaultDate }: { patientId: 
 
   return (
     <div className="relative">
-      <button onClick={() => setOpen((o) => !o)} className="px-3 py-1.5 text-sm border border-beige-dark rounded-lg hover:border-ink transition-colors flex items-center gap-1.5">
+      <button onClick={() => setOpen((o) => !o)} className="px-3 py-1.5 text-sm border border-slate-200 rounded-lg hover:border-indigo-300 transition-colors flex items-center gap-1.5">
         <Icon name="FileText" size={14} /> Договор (Word)
       </button>
       {open && (
-        <div className="absolute right-0 top-full mt-2 z-20 w-72 bg-white border border-beige-dark rounded-xl shadow-lg p-4 space-y-3">
+        <div className="absolute right-0 top-full mt-2 z-20 w-72 bg-white border border-slate-200 rounded-xl shadow-lg p-4 space-y-3">
           <div>
-            <label className="block text-xs uppercase tracking-widest text-ink/50 mb-1.5">Номер договора</label>
-            <input value={number} onChange={(e) => { setNumber(e.target.value); setNumberTouched(true); }} placeholder="Подставляется автоматически" className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm text-ink bg-beige/50 focus:outline-none focus:border-ink" />
+            <label className="block text-xs uppercase tracking-widest text-slate-400 mb-1.5">Номер договора</label>
+            <input value={number} onChange={(e) => { setNumber(e.target.value); setNumberTouched(true); }} placeholder="Подставляется автоматически" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 bg-slate-50 focus:outline-none focus:border-indigo-400" />
           </div>
           <div>
-            <label className="block text-xs uppercase tracking-widest text-ink/50 mb-1.5">Дата заключения</label>
-            <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm text-ink bg-beige/50 focus:outline-none focus:border-ink" />
+            <label className="block text-xs uppercase tracking-widest text-slate-400 mb-1.5">Дата заключения</label>
+            <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 bg-slate-50 focus:outline-none focus:border-indigo-400" />
           </div>
           {error && <p className="text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2">{error}</p>}
-          <button onClick={download} disabled={loading} className="w-full flex items-center justify-center gap-2 bg-ink text-beige py-2 rounded-lg text-sm font-semibold hover:bg-ink/90 transition-colors disabled:opacity-60">
+          <button onClick={download} disabled={loading} className="w-full flex items-center justify-center gap-2 bg-indigo-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-slate-100 transition-colors disabled:opacity-60">
             <Icon name={loading ? "Loader" : "Download"} size={14} className={loading ? "animate-spin" : ""} />
             {loading ? "Формирую..." : "Скачать договор"}
           </button>

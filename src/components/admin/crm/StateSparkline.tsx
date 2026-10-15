@@ -33,7 +33,7 @@ export default function StateSparkline({ history }: { history?: StatePoint[] }) 
           <circle key={i} cx={c.x} cy={c.y} r={2.5} fill={stateColor(c.value)} />
         ))}
       </svg>
-      <span className={`text-xs ${trend === "up" ? "text-green-600" : trend === "down" ? "text-red-500" : "text-ink/40"}`}>
+      <span className={`text-xs ${trend === "up" ? "text-green-600" : trend === "down" ? "text-red-500" : "text-slate-400"}`}>
         {trend === "up" ? "↑" : trend === "down" ? "↓" : "→"}
       </span>
     </div>

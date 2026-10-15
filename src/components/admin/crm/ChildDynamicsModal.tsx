@@ -58,20 +58,20 @@ export default function ChildDynamicsModal({ childId, childName, open, onClose }
     <Dialog open={open} onOpenChange={(v) => { if (!v) { setDraft(""); onClose(); } }}>
       <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="font-cormorant text-xl">Динамика — {childName}</DialogTitle>
+          <DialogTitle className="font-inter font-bold text-xl">Динамика — {childName}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
-          <div className="bg-beige-mid rounded-2xl p-4 space-y-3">
+          <div className="bg-slate-50 rounded-2xl p-4 space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Icon name="Sparkles" size={16} className="text-purple-500" />
-                <p className="text-sm font-semibold text-ink">ИИ-сводка за 7 дней</p>
+                <p className="text-sm font-semibold text-slate-800">ИИ-сводка за 7 дней</p>
               </div>
               <button
                 onClick={generate}
                 disabled={generating}
-                className="text-sm flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-beige-dark hover:border-ink transition-colors disabled:opacity-60"
+                className="text-sm flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 hover:border-indigo-300 transition-colors disabled:opacity-60"
               >
                 <Icon name={generating ? "Loader" : "WandSparkles"} size={14} className={generating ? "animate-spin" : ""} />
                 {generating ? "Формирование..." : "Сформировать ИИ-сводку за 7 дней"}
@@ -82,13 +82,13 @@ export default function ChildDynamicsModal({ childId, childName, open, onClose }
               onChange={(e) => setDraft(e.target.value)}
               rows={6}
               placeholder="Нажмите «Сформировать ИИ-сводку», затем при необходимости отредактируйте текст перед сохранением..."
-              className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-ink resize-none"
+              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-indigo-400 resize-none"
             />
             <div className="flex justify-end">
               <button
                 onClick={save}
                 disabled={saving || !draft.trim()}
-                className="px-4 py-2 text-sm rounded-lg bg-ink text-beige hover:bg-ink/90 transition-colors disabled:opacity-60 flex items-center gap-1.5"
+                className="px-4 py-2 text-sm rounded-lg bg-indigo-600 text-white hover:bg-slate-100 transition-colors disabled:opacity-60 flex items-center gap-1.5"
               >
                 <Icon name={saving ? "Loader" : "Save"} size={14} className={saving ? "animate-spin" : ""} />
                 {saving ? "Сохранение..." : "Сохранить в архив"}
@@ -97,19 +97,19 @@ export default function ChildDynamicsModal({ childId, childName, open, onClose }
           </div>
 
           <div>
-            <h3 className="font-semibold text-ink text-sm uppercase tracking-wide mb-3">История сводок ({summaries.length})</h3>
+            <h3 className="font-semibold text-slate-800 text-sm uppercase tracking-wide mb-3">История сводок ({summaries.length})</h3>
             {loading && (
               <div className="flex items-center justify-center py-8">
                 <div className="w-5 h-5 border-2 border-ink border-t-transparent rounded-full animate-spin" />
               </div>
             )}
-            {!loading && summaries.length === 0 && <p className="text-ink/40 text-sm py-4 text-center">Пока нет сохранённых сводок</p>}
+            {!loading && summaries.length === 0 && <p className="text-slate-400 text-sm py-4 text-center">Пока нет сохранённых сводок</p>}
             {!loading && summaries.length > 0 && (
               <div className="space-y-2 max-h-[280px] overflow-y-auto pr-1">
                 {summaries.map((s) => (
-                  <div key={s.id} className="rounded-xl p-3 bg-beige-mid">
-                    <p className="text-sm text-ink whitespace-pre-wrap mb-1">{s.summary_text}</p>
-                    <span className="text-xs text-ink/50">{fmtDateTime(s.created_at)}</span>
+                  <div key={s.id} className="rounded-xl p-3 bg-slate-50">
+                    <p className="text-sm text-slate-800 whitespace-pre-wrap mb-1">{s.summary_text}</p>
+                    <span className="text-xs text-slate-400">{fmtDateTime(s.created_at)}</span>
                   </div>
                 ))}
               </div>

@@ -87,7 +87,7 @@ export default function ChildrenBulkReport({ authorName, onSaved }: { authorName
   if (!open) {
     return (
       <div className="space-y-2">
-        <button onClick={() => { setOpen(true); setDone(""); }} className="w-full flex items-center justify-center gap-2 bg-ink text-beige px-4 py-3 rounded-xl text-sm font-semibold hover:bg-ink/90 transition-colors">
+        <button onClick={() => { setOpen(true); setDone(""); }} className="w-full flex items-center justify-center gap-2 bg-indigo-600 text-white px-4 py-3 rounded-xl text-sm font-semibold hover:bg-slate-100 transition-colors">
           <Icon name="ClipboardPaste" size={16} /> Еженедельный отчёт по всем детям
         </button>
         {done && <p className="text-xs text-green-700 bg-green-50 border border-green-200 rounded-lg px-3 py-2">{done}</p>}
@@ -96,28 +96,28 @@ export default function ChildrenBulkReport({ authorName, onSaved }: { authorName
   }
 
   return (
-    <div className="bg-white border border-ink/20 rounded-2xl p-5 space-y-4">
+    <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="font-semibold text-ink">Еженедельный отчёт по детям</h3>
-        <button onClick={() => { setOpen(false); reset(); }} className="p-1 text-ink/40 hover:text-ink"><Icon name="X" size={16} /></button>
+        <h3 className="font-semibold text-slate-800">Еженедельный отчёт по детям</h3>
+        <button onClick={() => { setOpen(false); reset(); }} className="p-1 text-slate-400 hover:text-slate-800"><Icon name="X" size={16} /></button>
       </div>
 
       <div>
-        <label className="text-xs text-ink/50 mb-1 block">Неделя (любой день недели)</label>
-        <input type="date" value={weekStart} onChange={(e) => { if (e.target.value) { setWeekStart(mondayOf(new Date(e.target.value + "T00:00:00"))); reset(); } }} className="border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" />
-        <span className="text-xs text-ink/50 ml-3">{weekLabel(weekStart)}</span>
+        <label className="text-xs text-slate-400 mb-1 block">Неделя (любой день недели)</label>
+        <input type="date" value={weekStart} onChange={(e) => { if (e.target.value) { setWeekStart(mondayOf(new Date(e.target.value + "T00:00:00"))); reset(); } }} className="border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400" />
+        <span className="text-xs text-slate-400 ml-3">{weekLabel(weekStart)}</span>
       </div>
 
       {!items && (
         <>
           <div>
-            <label className="text-xs text-ink/50 mb-1 block">Отчёт: каждая строка — «Имя ребёнка - состояние»</label>
-            <textarea value={text} onChange={(e) => setText(e.target.value)} rows={10} placeholder={EXAMPLE} className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink resize-y" />
-            <p className="text-[11px] text-ink/40 mt-1">Подойдёт и «Имя: состояние», и нумерация. Можно писать «Саша Петров», если в центре несколько Саш. Продолжение на следующих строках относится к тому же ребёнку.</p>
+            <label className="text-xs text-slate-400 mb-1 block">Отчёт: каждая строка — «Имя ребёнка - состояние»</label>
+            <textarea value={text} onChange={(e) => setText(e.target.value)} rows={10} placeholder={EXAMPLE} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400 resize-y" />
+            <p className="text-[11px] text-slate-400 mt-1">Подойдёт и «Имя: состояние», и нумерация. Можно писать «Саша Петров», если в центре несколько Саш. Продолжение на следующих строках относится к тому же ребёнку.</p>
           </div>
           {error && <p className="text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2">{error}</p>}
           <div className="flex justify-end">
-            <button onClick={parse} disabled={busy || !text.trim()} className="px-4 py-2 text-sm rounded-lg bg-ink text-beige hover:bg-ink/90 disabled:opacity-60 transition-colors flex items-center gap-1.5">
+            <button onClick={parse} disabled={busy || !text.trim()} className="px-4 py-2 text-sm rounded-lg bg-indigo-600 text-white hover:bg-slate-100 disabled:opacity-60 transition-colors flex items-center gap-1.5">
               <Icon name={busy ? "Loader" : "ScanSearch"} size={14} className={busy ? "animate-spin" : ""} />
               {busy ? "Разбираю..." : "Разобрать по детям"}
             </button>
@@ -127,31 +127,31 @@ export default function ChildrenBulkReport({ authorName, onSaved }: { authorName
 
       {items && (
         <>
-          <p className="text-xs text-ink/50">Проверьте, кому что отнесено. Если имя не распознано, выберите ребёнка вручную или уберите строку.</p>
+          <p className="text-xs text-slate-400">Проверьте, кому что отнесено. Если имя не распознано, выберите ребёнка вручную или уберите строку.</p>
           <div className="space-y-2">
             {items.map((it, idx) => (
               <div key={idx} className={`rounded-xl border p-3 space-y-2 ${it.child_id ? "border-green-200 bg-green-50/40" : "border-amber-300 bg-amber-50"}`}>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-xs text-ink/50">В тексте: <span className="font-semibold text-ink">{it.name_in_text}</span></span>
-                  <Icon name="ArrowRight" size={12} className="text-ink/30" />
-                  <select value={it.child_id ?? ""} onChange={(e) => setChild(idx, e.target.value ? Number(e.target.value) : null)} className="border border-beige-dark rounded-lg px-2 py-1 text-sm bg-white focus:outline-none focus:border-ink min-w-[180px]">
+                  <span className="text-xs text-slate-400">В тексте: <span className="font-semibold text-slate-800">{it.name_in_text}</span></span>
+                  <Icon name="ArrowRight" size={12} className="text-slate-300" />
+                  <select value={it.child_id ?? ""} onChange={(e) => setChild(idx, e.target.value ? Number(e.target.value) : null)} className="border border-slate-200 rounded-lg px-2 py-1 text-sm bg-white focus:outline-none focus:border-indigo-400 min-w-[180px]">
                     <option value="">— выберите ребёнка —</option>
                     {(it.status === "ambiguous" ? it.candidates : options).map((c) => (
                       <option key={c.id} value={c.id}>{c.name}{c.mother ? ` (мама ${c.mother})` : ""}</option>
                     ))}
                   </select>
                   {it.status === "ambiguous" && <span className="text-[11px] text-amber-700">Несколько совпадений</span>}
-                  <button onClick={() => skip(idx)} className="ml-auto p-1 text-ink/30 hover:text-red-400" title="Убрать строку"><Icon name="X" size={14} /></button>
+                  <button onClick={() => skip(idx)} className="ml-auto p-1 text-slate-300 hover:text-red-400" title="Убрать строку"><Icon name="X" size={14} /></button>
                 </div>
-                <textarea value={it.text} onChange={(e) => setItemText(idx, e.target.value)} rows={2} className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-ink resize-y" />
+                <textarea value={it.text} onChange={(e) => setItemText(idx, e.target.value)} rows={2} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-indigo-400 resize-y" />
               </div>
             ))}
           </div>
           {missing > 0 && <p className="text-xs text-amber-700">Без ребёнка: {missing}. Такие строки не сохранятся.</p>}
           {error && <p className="text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2">{error}</p>}
           <div className="flex gap-2 justify-end">
-            <button onClick={reset} className="px-4 py-2 text-sm rounded-lg border border-beige-dark hover:border-ink transition-colors">Назад к тексту</button>
-            <button onClick={save} disabled={busy || ready.length === 0} className="px-4 py-2 text-sm rounded-lg bg-ink text-beige hover:bg-ink/90 disabled:opacity-60 transition-colors flex items-center gap-1.5">
+            <button onClick={reset} className="px-4 py-2 text-sm rounded-lg border border-slate-200 hover:border-indigo-300 transition-colors">Назад к тексту</button>
+            <button onClick={save} disabled={busy || ready.length === 0} className="px-4 py-2 text-sm rounded-lg bg-indigo-600 text-white hover:bg-slate-100 disabled:opacity-60 transition-colors flex items-center gap-1.5">
               <Icon name={busy ? "Loader" : "Save"} size={14} className={busy ? "animate-spin" : ""} />
               {busy ? "Сохранение..." : `Сохранить (${ready.length})`}
             </button>

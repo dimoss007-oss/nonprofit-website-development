@@ -24,37 +24,37 @@ export default function PatientNamesHint({ patients, embedded = false }: { patie
   };
 
   return (
-    <div className={embedded ? "" : "bg-white border border-beige-dark rounded-2xl"}>
+    <div className={embedded ? "" : "bg-white border border-slate-200 rounded-2xl"}>
       {!embedded && <button onClick={() => setOpen(!openState)} className="w-full flex items-center justify-between px-5 py-3.5 text-left">
-        <span className="flex items-center gap-2 font-semibold text-ink text-sm">
+        <span className="flex items-center gap-2 font-semibold text-slate-800 text-sm">
           <Icon name="ListChecks" size={16} /> Как писать имена в отчёте для бота
         </span>
-        <Icon name={open ? "ChevronUp" : "ChevronDown"} size={16} className="text-ink/40" />
+        <Icon name={open ? "ChevronUp" : "ChevronDown"} size={16} className="text-slate-400" />
       </button>}
       {open && (
-        <div className={`${embedded ? "" : "px-5 pb-5 pt-4 border-t border-beige-dark"} space-y-3`}>
-          <p className="text-xs text-ink/60">Начинайте каждую строку отчёта с имени, как в списке ниже, затем тире и текст. Если в центре несколько человек с одним именем, одного имени «Таня» недостаточно — бот не сохранит такую строку.</p>
+        <div className={`${embedded ? "" : "px-5 pb-5 pt-4 border-t border-slate-200"} space-y-3`}>
+          <p className="text-xs text-slate-500">Начинайте каждую строку отчёта с имени, как в списке ниже, затем тире и текст. Если в центре несколько человек с одним именем, одного имени «Таня» недостаточно — бот не сохранит такую строку.</p>
           <div className="grid sm:grid-cols-2 gap-2">
             {active.map((p) => {
               const shared = counts[shortName(p)] > 1;
               const hasAlias = !!p.alias?.trim();
               return (
-                <div key={p.id} className="bg-beige-mid rounded-xl px-3 py-2">
-                  <p className="text-sm font-medium text-ink">{writeAs(p)}</p>
-                  <p className="text-xs text-ink/50">{p.last_name} {p.first_name}</p>
+                <div key={p.id} className="bg-slate-50 rounded-xl px-3 py-2">
+                  <p className="text-sm font-medium text-slate-800">{writeAs(p)}</p>
+                  <p className="text-xs text-slate-400">{p.last_name} {p.first_name}</p>
                   {shared && !hasAlias && <p className="text-xs text-amber-700 mt-0.5">Есть тёзки — добавьте псевдоним в карточке</p>}
                 </div>
               );
             })}
           </div>
-          <button onClick={copy} className="text-xs text-ink/60 hover:text-ink flex items-center gap-1">
+          <button onClick={copy} className="text-xs text-slate-500 hover:text-slate-800 flex items-center gap-1">
             <Icon name={copied ? "Check" : "Copy"} size={12} /> {copied ? "Скопировано" : "Скопировать шаблон отчёта"}
           </button>
-          <div className="bg-beige-mid rounded-xl px-4 py-3 space-y-2">
-            <p className="text-sm font-semibold text-ink flex items-center gap-2">
+          <div className="bg-slate-50 rounded-xl px-4 py-3 space-y-2">
+            <p className="text-sm font-semibold text-slate-800 flex items-center gap-2">
               <Icon name="MessageSquareText" size={14} /> Памятка психологу: длинный отчёт
             </p>
-            <ol className="list-decimal pl-5 space-y-1.5 text-xs text-ink/70">
+            <ol className="list-decimal pl-5 space-y-1.5 text-xs text-slate-600">
               <li>Каждый блок по пациентке начинайте с её имени из списка выше, затем тире и текст: «Катя Б. – …».</li>
               <li>Max обрезает сообщение примерно на 4000 знаках. Длинный отчёт отправляйте частями, одну за другой. Паузы до часа не страшны.</li>
               <li>На каждую длинную часть бот ответит «Часть N получена». Пока он так отвечает, ничего не сохранено, это нормально.</li>
