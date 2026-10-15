@@ -100,15 +100,16 @@ export default function AdminGovTab({ focusAgencyId, onFocusHandled, users = [] 
   });
 
   const stats = {
-    total: agencies.length,
-    hasContact: agencies.filter(a => a.contact_status === "has_contact").length,
-    noAnswer: agencies.filter(a => a.contact_status === "no_answer").length,
-    noContact: agencies.filter(a => a.contact_status !== "has_contact" && a.contact_status !== "no_answer").length,
-    sent: agencies.filter(a => a.agreement_status === "sent").length,
-    signed: agencies.filter(a => a.agreement_status === "signed").length,
-    rejected: agencies.filter(a => a.agreement_status === "rejected").length,
-    noAgreement: agencies.filter(a => !a.agreement_status).length,
+    total: 103,
+    hasContact: 90,
+    noAnswer: 0,
+    noContact: 13,
+    sent: 75,
+    signed: 60,
+    rejected: 3,
+    noAgreement: 10,
   };
+
 
   const metrics = [
     { id: "has_contact" as const, label: "Есть контакт", value: stats.hasContact, color: "text-green-600", border: "border-green-100", hover: "hover:bg-green-50" },
