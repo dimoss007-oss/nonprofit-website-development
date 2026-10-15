@@ -230,7 +230,25 @@ def news(cur) -> list:
 def system(cur) -> dict:
     cur.execute(f"SELECT MAX(created_at) AS last_sync FROM {SCHEMA}.news WHERE vk_id IS NOT NULL")
     last = cur.fetchone()['last_sync']
-    return {'lastVkSync': last.isoformat() if last else None}
+    cur.execute(f"""
+        SELECT
+            (SELECT COUNT(*) FROM {SCHEMA}.news WHERE vk_id IS DISTINCT FROM -1) AS news_total,
+            (SELECT COUNT(*) FROM {SCHEMA}.gallery) AS photos_total,
+            (SELECT COUNT(*) FROM {SCHEMA}.admin_users) AS staff_total,
+            (SELECT COUNT(*) FROM {SCHEMA}.patients) AS patients_total,
+            (SELECT COUNT(*) FROM {SCHEMA}.donor_subscriptions WHERE status = 'active') AS subscriptions_active,
+            (SELECT COUNT(*) FROM {SCHEMA}.tasks WHERE status <> 'done') AS tasks_open
+    """)
+    row = cur.fetchone()
+    return {
+        'lastVkSync': last.isoformat() if last else None,
+        'newsTotal': row['news_total'],
+        'photosTotal': row['photos_total'],
+        'staffTotal': row['staff_total'],
+        'patientsTotal': row['patients_total'],
+        'subscriptionsActive': row['subscriptions_active'],
+        'tasksOpen': row['tasks_open'],
+    }
 
 
 def handler(event: dict, context) -> dict:

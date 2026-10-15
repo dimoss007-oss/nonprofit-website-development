@@ -34,5 +34,11 @@ export interface DashboardSummary {
   news: DashboardNews[];
   system: {
     lastVkSync: string | null;
+    newsTotal: number;
+    photosTotal: number;
+    staffTotal: number;
+    patientsTotal: number;
+    subscriptionsActive: number;
+    tasksOpen: number;
   };
 }
