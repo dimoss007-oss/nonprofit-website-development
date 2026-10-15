@@ -1,6 +1,6 @@
 import AdminResidentsYearWidget from "@/components/admin/AdminResidentsYearWidget";
 import AdminFundraisingWidget from "@/components/admin/AdminFundraisingWidget";
-import { Stats, FUNDRAISING_URL, fmt } from "@/components/admin/fundraising.types";
+import { Stats, FUNDRAISING_URL } from "@/components/admin/fundraising.types";
 import { useEffect, useState } from "react";
 import Icon from "@/components/ui/icon";
 import { useDashboardSummary } from "@/components/admin/dashboard/useDashboardSummary";
@@ -35,7 +35,6 @@ export default function AdminDashboard({ onNavigate }: { onNavigate?: (tab: stri
     { key: "active", label: "В стационаре", value: data?.residents.totalActive ?? "—", color: "text-green-600", border: "border-green-100", hover: "hover:bg-green-50", go: "crm" },
     { key: "children", label: "Детей с ними", value: data?.residents.totalChildren ?? "—", color: "text-slate-700", border: "border-slate-100", hover: "hover:bg-slate-50", go: "crm" },
     { key: "beds", label: "Свободных мест", value: data?.residents.freeBeds ?? "—", color: "text-blue-600", border: "border-blue-100", hover: "hover:bg-blue-50", go: "crm" },
-    { key: "money", label: "Собрано всего", value: fundStats ? fmt(fundStats.donations_total) : "—", color: "text-green-600", border: "border-green-100", hover: "hover:bg-green-50", go: "fundraising" },
     { key: "overdue", label: "Просроченных задач", value: data ? overdue : "—", color: overdue > 0 ? "text-red-500" : "text-slate-700", border: overdue > 0 ? "border-red-100" : "border-slate-100", hover: "hover:bg-red-50", go: "tasks" },
   ];
 
@@ -46,7 +45,7 @@ export default function AdminDashboard({ onNavigate }: { onNavigate?: (tab: stri
         <p className="text-sm text-slate-500 mt-1">Главное о центре за сегодня: семьи, сборы, задачи и новости</p>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {metrics.map(m => (
           <button key={m.key} onClick={() => onNavigate?.(m.go)} className={`bg-white p-4 rounded-2xl border shadow-sm flex flex-col items-center justify-center transition min-w-0 ${m.border} ${m.hover} ${m.key === "overdue" ? "col-span-2 md:col-span-1" : ""}`}>
             <span className={`text-2xl font-bold break-words max-w-full ${m.color}`}>{m.value}</span>
