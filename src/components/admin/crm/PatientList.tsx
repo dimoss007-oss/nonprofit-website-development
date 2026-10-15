@@ -36,7 +36,7 @@ export default function PatientList({
 
   const stageCards = [
     { id: "inpatient" as CareStage, value: inCenter.length, label: "В центре", color: "text-green-600", border: "border-green-100", hover: "hover:bg-green-50", clickable: true },
-    { id: "posttreatment" as CareStage, value: postTreatmentCount, label: "Амбулаторно", color: "text-blue-600", border: "border-blue-100", hover: "hover:bg-blue-50", clickable: true },
+    { id: "posttreatment" as CareStage, value: postTreatmentCount, label: "Амбулаторная программа", color: "text-blue-600", border: "border-blue-100", hover: "hover:bg-blue-50", clickable: true },
   ];
 
   return (
