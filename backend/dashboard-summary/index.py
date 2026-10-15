@@ -109,7 +109,10 @@ def finance(cur) -> dict:
         FROM {SCHEMA}.donor_donations
         WHERE is_regular AND donated_at >= CURRENT_DATE - 62
     """)
+    cur.execute(f"SELECT COALESCE(SUM(amount), 0) AS total FROM {SCHEMA}.donor_donations")
+    donations_total = float(cur.fetchone()['total'])
     return {
+        'donationsTotalRub': round(donations_total),
         'monthlyTotalRub': round(current),
         'activeRecurringDonors': cur.fetchone()['donors'],
         'trend': trend,

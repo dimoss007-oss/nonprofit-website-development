@@ -25,6 +25,7 @@ export interface DashboardSummary {
   };
   finance: {
     monthlyTotalRub: number;
+    donationsTotalRub: number;
     activeRecurringDonors: number;
     trend: "up" | "down" | "stable";
   };

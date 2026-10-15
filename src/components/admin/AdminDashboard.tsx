@@ -29,7 +29,7 @@ export default function AdminDashboard({ onNavigate }: { onNavigate?: (tab: stri
     { key: "active", label: "В стационаре", value: data?.residents.totalActive ?? "—", color: "text-green-600", border: "border-green-100", hover: "hover:bg-green-50", go: "crm" },
     { key: "children", label: "Детей с ними", value: data?.residents.totalChildren ?? "—", color: "text-slate-700", border: "border-slate-100", hover: "hover:bg-slate-50", go: "crm" },
     { key: "beds", label: "Свободных мест", value: data?.residents.freeBeds ?? "—", color: "text-blue-600", border: "border-blue-100", hover: "hover:bg-blue-50", go: "crm" },
-    { key: "money", label: "Собрано за месяц", value: data ? `${data.finance.monthlyTotalRub.toLocaleString("ru-RU")} ₽` : "—", color: "text-green-600", border: "border-green-100", hover: "hover:bg-green-50", go: "fundraising" },
+    { key: "money", label: "Собрано всего", value: data ? `${(data.finance.donationsTotalRub ?? 0).toLocaleString("ru-RU")} ₽` : "—", color: "text-green-600", border: "border-green-100", hover: "hover:bg-green-50", go: "fundraising" },
     { key: "overdue", label: "Просроченных задач", value: data ? overdue : "—", color: overdue > 0 ? "text-red-500" : "text-slate-700", border: overdue > 0 ? "border-red-100" : "border-slate-100", hover: "hover:bg-red-50", go: "tasks" },
   ];
 
