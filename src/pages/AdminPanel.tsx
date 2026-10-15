@@ -15,6 +15,7 @@ import AdminResidentsYearWidget from "@/components/admin/AdminResidentsYearWidge
 import PasswordResetForm from "@/components/admin/PasswordResetForm";
 import AdminDashboard from "@/components/admin/AdminDashboard";
 import AdminAiSettingsTab from "@/components/admin/AdminAiSettingsTab";
+import AdminHeader from "@/components/admin/AdminHeader";
 import AiChatModal from "@/components/admin/AiChatModal";
 import type { Task } from "@/components/admin/taskTypes";
 
@@ -165,74 +166,43 @@ export default function AdminPanel() {
   const isAdmin = session.role === "admin";
   const userPerms = parsePermissions(session.permissions);
 
-  const TABS: { id: Tab; label: string; icon: string; active: string; inactive: string }[] = [
-    { id: "dashboard",   label: "Дашборд",       icon: "LayoutDashboard", active: "bg-indigo-100 text-indigo-700 shadow-sm", inactive: "text-indigo-400 hover:bg-indigo-50 hover:text-indigo-600" },
-    { id: "crm",         label: "Пациенты",     icon: "Users",         active: "bg-blue-100 text-blue-700 shadow-sm",     inactive: "text-blue-400 hover:bg-blue-50 hover:text-blue-600" },
-    { id: "sop",         label: "СОП",           icon: "ShieldAlert",   active: "bg-red-100 text-red-700 shadow-sm",       inactive: "text-red-400 hover:bg-red-50 hover:text-red-600" },
-    { id: "news",        label: "Новости",       icon: "Newspaper",     active: "bg-amber-100 text-amber-700 shadow-sm",   inactive: "text-amber-400 hover:bg-amber-50 hover:text-amber-600" },
-    { id: "tasks",       label: "Задачи",        icon: "ClipboardList", active: "bg-violet-100 text-violet-700 shadow-sm", inactive: "text-violet-400 hover:bg-violet-50 hover:text-violet-600" },
-    { id: "requests",    label: "Заявки",        icon: "Inbox",         active: "bg-rose-100 text-rose-700 shadow-sm",     inactive: "text-rose-400 hover:bg-rose-50 hover:text-rose-600" },
-    { id: "users",       label: "Сотрудники",    icon: "UserCog",       active: "bg-sage-pale text-sage-dark shadow-sm",   inactive: "text-sage hover:bg-sage-pale/50 hover:text-sage-dark" },
-    { id: "gallery",     label: "Галерея",       icon: "Images",        active: "bg-orange-100 text-orange-700 shadow-sm", inactive: "text-orange-400 hover:bg-orange-50 hover:text-orange-600" },
-    { id: "fundraising", label: "Фандрайзинг",   icon: "HandCoins",     active: "bg-green-100 text-green-700 shadow-sm",   inactive: "text-green-500 hover:bg-green-50 hover:text-green-700" },
-    { id: "gov",         label: "Госорганы",     icon: "Landmark",      active: "bg-slate-100 text-slate-700 shadow-sm",   inactive: "text-slate-400 hover:bg-slate-50 hover:text-slate-600" },
-    { id: "shifts",      label: "Отчёты смены",  icon: "Clock",         active: "bg-cyan-100 text-cyan-700 shadow-sm",     inactive: "text-cyan-400 hover:bg-cyan-50 hover:text-cyan-600" },
-    { id: "ai_settings", label: "Настройки ИИ",  icon: "BrainCircuit",  active: "bg-purple-100 text-purple-700 shadow-sm", inactive: "text-purple-400 hover:bg-purple-50 hover:text-purple-600" },
+  const TABS: { id: Tab; label: string; icon: string }[] = [
+    { id: "dashboard",   label: "Дашборд",       icon: "LayoutDashboard" },
+    { id: "crm",         label: "Семьи",         icon: "Users" },
+    { id: "shifts",      label: "Журнал",        icon: "Clock" },
+    { id: "tasks",       label: "Задачи",        icon: "ClipboardList" },
+    { id: "requests",    label: "Заявки",        icon: "Inbox" },
+    { id: "fundraising", label: "Фандрайзинг",   icon: "HandCoins" },
+    { id: "sop",         label: "СОП",           icon: "ShieldAlert" },
+    { id: "gov",         label: "Госорганы",     icon: "Landmark" },
+    { id: "news",        label: "Новости",       icon: "Newspaper" },
+    { id: "gallery",     label: "Галерея",       icon: "Images" },
+    { id: "users",       label: "Сотрудники",    icon: "UserCog" },
+    { id: "ai_settings", label: "Настройки ИИ",  icon: "BrainCircuit" },
   ];
 
-  // "Настройки ИИ" — строго для администраторов, независимо от списка permissions (там её нет и быть не может)
   const visibleTabs = isAdmin
     ? TABS
     : TABS.filter(t => t.id !== "ai_settings" && t.id !== "dashboard" && (userPerms ? userPerms.includes(t.id as TabId) : true));
+  const pick = (ids: string[]) => ids.map(id => visibleTabs.find(t => t.id === id)).filter(Boolean) as typeof TABS;
 
   return (
-    <div className="min-h-screen bg-beige-mid font-golos">
-      <header ref={headerRef} className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-beige-dark">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
-          <a href="/" className="flex items-center gap-3 flex-shrink-0">
-            <img src={LOGO_IMG} alt="Спасение надежды" style={{ borderRadius: "50%", width: 40, height: 40, objectFit: "cover" }} />
-            <div className="hidden sm:block">
-              <div className="font-cormorant text-ink text-base font-semibold leading-none">Спасение надежды</div>
-              <div className="text-ink/40 text-[10px] uppercase tracking-wider mt-0.5">Панель управления</div>
-            </div>
-          </a>
-          <div className="flex items-center gap-3 flex-shrink-0">
-            <div className="hidden sm:flex items-center gap-2 text-xs text-ink/40">
-              <span>{session.full_name}</span>
-              <span className={`px-2 py-0.5 rounded-full text-[10px] ${isAdmin ? "bg-ink text-beige" : "bg-beige-dark text-ink"}`}>
-                {isAdmin ? "Администратор" : "Пользователь"}
-              </span>
-            </div>
-            {isAdmin && (
-              <button
-                onClick={() => setAiChatOpen(true)}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium bg-purple-100 text-purple-700 hover:bg-purple-200 transition-colors"
-              >
-                <Icon name="Sparkles" size={14} />
-                <span className="hidden sm:inline">Спросить ИИ</span>
-              </button>
-            )}
-            <button onClick={logout} className="flex items-center gap-2 text-ink/50 hover:text-ink text-sm transition-colors">
-              <Icon name="LogOut" size={15} />
-              <span className="hidden sm:inline">Выйти</span>
-            </button>
-          </div>
-        </div>
-        <div className="border-t border-beige-dark/50 bg-white">
-          <div className="max-w-6xl mx-auto px-4 py-1.5">
-            <nav className="flex items-center gap-1 flex-wrap">
-              {visibleTabs.map(t => (
-                <button key={t.id} onClick={() => setTab(t.id)} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${tab === t.id ? t.active : t.inactive}`}>
-                  <Icon name={t.icon} size={14} />
-                  {t.label}
-                </button>
-              ))}
-            </nav>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-slate-50 font-inter text-slate-800">
+      <AdminHeader
+        headerRef={headerRef}
+        logo={LOGO_IMG}
+        fullName={session.full_name || session.login}
+        isAdmin={isAdmin}
+        tab={tab}
+        mainTabs={pick(["dashboard", "crm", "shifts", "tasks", "requests", "fundraising"])}
+        refTabs={pick(["sop", "gov", "news", "gallery"])}
+        settingsTabs={pick(["users", "ai_settings"])}
+        onSelect={id => setTab(id as Tab)}
+        onAi={() => setAiChatOpen(true)}
+        onLogout={logout}
+      />
 
-      <main className="pb-16 max-w-6xl mx-auto px-4" style={{ paddingTop: headerHeight + 16 }}>
+      <main className="pb-16 max-w-7xl mx-auto px-4 sm:px-6" style={{ paddingTop: headerHeight + 16 }}>
         {tab === "dashboard" && isAdmin && <AdminDashboard />}
         {tab === "crm" && <AdminCrmTab isAdmin={isAdmin} authorName={session.full_name || session.login} focusPatientId={focusPatientId} onFocusHandled={() => setFocusPatientId(null)} onViewShiftHistory={goToShiftHistory} />}
         {tab === "sop" && <AdminSopTab isAdmin={isAdmin} />}
