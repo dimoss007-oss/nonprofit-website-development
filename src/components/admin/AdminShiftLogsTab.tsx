@@ -61,16 +61,37 @@ export default function AdminShiftLogsTab({ onSelectPatient, filterPatientId, on
     .filter(l => !filterPatientId || l.patients.some(p => p.id === filterPatientId))
     .filter(l => !search.trim() || l.log_text.toLowerCase().includes(search.trim().toLowerCase()));
 
+  const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate() - 7);
+  const weekCount = logs.filter(l => new Date(l.report_date) >= weekAgo).length;
+  const records = logs.flatMap(l => l.patients);
+  const attention = records.filter(p => p.overall_state != null && p.overall_state <= 4).length;
+  const uniquePatients = new Set(records.map(p => p.id)).size;
+  const metrics = [
+    { label: "Всего отчётов", value: logs.length, color: "text-slate-800", border: "border-slate-100" },
+    { label: "За 7 дней", value: weekCount, color: "text-blue-600", border: "border-blue-100" },
+    { label: "Семей в отчётах", value: uniquePatients, color: "text-green-600", border: "border-green-100" },
+    { label: "Тяжёлое состояние", value: attention, color: attention > 0 ? "text-red-500" : "text-slate-700", border: attention > 0 ? "border-red-100" : "border-slate-100" },
+  ];
+
   return (
     <div className="space-y-6 font-inter">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
           <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Журнал</h1>
-          <p className="text-slate-400 text-sm">Вступительные сводки, полученные из бота Max</p>
+          <p className="text-sm text-slate-500 mt-1">Вступительные сводки, полученные из бота Max</p>
         </div>
         <button onClick={load} className="px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition text-sm font-medium flex items-center gap-2 shadow-sm">
           <Icon name="RefreshCw" size={14} /> Обновить
         </button>
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {metrics.map(m => (
+          <div key={m.label} className={`bg-white p-4 rounded-2xl border shadow-sm flex flex-col items-center justify-center ${m.border}`}>
+            <span className={`text-2xl font-bold ${m.color}`}>{loading ? "—" : m.value}</span>
+            <span className="text-xs text-slate-500 font-medium mt-1 text-center">{m.label}</span>
+          </div>
+        ))}
       </div>
 
       {filterPatientId && (
@@ -111,7 +132,7 @@ export default function AdminShiftLogsTab({ onSelectPatient, filterPatientId, on
       {!loading && filtered.length > 0 && (
         <div className="space-y-3">
           {filtered.map((log) => (
-            <div key={log.id} className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm transition-all hover:shadow-md">
+            <div key={log.id} className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
               <div className="flex items-center justify-between gap-3 mb-2 flex-wrap">
                 <span className="text-xs font-semibold text-slate-700 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-full flex items-center gap-1.5">
                   <Icon name="Calendar" size={12} /> {fmt(log.report_date)}
