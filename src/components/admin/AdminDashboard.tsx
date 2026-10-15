@@ -1,4 +1,7 @@
 import AdminResidentsYearWidget from "@/components/admin/AdminResidentsYearWidget";
+import AdminFundraisingWidget from "@/components/admin/AdminFundraisingWidget";
+import { Stats, FUNDRAISING_URL, fmt } from "@/components/admin/fundraising.types";
+import { useEffect, useState } from "react";
 import Icon from "@/components/ui/icon";
 import { useDashboardSummary } from "@/components/admin/dashboard/useDashboardSummary";
 import ResidentsCard from "@/components/admin/dashboard/ResidentsCard";
@@ -9,6 +12,10 @@ import NewsCard from "@/components/admin/dashboard/NewsCard";
 import SystemCard from "@/components/admin/dashboard/SystemCard";
 
 export default function AdminDashboard({ onNavigate }: { onNavigate?: (tab: string) => void }) {
+  const [fundStats, setFundStats] = useState<Stats | null>(null);
+  useEffect(() => {
+    fetch(`${FUNDRAISING_URL}?type=stats`).then(r => r.json()).then(setFundStats).catch(() => {});
+  }, []);
   const { data, loading, error, reload, saveCapacity, summaryLoading, refreshSummary } = useDashboardSummary();
 
   if (error) {
@@ -29,7 +36,7 @@ export default function AdminDashboard({ onNavigate }: { onNavigate?: (tab: stri
     { key: "active", label: "В стационаре", value: data?.residents.totalActive ?? "—", color: "text-green-600", border: "border-green-100", hover: "hover:bg-green-50", go: "crm" },
     { key: "children", label: "Детей с ними", value: data?.residents.totalChildren ?? "—", color: "text-slate-700", border: "border-slate-100", hover: "hover:bg-slate-50", go: "crm" },
     { key: "beds", label: "Свободных мест", value: data?.residents.freeBeds ?? "—", color: "text-blue-600", border: "border-blue-100", hover: "hover:bg-blue-50", go: "crm" },
-    { key: "money", label: "Собрано всего", value: data ? `${(data.finance.donationsTotalRub ?? 0).toLocaleString("ru-RU")} ₽` : "—", color: "text-green-600", border: "border-green-100", hover: "hover:bg-green-50", go: "fundraising" },
+    { key: "money", label: "Собрано всего", value: fundStats ? fmt(fundStats.donations_total) : "—", color: "text-green-600", border: "border-green-100", hover: "hover:bg-green-50", go: "fundraising" },
     { key: "overdue", label: "Просроченных задач", value: data ? overdue : "—", color: overdue > 0 ? "text-red-500" : "text-slate-700", border: overdue > 0 ? "border-red-100" : "border-slate-100", hover: "hover:bg-red-50", go: "tasks" },
   ];
 
@@ -49,7 +56,10 @@ export default function AdminDashboard({ onNavigate }: { onNavigate?: (tab: stri
         ))}
       </div>
 
-      <AdminResidentsYearWidget />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <AdminFundraisingWidget stats={fundStats} onClick={() => onNavigate?.("fundraising")} />
+        <AdminResidentsYearWidget />
+      </div>
 
       <div className="grid gap-4 grid-cols-1 lg:grid-cols-3 [&>*]:min-w-0">
         <ResidentsCard data={data?.residents} loading={loading} onSaveCapacity={saveCapacity} />
