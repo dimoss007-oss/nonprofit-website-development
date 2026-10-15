@@ -38,7 +38,7 @@ def route_list(event: dict) -> dict:
     if logs:
         dates = sorted({log["report_date"] for log in logs})
         cur.execute(
-            f"""SELECT r.patient_id, r.report_date, r.overall_state, r.problems_identified,
+            f"""SELECT r.patient_id, r.report_date, r.overall_state, r.problems_identified, r.actions_taken, r.results, r.notes,
                        p.last_name, p.first_name, p.alias
                 FROM {SCHEMA}.patient_daily_reports r
                 JOIN {SCHEMA}.patients p ON p.id = r.patient_id
@@ -56,6 +56,9 @@ def route_list(event: dict) -> dict:
                 "alias": row["alias"],
                 "overall_state": row["overall_state"],
                 "identified_problems": row["problems_identified"],
+                "actions_taken": row["actions_taken"],
+                "results": row["results"],
+                "notes": row["notes"],
             })
         for log in logs:
             log["patients"] = by_date.get(log["report_date"], [])

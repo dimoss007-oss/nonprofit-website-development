@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import Icon from "@/components/ui/icon";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const API = "https://functions.poehali.dev/c324d1ab-fd21-4060-9ed0-584dad81416f";
 
@@ -10,6 +11,9 @@ type ShiftPatient = {
   alias?: string;
   overall_state: number | null;
   identified_problems: string;
+  actions_taken?: string | null;
+  results?: string | null;
+  notes?: string | null;
 };
 
 type ShiftLog = { id: number; report_date: string; log_text: string; created_at: string; patients: ShiftPatient[] };
@@ -34,6 +38,7 @@ export default function AdminShiftLogsTab({ onSelectPatient, filterPatientId, on
   const [logs, setLogs] = useState<ShiftLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [openLog, setOpenLog] = useState<ShiftLog | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -111,7 +116,10 @@ export default function AdminShiftLogsTab({ onSelectPatient, filterPatientId, on
                 </span>
                 <span className="text-xs text-ink/40">Получено: {fmtDateTime(log.created_at)}</span>
               </div>
-              <p className="text-sm text-ink/80 whitespace-pre-wrap break-words">{log.log_text || "—"}</p>
+              <p className="text-sm text-ink/80 whitespace-pre-wrap break-words line-clamp-4">{log.log_text || "—"}</p>
+              <button onClick={() => setOpenLog(log)} className="mt-3 text-sm font-medium text-indigo-600 hover:text-indigo-700 flex items-center gap-1.5 transition-colors">
+                <Icon name="Maximize2" size={14} /> Открыть отчёт полностью
+              </button>
 
               {log.patients.length > 0 && (
                 <div className="mt-4 pt-4 border-t border-beige-dark/60">
@@ -153,6 +161,44 @@ export default function AdminShiftLogsTab({ onSelectPatient, filterPatientId, on
           ))}
         </div>
       )}
+
+      <Dialog open={!!openLog} onOpenChange={(o) => !o && setOpenLog(null)}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          {openLog && (
+            <>
+              <DialogHeader>
+                <DialogTitle>Отчёт смены за {fmt(openLog.report_date)}</DialogTitle>
+                <p className="text-xs text-ink/40">Получено: {fmtDateTime(openLog.created_at)}</p>
+              </DialogHeader>
+              <p className="text-sm text-ink/80 whitespace-pre-wrap break-words">{openLog.log_text || "—"}</p>
+              {openLog.patients.length > 0 && (
+                <div className="space-y-3 pt-4 border-t border-beige-dark/60">
+                  <p className="text-xs font-semibold text-ink/50 uppercase tracking-wider">Отчёты по пациентам ({openLog.patients.length})</p>
+                  {openLog.patients.map((p) => (
+                    <div key={p.id} className="border border-beige-dark rounded-xl px-4 py-3 space-y-2">
+                      <div className="flex items-center justify-between gap-2">
+                        <button onClick={() => { setOpenLog(null); onSelectPatient?.(p.id); }} className="text-sm font-semibold text-ink hover:underline flex items-center gap-1.5">
+                          <Icon name="User" size={13} className="text-ink/40" />
+                          {p.alias || `${p.last_name} ${p.first_name}`}
+                        </button>
+                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${stateColor(p.overall_state)}`}>{p.overall_state ?? "—"}</span>
+                      </div>
+                      {[["Выявленные проблемы", p.identified_problems], ["Что сделано", p.actions_taken], ["Результат", p.results], ["Заметки", p.notes]].map(([label, text]) =>
+                        text ? (
+                          <div key={label}>
+                            <p className="text-[11px] font-semibold text-ink/40 uppercase tracking-wider">{label}</p>
+                            <p className="text-sm text-ink/80 whitespace-pre-wrap break-words">{text}</p>
+                          </div>
+                        ) : null
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
