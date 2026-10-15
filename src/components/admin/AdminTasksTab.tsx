@@ -24,7 +24,6 @@ export default function AdminTasksTab({
   const [filterStatus, setFilterStatus] = useState<Status | "all">("all");
   const [search, setSearch] = useState("");
   const [onlyOverdue, setOnlyOverdue] = useState(false);
-  const [view, setView] = useState<"list" | "calendar">("calendar");
 
   const load = async () => {
     setLoading(true);
@@ -88,15 +87,15 @@ export default function AdminTasksTab({
   };
   const overdueCount = tasks.filter(t => isOverdue(t.deadline, t.status)).length;
 
-  const pickStatus = (s: Status | "all") => { setFilterStatus(s); setOnlyOverdue(false); setView("list"); };
-  const pickOverdue = () => { setFilterStatus("all"); setOnlyOverdue(true); setView("list"); };
+  const pickStatus = (s: Status | "all") => { setFilterStatus(s); setOnlyOverdue(false); };
+  const pickOverdue = () => { setFilterStatus("all"); setOnlyOverdue(true); };
 
   const metrics: { key: string; value: number; label: string; color: string; border: string; hover: string; active: boolean; onClick: () => void }[] = [
-    { key: "new", value: counts.new, label: "Новые", color: "text-blue-600", border: "border-blue-100", hover: "hover:bg-blue-50", active: view === "list" && !onlyOverdue && filterStatus === "new", onClick: () => pickStatus("new") },
-    { key: "in_progress", value: counts.in_progress, label: "В работе", color: "text-amber-600", border: "border-amber-100", hover: "hover:bg-amber-50", active: view === "list" && !onlyOverdue && filterStatus === "in_progress", onClick: () => pickStatus("in_progress") },
-    { key: "done", value: counts.done, label: "Выполнены", color: "text-green-600", border: "border-green-100", hover: "hover:bg-green-50", active: view === "list" && !onlyOverdue && filterStatus === "done", onClick: () => pickStatus("done") },
-    { key: "overdue", value: overdueCount, label: "Просрочены", color: overdueCount > 0 ? "text-red-500" : "text-slate-700", border: overdueCount > 0 ? "border-red-100" : "border-slate-100", hover: "hover:bg-red-50", active: view === "list" && onlyOverdue, onClick: pickOverdue },
-    { key: "all", value: counts.all, label: "Всего задач", color: "text-slate-800", border: "border-slate-100", hover: "hover:bg-slate-50", active: view === "list" && !onlyOverdue && filterStatus === "all", onClick: () => pickStatus("all") },
+    { key: "new", value: counts.new, label: "Новые", color: "text-blue-600", border: "border-blue-100", hover: "hover:bg-blue-50", active: !onlyOverdue && filterStatus === "new", onClick: () => pickStatus("new") },
+    { key: "in_progress", value: counts.in_progress, label: "В работе", color: "text-amber-600", border: "border-amber-100", hover: "hover:bg-amber-50", active: !onlyOverdue && filterStatus === "in_progress", onClick: () => pickStatus("in_progress") },
+    { key: "done", value: counts.done, label: "Выполнены", color: "text-green-600", border: "border-green-100", hover: "hover:bg-green-50", active: !onlyOverdue && filterStatus === "done", onClick: () => pickStatus("done") },
+    { key: "overdue", value: overdueCount, label: "Просрочены", color: overdueCount > 0 ? "text-red-500" : "text-slate-700", border: overdueCount > 0 ? "border-red-100" : "border-slate-100", hover: "hover:bg-red-50", active: onlyOverdue, onClick: pickOverdue },
+    { key: "all", value: counts.all, label: "Всего задач", color: "text-slate-800", border: "border-slate-100", hover: "hover:bg-slate-50", active: !onlyOverdue && filterStatus === "all", onClick: () => pickStatus("all") },
   ];
 
   return (
@@ -122,18 +121,10 @@ export default function AdminTasksTab({
         ))}
       </div>
 
-      <div className="bg-white p-2 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-3">
+      <div className="bg-white p-2 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap items-center gap-3">
         <div className="flex items-center flex-1 min-w-[220px] bg-slate-50 rounded-xl px-4 py-2 border border-slate-100 focus-within:border-indigo-300 transition">
           <Icon name="Search" size={15} className="text-slate-400" />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Поиск по названию, описанию или исполнителю..." className="bg-transparent border-none outline-none text-sm text-slate-700 w-full ml-3 placeholder:text-slate-400" />
-        </div>
-        <div className="flex items-center gap-2 bg-slate-50 p-1 rounded-xl border border-slate-100">
-          <button onClick={() => setView("list")} className={`px-4 py-1.5 text-sm font-medium rounded-lg transition flex items-center gap-1.5 ${view === "list" ? "bg-white text-slate-800 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}>
-            <Icon name="List" size={14} /> Список
-          </button>
-          <button onClick={() => setView("calendar")} className={`px-4 py-1.5 text-sm font-medium rounded-lg transition flex items-center gap-1.5 ${view === "calendar" ? "bg-white text-slate-800 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}>
-            <Icon name="CalendarDays" size={14} /> Календарь
-          </button>
         </div>
       </div>
 
@@ -168,10 +159,10 @@ export default function AdminTasksTab({
         </div>
       )}
 
-      {view === "calendar" ? (
-        loading ? (
-          <div className="flex justify-center py-16"><div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" /></div>
-        ) : (
+      {loading ? (
+        <div className="flex justify-center py-16"><div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" /></div>
+      ) : (
+        <>
           <AdminTasksCalendar
             tasks={searched}
             onStatusChange={changeStatus}
@@ -182,12 +173,7 @@ export default function AdminTasksTab({
             isAdmin={isAdmin}
             users={users}
           />
-        )
-      ) : (
-        <>
-          {loading ? (
-            <div className="flex justify-center py-16"><div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" /></div>
-          ) : filtered.length === 0 ? (
+          {filtered.length === 0 ? (
             <div className="text-center py-16 text-slate-400">
               <Icon name="ClipboardList" size={40} className="mx-auto mb-3 opacity-30" />
               <p>{search || onlyOverdue || filterStatus !== "all" ? "Нет задач по этим условиям" : "Задач пока нет"}</p>
