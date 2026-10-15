@@ -99,7 +99,7 @@ function getSession(): Session | null {
 
 export default function AdminPanel() {
   const [session, setSession] = useState<Session | null>(() => getSession());
-  const [tab, setTab] = useState<Tab>("tasks");
+  const [tab, setTab] = useState<Tab>(() => (getSession()?.role === "admin" ? "dashboard" : "tasks"));
   const [adminUsers, setAdminUsers] = useState<AdminUser[]>([]);
   const [focusGovId, setFocusGovId] = useState<number | null>(null);
   const [focusPatientId, setFocusPatientId] = useState<number | null>(null);
@@ -160,7 +160,7 @@ export default function AdminPanel() {
     return () => { ro.disconnect(); window.removeEventListener("resize", update); };
   }, [session]);
 
-  if (!session) return <LoginScreen onAuth={s => setSession(s)} />;
+  if (!session) return <LoginScreen onAuth={s => { setSession(s); setTab(s.role === "admin" ? "dashboard" : "tasks"); }} />;
 
   const logout = () => { sessionStorage.removeItem(SESSION_KEY); setSession(null); };
   const isAdmin = session.role === "admin";
