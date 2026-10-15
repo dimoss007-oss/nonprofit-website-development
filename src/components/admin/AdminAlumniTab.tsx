@@ -1,15 +1,18 @@
 import { useEffect, useState } from "react";
 import Icon from "@/components/ui/icon";
 import { API, Patient, RiskBadge, fmt, stayDuration, plural } from "@/components/admin/crm/crmShared";
+import SectionSwitch, { type CrmSection } from "@/components/admin/crm/SectionSwitch";
 import PatientCard from "@/components/admin/crm/PatientCard";
 
 interface Props {
   isAdmin?: boolean;
   authorName?: string;
   onViewShiftHistory?: (patientId: number) => void;
+  section: CrmSection;
+  setSection: (v: CrmSection) => void;
 }
 
-export default function AdminAlumniTab({ isAdmin = true, authorName = "Сотрудник", onViewShiftHistory }: Props) {
+export default function AdminAlumniTab({ isAdmin = true, authorName = "Сотрудник", onViewShiftHistory, section, setSection }: Props) {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -54,8 +57,8 @@ export default function AdminAlumniTab({ isAdmin = true, authorName = "Сотр�
   return (
     <div className="space-y-6 font-inter">
       <div>
-        <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Выпускники</h1>
-        <p className="text-sm text-slate-500 mt-1">Семьи, которые прошли программу и были выписаны из центра</p>
+        <h1 className="text-2xl font-bold text-slate-800 tracking-tight">База семей</h1>
+        <p className="text-sm text-slate-500 mt-1">Выпускники: семьи, которые прошли программу и были выписаны из центра</p>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -67,11 +70,12 @@ export default function AdminAlumniTab({ isAdmin = true, authorName = "Сотр�
         ))}
       </div>
 
-      <div className="bg-white p-2 rounded-2xl border border-slate-200 shadow-sm">
-        <div className="flex items-center bg-slate-50 rounded-xl px-4 py-2 border border-slate-100 focus-within:border-indigo-300 transition">
+      <div className="bg-white p-2 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center flex-1 min-w-[220px] bg-slate-50 rounded-xl px-4 py-2 border border-slate-100 focus-within:border-indigo-300 transition">
           <Icon name="Search" size={15} className="text-slate-400" />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Поиск по фамилии, имени, отчеству..." className="bg-transparent border-none outline-none text-sm text-slate-700 w-full ml-3 placeholder:text-slate-400" />
         </div>
+        <SectionSwitch section={section} setSection={setSection} />
       </div>
 
       {loading ? (

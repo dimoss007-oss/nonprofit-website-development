@@ -1,3 +1,4 @@
+import SectionSwitch, { type CrmSection } from "@/components/admin/crm/SectionSwitch";
 import Icon from "@/components/ui/icon";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -11,8 +12,8 @@ export default function PatientList({
   allPatients, patients, loading, search, setSearch, adding, setAdding, saving,
   careStage, setCareStage, postTreatmentCount, onCreatePatient, onSelect, section, setSection,
 }: {
-  section: "patients" | "children";
-  setSection: (v: "patients" | "children") => void;
+  section: CrmSection;
+  setSection: (v: CrmSection) => void;
   allPatients: Patient[];
   patients: Patient[];
   loading: boolean;
@@ -106,10 +107,7 @@ export default function PatientList({
           <Icon name="Search" size={15} className="text-slate-400" />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Поиск по фамилии, имени, отчеству..." className="bg-transparent border-none outline-none text-sm text-slate-700 w-full ml-3 placeholder:text-slate-400" />
         </div>
-        <div className="flex items-center gap-2 bg-slate-50 p-1 rounded-xl border border-slate-100">
-          <button onClick={() => setSection("patients")} className={`px-4 py-1.5 text-sm font-medium rounded-lg transition ${section === "patients" ? "bg-white text-slate-800 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}>Матери</button>
-          <button onClick={() => setSection("children")} className={`px-4 py-1.5 text-sm font-medium rounded-lg transition ${section === "children" ? "bg-white text-slate-800 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}>Дети</button>
-        </div>
+        <SectionSwitch section={section} setSection={setSection} />
       </div>
 
       {loading ? (

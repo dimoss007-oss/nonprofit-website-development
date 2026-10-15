@@ -3,7 +3,6 @@ import Icon from "@/components/ui/icon";
 import AdminNewsTab from "@/components/admin/AdminNewsTab";
 import AdminCrmTab from "@/components/admin/AdminCrmTab";
 import AdminSopTab from "@/components/admin/AdminSopTab";
-import AdminAlumniTab from "@/components/admin/AdminAlumniTab";
 import AdminUsersTab, { parsePermissions, ALL_TABS, type TabId } from "@/components/admin/AdminUsersTab";
 import AdminTasksTab from "@/components/admin/AdminTasksTab";
 import AdminRequestsTab from "@/components/admin/AdminRequestsTab";
@@ -170,7 +169,6 @@ export default function AdminPanel() {
   const TABS: { id: Tab; label: string; icon: string }[] = [
     { id: "dashboard",   label: "Главная",       icon: "LayoutDashboard" },
     { id: "crm",         label: "Семьи",         icon: "Users" },
-    { id: "alumni",      label: "Выпускники",    icon: "GraduationCap" },
     { id: "shifts",      label: "Журнал",        icon: "Clock" },
     { id: "tasks",       label: "Задачи",        icon: "ClipboardList" },
     { id: "requests",    label: "Заявки",        icon: "Inbox" },
@@ -196,7 +194,7 @@ export default function AdminPanel() {
         fullName={session.full_name || session.login}
         isAdmin={isAdmin}
         tab={tab}
-        mainTabs={pick(["dashboard", "crm", "alumni", "shifts", "tasks", "requests", "fundraising"])}
+        mainTabs={pick(["dashboard", "crm", "shifts", "tasks", "requests", "fundraising"])}
         refTabs={pick(["sop", "gov", "news", "gallery"])}
         settingsTabs={pick(["users", "ai_settings"])}
         onSelect={id => setTab(id as Tab)}
@@ -207,7 +205,6 @@ export default function AdminPanel() {
       <main className="pb-16 max-w-7xl mx-auto px-4 sm:px-6" style={{ paddingTop: headerHeight + 16 }}>
         {tab === "dashboard" && isAdmin && <AdminDashboard onNavigate={id => setTab(id as Tab)} />}
         {tab === "crm" && <AdminCrmTab isAdmin={isAdmin} authorName={session.full_name || session.login} focusPatientId={focusPatientId} onFocusHandled={() => setFocusPatientId(null)} onViewShiftHistory={goToShiftHistory} />}
-        {tab === "alumni" && <AdminAlumniTab isAdmin={isAdmin} authorName={session.full_name || session.login} onViewShiftHistory={goToShiftHistory} />}
         {tab === "sop" && <AdminSopTab isAdmin={isAdmin} />}
         {tab === "news" && <AdminNewsTab isAdmin={isAdmin} />}
         {tab === "tasks" && (

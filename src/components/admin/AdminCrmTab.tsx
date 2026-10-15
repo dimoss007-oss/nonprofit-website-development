@@ -3,9 +3,11 @@ import { API, Patient, EMPTY_FORM, CareStage, ChildWithPatient } from "@/compone
 import PatientCard from "@/components/admin/crm/PatientCard";
 import PatientList from "@/components/admin/crm/PatientList";
 import ChildrenList from "@/components/admin/crm/ChildrenList";
+import AdminAlumniTab from "@/components/admin/AdminAlumniTab";
+import type { CrmSection } from "@/components/admin/crm/SectionSwitch";
 import ChildCard from "@/components/admin/crm/ChildCard";
 
-type Section = "patients" | "children";
+type Section = CrmSection;
 
 export default function AdminCrmTab({ isAdmin = true, authorName = "Сотрудник", focusPatientId, onFocusHandled, onViewShiftHistory }: { isAdmin?: boolean; authorName?: string; focusPatientId?: number | null; onFocusHandled?: () => void; onViewShiftHistory?: (patientId: number) => void }) {
   const [section, setSection] = useState<Section>("patients");
@@ -76,6 +78,10 @@ export default function AdminCrmTab({ isAdmin = true, authorName = "Сотруд
     setSection("patients");
     setSelectedId(patientId);
   };
+
+  if (section === "alumni" && !selectedId) return (
+    <AdminAlumniTab isAdmin={isAdmin} authorName={authorName} onViewShiftHistory={onViewShiftHistory} section={section} setSection={setSection} />
+  );
 
   if (selectedId) return (
     <PatientCard patientId={selectedId} onBack={() => setSelectedId(null)} onDeleted={() => { setSelectedId(null); loadPatients(); }} isAdmin={isAdmin} authorName={authorName} onViewShiftHistory={onViewShiftHistory} />
