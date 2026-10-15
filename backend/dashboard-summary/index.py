@@ -35,7 +35,6 @@ CHUNK_LIMIT = 700
 TASKS_LIMIT = 5
 NEWS_LIMIT = 3
 NEWS_SNIPPET = 140
-TREND_TOLERANCE = 0.05
 
 
 def resp(status: int, payload: dict) -> dict:
@@ -80,40 +79,6 @@ def residents(cur) -> dict:
     capacity = settings['bed_capacity'] if settings else None
     free = max(capacity - row['total_active'], 0) if capacity is not None else None
     return {'totalActive': row['total_active'], 'freeBeds': free, 'newThisWeek': row['new_week'], 'totalChildren': children}
-
-
-def finance(cur) -> dict:
-    cur.execute(f"""
-        SELECT
-            COALESCE(SUM(amount) FILTER (WHERE created_at >= DATE_TRUNC('month', NOW())), 0) AS current_total,
-            COALESCE(SUM(amount) FILTER (
-                WHERE created_at >= DATE_TRUNC('month', NOW()) - INTERVAL '1 month'
-                  AND created_at < DATE_TRUNC('month', NOW()) - INTERVAL '1 month' + (NOW() - DATE_TRUNC('month', NOW()))
-            ), 0) AS prev_same_period
-        FROM {SCHEMA}.finance_transactions
-        WHERE type = 'income'
-    """)
-    row = cur.fetchone()
-    current, prev = float(row['current_total']), float(row['prev_same_period'])
-    if prev == 0:
-        trend = 'up' if current > 0 else 'stable'
-    elif current > prev * (1 + TREND_TOLERANCE):
-        trend = 'up'
-    elif current < prev * (1 - TREND_TOLERANCE):
-        trend = 'down'
-    else:
-        trend = 'stable'
-
-    cur.execute(f"""
-        SELECT COUNT(DISTINCT (donor_type, donor_id)) AS donors
-        FROM {SCHEMA}.donor_donations
-        WHERE is_regular AND donated_at >= CURRENT_DATE - 62
-    """)
-    return {
-        'monthlyTotalRub': round(current),
-        'activeRecurringDonors': cur.fetchone()['donors'],
-        'trend': trend,
-    }
 
 
 def tasks(cur) -> list:
@@ -306,7 +271,6 @@ def handler(event: dict, context) -> dict:
 
     summary = {
         'residents': residents(cur),
-        'finance': finance(cur),
         'tasks': tasks(cur),
         'aiReports': ai_reports(cur),
         'news': news(cur),

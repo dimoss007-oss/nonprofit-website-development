@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import Icon from "@/components/ui/icon";
 import { useDashboardSummary } from "@/components/admin/dashboard/useDashboardSummary";
 import ResidentsCard from "@/components/admin/dashboard/ResidentsCard";
-import FinanceCard from "@/components/admin/dashboard/FinanceCard";
 import TasksCard from "@/components/admin/dashboard/TasksCard";
 import AiReportsCard from "@/components/admin/dashboard/AiReportsCard";
 import NewsCard from "@/components/admin/dashboard/NewsCard";
@@ -63,7 +62,6 @@ export default function AdminDashboard({ onNavigate }: { onNavigate?: (tab: stri
 
       <div className="grid gap-4 grid-cols-1 lg:grid-cols-3 [&>*]:min-w-0">
         <ResidentsCard data={data?.residents} loading={loading} onSaveCapacity={saveCapacity} />
-        <FinanceCard data={data?.finance} loading={loading} />
         <SystemCard data={data?.system} loading={loading} />
         <TasksCard data={data?.tasks} loading={loading} />
         <AiReportsCard data={data?.aiReports} loading={loading} summaryLoading={summaryLoading} onRefresh={refreshSummary} />

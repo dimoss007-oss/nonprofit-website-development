@@ -23,11 +23,6 @@ export interface DashboardSummary {
     newThisWeek: number;
     totalChildren: number;
   };
-  finance: {
-    monthlyTotalRub: number;
-    activeRecurringDonors: number;
-    trend: "up" | "down" | "stable";
-  };
   tasks: DashboardTask[];
   aiReports: {
     weeklyDigestStatus: "ready" | "pending" | "error";
