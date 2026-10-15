@@ -33,8 +33,8 @@ export default function AdminGovTab({ focusAgencyId, onFocusHandled, users = [] 
       const el = document.getElementById(`agency-${focusAgencyId}`);
       if (el) {
         el.scrollIntoView({ behavior: "smooth", block: "center" });
-        el.classList.add("ring-2", "ring-ink/40");
-        setTimeout(() => el.classList.remove("ring-2", "ring-ink/40"), 2500);
+        el.classList.add("ring-2", "ring-indigo-300");
+        setTimeout(() => el.classList.remove("ring-2", "ring-indigo-300"), 2500);
         onFocusHandled?.();
       }
     }, 100);
@@ -110,80 +110,54 @@ export default function AdminGovTab({ focusAgencyId, onFocusHandled, users = [] 
     noAgreement: agencies.filter(a => !a.agreement_status).length,
   };
 
+  const metrics = [
+    { id: "has_contact" as const, label: "Есть контакт", value: stats.hasContact, color: "text-green-600", border: "border-green-100", hover: "hover:bg-green-50" },
+    { id: "no_answer" as const, label: "Нет ответа", value: stats.noAnswer, color: "text-amber-600", border: "border-amber-100", hover: "hover:bg-amber-50" },
+    { id: "no_contact" as const, label: "Нет контакта", value: stats.noContact, color: "text-slate-700", border: "border-slate-100", hover: "hover:bg-slate-50" },
+  ];
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-inter">
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
-          <h2 className="text-lg font-semibold text-ink">Госорганы</h2>
-          <p className="text-xs text-ink/40 mt-0.5">{stats.total} {stats.total === 1 ? "орган" : stats.total < 5 ? "органа" : "органов"}</p>
+          <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Госорганы</h1>
+          <p className="text-sm text-slate-500 mt-1">Контакты и соглашения с государственными органами · всего {stats.total}</p>
         </div>
         <button
           onClick={() => { setEditAgency(null); setShowForm(true); }}
-          className="flex items-center gap-2 bg-ink text-beige px-4 py-2 rounded-xl text-sm font-semibold hover:bg-ink/90 transition-colors"
+          className="px-5 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition text-sm font-medium flex items-center gap-2 shadow-sm"
         >
-          <Icon name="Plus" size={14} /> Добавить орган
+          <Icon name="Plus" size={16} /> Добавить орган
         </button>
       </div>
 
       {agencies.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-          <button
-            onClick={() => setContactFilter(f => f === "has_contact" ? "all" : "has_contact")}
-            className={`text-left bg-green-50 border rounded-2xl p-4 transition-all ${
-              contactFilter === "has_contact" ? "border-green-400 ring-1 ring-green-300" : "border-green-100 hover:border-green-300"
-            }`}
-          >
-            <p className="text-xs text-green-600 font-medium uppercase tracking-wider mb-1">Есть контакт</p>
-            <p className="text-2xl font-bold text-green-700">{stats.hasContact}</p>
-            <p className="text-xs text-green-500 mt-0.5">из {stats.total}</p>
-          </button>
-          <button
-            onClick={() => setContactFilter(f => f === "no_answer" ? "all" : "no_answer")}
-            className={`text-left bg-orange-50 border rounded-2xl p-4 transition-all ${
-              contactFilter === "no_answer" ? "border-orange-400 ring-1 ring-orange-300" : "border-orange-100 hover:border-orange-300"
-            }`}
-          >
-            <p className="text-xs text-orange-600 font-medium uppercase tracking-wider mb-1">Нет ответа</p>
-            <p className="text-2xl font-bold text-orange-700">{stats.noAnswer}</p>
-            <p className="text-xs text-orange-500 mt-0.5">органов</p>
-          </button>
-          <button
-            onClick={() => setContactFilter(f => f === "no_contact" ? "all" : "no_contact")}
-            className={`text-left bg-beige border rounded-2xl p-4 transition-all ${
-              contactFilter === "no_contact" ? "border-ink/40 ring-1 ring-ink/20" : "border-beige-dark hover:border-ink/20"
-            }`}
-          >
-            <p className="text-xs text-ink/50 font-medium uppercase tracking-wider mb-1">Нет контакта</p>
-            <p className="text-2xl font-bold text-ink">{stats.noContact}</p>
-            <p className="text-xs text-ink/30 mt-0.5">органов</p>
-          </button>
-          <div className="bg-white border border-beige-dark rounded-2xl p-4 col-span-2">
-            <p className="text-xs text-ink/50 font-medium uppercase tracking-wider mb-2">Соглашения</p>
-            <div className="flex items-end gap-4">
-              <div>
-                <p className="text-xl font-bold text-blue-600">{stats.sent}</p>
-                <p className="text-[10px] text-blue-400 mt-0.5">отправлено</p>
-              </div>
-              <div>
-                <p className="text-xl font-bold text-green-600">{stats.signed}</p>
-                <p className="text-[10px] text-green-400 mt-0.5">подписано</p>
-              </div>
-              <div>
-                <p className="text-xl font-bold text-red-500">{stats.rejected}</p>
-                <p className="text-[10px] text-red-400 mt-0.5">отклонено</p>
-              </div>
-              <div className="ml-auto">
-                <p className="text-xl font-bold text-ink/30">{stats.noAgreement}</p>
-                <p className="text-[10px] text-ink/20 mt-0.5">без статуса</p>
-              </div>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          {metrics.map(m => (
+            <button
+              key={m.id}
+              onClick={() => setContactFilter(f => f === m.id ? "all" : m.id)}
+              className={`bg-white p-4 rounded-2xl border shadow-sm flex flex-col items-center justify-center transition ${m.border} ${m.hover} ${contactFilter === m.id ? "ring-2 ring-offset-1 ring-indigo-300" : ""}`}
+            >
+              <span className={`text-2xl font-bold ${m.color}`}>{m.value}</span>
+              <span className="text-xs text-slate-500 font-medium mt-1">{m.label}</span>
+            </button>
+          ))}
+          <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm col-span-2">
+            <p className="text-xs text-slate-500 font-medium text-center mb-2">Соглашения</p>
+            <div className="flex items-end justify-around gap-2">
+              <div className="text-center"><p className="text-xl font-bold text-blue-600">{stats.sent}</p><p className="text-[10px] text-slate-400">отправлено</p></div>
+              <div className="text-center"><p className="text-xl font-bold text-green-600">{stats.signed}</p><p className="text-[10px] text-slate-400">подписано</p></div>
+              <div className="text-center"><p className="text-xl font-bold text-red-500">{stats.rejected}</p><p className="text-[10px] text-slate-400">отклонено</p></div>
+              <div className="text-center"><p className="text-xl font-bold text-slate-400">{stats.noAgreement}</p><p className="text-[10px] text-slate-400">без статуса</p></div>
             </div>
           </div>
         </div>
       )}
 
       {(showForm || editAgency) && (
-        <div className="bg-beige/60 rounded-2xl border border-beige-dark p-5">
-          <h3 className="text-sm font-semibold text-ink mb-4">{editAgency ? "Редактировать орган" : "Новый госорган"}</h3>
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+          <h3 className="text-sm font-semibold text-slate-800 mb-4">{editAgency ? "Редактировать орган" : "Новый госорган"}</h3>
           <AgencyForm
             initial={editAgency || undefined}
             onSave={save}
@@ -194,31 +168,31 @@ export default function AdminGovTab({ focusAgencyId, onFocusHandled, users = [] 
       )}
 
       {agencies.length > 0 && (
-        <div className="flex items-center gap-2">
-          <div className="relative flex-1">
-            <Icon name="Search" size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink/30" />
+        <div className="bg-white p-2 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap items-center gap-3">
+          <div className="flex items-center flex-1 min-w-[220px] bg-slate-50 rounded-xl px-4 py-2 border border-slate-100 focus-within:border-indigo-300 transition">
+            <Icon name="Search" size={15} className="text-slate-400" />
             <input
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Поиск по названию, адресу, email..."
-              className="w-full border border-beige-dark rounded-xl pl-9 pr-4 py-2 text-sm text-ink focus:outline-none focus:border-ink bg-white"
+              className="bg-transparent border-none outline-none text-sm text-slate-700 w-full ml-3 placeholder:text-slate-400"
             />
           </div>
           {contactFilter !== "all" && (
             <button
               onClick={() => setContactFilter("all")}
-              className="flex items-center gap-1.5 text-xs bg-ink text-beige px-3 py-2 rounded-xl font-medium hover:bg-ink/90 transition-colors flex-shrink-0"
+              className="flex items-center gap-1.5 text-sm bg-indigo-600 text-white px-4 py-2 rounded-xl font-medium hover:bg-indigo-700 transition flex-shrink-0"
             >
-              <Icon name="X" size={12} /> Сбросить фильтр
+              <Icon name="X" size={14} /> Сбросить фильтр
             </button>
           )}
         </div>
       )}
 
       {loading ? (
-        <div className="text-center py-16 text-ink/30">Загрузка...</div>
+        <div className="text-center py-16 text-slate-300">Загрузка...</div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-16 text-ink/30">
+        <div className="text-center py-16 text-slate-300">
           {search ? "Ничего не найдено" : "Госорганов пока нет — добавьте первый"}
         </div>
       ) : (

@@ -59,7 +59,7 @@ function CallbackButton({ agency, users }: { agency: Agency; users: { login: str
         className={`flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-medium transition-all ${
           done
             ? "bg-violet-100 text-violet-700"
-            : "bg-beige-dark text-ink/30 hover:bg-orange-50 hover:text-orange-600"
+            : "bg-slate-100 text-slate-300 hover:bg-orange-50 hover:text-orange-600"
         }`}
       >
         <Icon name={done ? "CalendarCheck" : "PhoneCall"} size={10} />
@@ -67,26 +67,26 @@ function CallbackButton({ agency, users }: { agency: Agency; users: { login: str
       </button>
 
       {open && (
-        <div className="absolute left-0 top-full mt-1 z-20 bg-white rounded-xl shadow-lg border border-beige-dark p-3 min-w-[210px]">
-          <p className="text-xs font-medium text-ink mb-2">Запланировать звонок</p>
+        <div className="absolute left-0 top-full mt-1 z-20 bg-white rounded-xl shadow-lg border border-slate-200 p-3 min-w-[210px]">
+          <p className="text-xs font-medium text-slate-800 mb-2">Запланировать звонок</p>
           <div className="flex gap-2 mb-2">
             <input
               type="date"
               value={date}
               onChange={e => setDate(e.target.value)}
-              className="flex-1 border border-beige-dark rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-ink"
+              className="flex-1 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-indigo-400"
             />
             <input
               type="time"
               value={time}
               onChange={e => setTime(e.target.value)}
-              className="w-24 border border-beige-dark rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-ink"
+              className="w-24 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-indigo-400"
             />
           </div>
           <select
             value={assignee}
             onChange={e => setAssignee(e.target.value)}
-            className="w-full border border-beige-dark rounded-lg px-2.5 py-1.5 text-xs mb-2 focus:outline-none focus:border-ink"
+            className="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs mb-2 focus:outline-none focus:border-indigo-400"
           >
             <option value="">Исполнитель — Администратор</option>
             {users.map(u => <option key={u.login} value={u.login}>{u.full_name || u.login}</option>)}
@@ -94,7 +94,7 @@ function CallbackButton({ agency, users }: { agency: Agency; users: { login: str
           <button
             onClick={create}
             disabled={saving || !date}
-            className="w-full bg-ink text-beige text-xs font-semibold py-1.5 rounded-lg hover:bg-ink/90 transition-colors disabled:opacity-50"
+            className="w-full bg-indigo-600 text-white text-xs font-semibold py-1.5 rounded-lg hover:bg-slate-100 transition-colors disabled:opacity-50"
           >
             {saving ? "Создаём..." : "Добавить в задачи"}
           </button>
@@ -107,7 +107,7 @@ function CallbackButton({ agency, users }: { agency: Agency; users: { login: str
 const CONTACT_OPTIONS: { value: ContactStatus; label: string; color: string; icon: string }[] = [
   { value: "has_contact", label: "Есть контакт", color: "bg-green-100 text-green-700", icon: "UserCheck" },
   { value: "no_answer",   label: "Нет ответа",   color: "bg-orange-100 text-orange-700", icon: "PhoneMissed" },
-  { value: "no_contact",  label: "Нет контакта", color: "bg-beige-dark text-ink/50", icon: "UserX" },
+  { value: "no_contact",  label: "Нет контакта", color: "bg-slate-100 text-slate-400", icon: "UserX" },
 ];
 
 function ContactStatusBadge({ agency, onChange }: { agency: Agency; onChange: (status: ContactStatus) => void }) {
@@ -134,12 +134,12 @@ function ContactStatusBadge({ agency, onChange }: { agency: Agency; onChange: (s
         <Icon name="ChevronDown" size={9} />
       </button>
       {open && (
-        <div className="absolute left-0 top-full mt-1 z-20 bg-white rounded-xl shadow-lg border border-beige-dark py-1 min-w-[150px]">
+        <div className="absolute left-0 top-full mt-1 z-20 bg-white rounded-xl shadow-lg border border-slate-200 py-1 min-w-[150px]">
           {CONTACT_OPTIONS.map(opt => (
             <button
               key={opt.value}
               onClick={() => { onChange(opt.value); setOpen(false); }}
-              className={`w-full text-left px-3 py-1.5 text-xs font-medium hover:bg-beige/60 transition-colors ${
+              className={`w-full text-left px-3 py-1.5 text-xs font-medium hover:bg-slate-50 transition-colors ${
                 agency.contact_status === opt.value ? "opacity-50" : ""
               }`}
             >
@@ -177,7 +177,7 @@ function AgreementBadge({ agency, onChange }: { agency: Agency; onChange: (statu
       <button
         onClick={() => setOpen(o => !o)}
         className={`flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-medium transition-all ${
-          current ? current.color : "bg-beige-dark text-ink/30 hover:text-ink/60"
+          current ? current.color : "bg-slate-100 text-slate-300 hover:text-slate-500"
         }`}
         title="Статус соглашения"
       >
@@ -186,12 +186,12 @@ function AgreementBadge({ agency, onChange }: { agency: Agency; onChange: (statu
         <Icon name="ChevronDown" size={9} />
       </button>
       {open && (
-        <div className="absolute left-0 top-full mt-1 z-20 bg-white rounded-xl shadow-lg border border-beige-dark py-1 min-w-[140px]">
+        <div className="absolute left-0 top-full mt-1 z-20 bg-white rounded-xl shadow-lg border border-slate-200 py-1 min-w-[140px]">
           {AGREEMENT_OPTIONS.map(opt => (
             <button
               key={opt.value}
               onClick={() => { onChange(opt.value); setOpen(false); }}
-              className={`w-full text-left px-3 py-1.5 text-xs font-medium hover:bg-beige/60 transition-colors ${
+              className={`w-full text-left px-3 py-1.5 text-xs font-medium hover:bg-slate-50 transition-colors ${
                 agency.agreement_status === opt.value ? "opacity-50" : ""
               }`}
             >
@@ -201,7 +201,7 @@ function AgreementBadge({ agency, onChange }: { agency: Agency; onChange: (statu
           {agency.agreement_status && (
             <button
               onClick={() => { onChange(null); setOpen(false); }}
-              className="w-full text-left px-3 py-1.5 text-xs text-ink/30 hover:text-ink/60 hover:bg-beige/60 transition-colors"
+              className="w-full text-left px-3 py-1.5 text-xs text-slate-300 hover:text-slate-500 hover:bg-slate-50 transition-colors"
             >
               Снять пометку
             </button>
@@ -231,11 +231,11 @@ function NotesEditor({ agency }: { agency: Agency }) {
   };
 
   return (
-    <div className="border-t border-beige-dark/50 pt-4 mt-4">
+    <div className="border-t border-slate-200/50 pt-4 mt-4">
       <div className="flex items-center justify-between mb-2">
-        <p className="text-xs font-medium text-ink/50 uppercase tracking-wider">Примечание</p>
+        <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Примечание</p>
         {!editing && (
-          <button onClick={() => setEditing(true)} className="text-xs text-ink/30 hover:text-ink flex items-center gap-1 transition-colors">
+          <button onClick={() => setEditing(true)} className="text-xs text-slate-300 hover:text-slate-800 flex items-center gap-1 transition-colors">
             <Icon name="Pencil" size={11} /> Изменить
           </button>
         )}
@@ -251,10 +251,10 @@ function NotesEditor({ agency }: { agency: Agency }) {
             className={`${inp} resize-none`}
           />
           <div className="flex gap-2">
-            <button onClick={save} disabled={saving} className="bg-ink text-beige px-4 py-1.5 rounded-lg text-xs font-semibold disabled:opacity-50">
+            <button onClick={save} disabled={saving} className="bg-indigo-600 text-white px-4 py-1.5 rounded-lg text-xs font-semibold disabled:opacity-50">
               {saving ? "..." : "Сохранить"}
             </button>
-            <button onClick={() => { setEditing(false); setValue(agency.notes || ""); }} className="text-xs text-ink/50 hover:text-ink">
+            <button onClick={() => { setEditing(false); setValue(agency.notes || ""); }} className="text-xs text-slate-400 hover:text-slate-800">
               Отмена
             </button>
           </div>
@@ -262,7 +262,7 @@ function NotesEditor({ agency }: { agency: Agency }) {
       ) : (
         <p
           onClick={() => setEditing(true)}
-          className={`text-sm whitespace-pre-wrap cursor-text rounded-lg px-1 -mx-1 hover:bg-beige/60 transition-colors ${value ? "text-ink/70" : "text-ink/25 italic"}`}
+          className={`text-sm whitespace-pre-wrap cursor-text rounded-lg px-1 -mx-1 hover:bg-slate-50 transition-colors ${value ? "text-slate-600" : "text-slate-300 italic"}`}
         >
           {value || "Нажмите чтобы добавить примечание..."}
         </p>
@@ -284,7 +284,7 @@ export function AgencyCard({ agency, onEdit, onArchive, onContactStatusChange, o
   const [expanded, setExpanded] = useState(!!defaultExpanded);
 
   return (
-    <div className="bg-white rounded-2xl border border-beige-dark shadow-sm">
+    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm transition-all hover:shadow-md">
       <div className="p-5">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3 flex-1 min-w-0">
@@ -293,7 +293,7 @@ export function AgencyCard({ agency, onEdit, onArchive, onContactStatusChange, o
             </div>
             <div className="flex-1 min-w-0 relative">
               <div className="flex items-center gap-2 flex-wrap">
-                <p className="font-semibold text-ink text-sm leading-tight">{agency.name}</p>
+                <p className="font-semibold text-slate-800 text-sm leading-tight">{agency.name}</p>
                 <ContactStatusBadge
                   agency={agency}
                   onChange={(status) => onContactStatusChange(agency.id, status)}
@@ -304,27 +304,27 @@ export function AgencyCard({ agency, onEdit, onArchive, onContactStatusChange, o
                 />
                 <CallbackButton agency={agency} users={users} />
               </div>
-              <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-ink/50">
+              <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-slate-400">
                 {agency.phone && <span className="flex items-center gap-1"><Icon name="Phone" size={11} />{agency.phone}</span>}
                 {agency.service_phone && <span className="flex items-center gap-1"><Icon name="PhoneCall" size={11} />{agency.service_phone}</span>}
-                {agency.email && <a href={`mailto:${agency.email}`} className="flex items-center gap-1 hover:text-ink transition-colors"><Icon name="Mail" size={11} />{agency.email}</a>}
+                {agency.email && <a href={`mailto:${agency.email}`} className="flex items-center gap-1 hover:text-slate-800 transition-colors"><Icon name="Mail" size={11} />{agency.email}</a>}
                 {agency.address && <span className="flex items-center gap-1"><Icon name="MapPin" size={11} />{agency.address}</span>}
                 {agency.working_hours && <span className="flex items-center gap-1"><Icon name="Clock" size={11} />{agency.working_hours}</span>}
               </div>
-              {agency.notes && <p className="mt-2 text-xs text-ink/40 italic">{agency.notes}</p>}
+              {agency.notes && <p className="mt-2 text-xs text-slate-400 italic">{agency.notes}</p>}
             </div>
           </div>
           <div className="flex items-center gap-1 flex-shrink-0">
-            <button onClick={() => onEdit(agency)} className="p-2 rounded-lg text-ink/40 hover:text-ink hover:bg-beige-mid transition-colors" title="Редактировать">
+            <button onClick={() => onEdit(agency)} className="p-2 rounded-lg text-slate-400 hover:text-slate-800 hover:bg-slate-50 transition-colors" title="Редактировать">
               <Icon name="Pencil" size={14} />
             </button>
-            <button onClick={() => onArchive(agency.id)} className="p-2 rounded-lg text-ink/30 hover:text-red-500 hover:bg-red-50 transition-colors" title="Удалить">
+            <button onClick={() => onArchive(agency.id)} className="p-2 rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors" title="Удалить">
               <Icon name="Trash2" size={14} />
             </button>
           </div>
         </div>
 
-        <button onClick={() => setExpanded(o => !o)} className="mt-3 flex items-center gap-1.5 text-xs text-ink/40 hover:text-ink transition-colors">
+        <button onClick={() => setExpanded(o => !o)} className="mt-3 flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-800 transition-colors">
           <Icon name={expanded ? "ChevronUp" : "ChevronDown"} size={13} />
           {expanded ? "Скрыть детали" : "Контакты и документы"}
         </button>
@@ -397,8 +397,8 @@ export function AgencyForm({ initial, onSave, onCancel, isEdit }: {
       </div>
 
       {!isEdit && (
-        <div className="border-t border-beige-dark pt-4">
-          <p className="text-xs font-medium text-ink/50 uppercase tracking-wider mb-3">Контактное лицо</p>
+        <div className="border-t border-slate-200 pt-4">
+          <p className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-3">Контактное лицо</p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="sm:col-span-1">
               <label className={lbl}>ФИО</label>
@@ -417,10 +417,10 @@ export function AgencyForm({ initial, onSave, onCancel, isEdit }: {
       )}
 
       <div className="flex gap-3 pt-1">
-        <button type="submit" disabled={saving} className="bg-ink text-beige px-6 py-2.5 rounded-xl text-sm font-semibold hover:bg-ink/90 transition-colors disabled:opacity-50">
+        <button type="submit" disabled={saving} className="bg-indigo-600 text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-100 transition-colors disabled:opacity-50">
           {saving ? "Сохраняем..." : "Сохранить"}
         </button>
-        <button type="button" onClick={onCancel} className="px-6 py-2.5 rounded-xl text-sm text-ink/60 hover:text-ink border border-beige-dark transition-colors">
+        <button type="button" onClick={onCancel} className="px-6 py-2.5 rounded-xl text-sm text-slate-500 hover:text-slate-800 border border-slate-200 transition-colors">
           Отмена
         </button>
       </div>
