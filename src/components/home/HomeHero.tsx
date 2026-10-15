@@ -164,7 +164,7 @@ export default function HomeHero({ onScrollTo, activeSection, setActiveSection }
         <div className="relative z-10 max-w-7xl mx-auto px-6 pb-16 grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
             { icon: "Heart", title: "С 2024 года", text: "Помогаем семьям в трудных жизненных ситуациях" },
-            { icon: "Users", title: "30+ семей", text: "Получили реальную помощь и поддержку организации" },
+            { icon: "Users", title: "40+ семей", text: "Получили реальную помощь и поддержку организации" },
             { icon: "Baby", title: "10+ детей", text: "Возвращены в родные семьи благодаря нашей работе" },
             { icon: "Shield", title: "100% открытость", text: "Полная прозрачность в расходовании всех средств" },
           ].map(({ icon, title, text }) => (
