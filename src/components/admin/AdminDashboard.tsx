@@ -35,7 +35,7 @@ export default function AdminDashboard({ onNavigate }: { onNavigate?: (tab: stri
   return (
     <div className="space-y-6 font-inter">
       <div>
-        <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Дашборд</h1>
+        <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Главная</h1>
         <p className="text-sm text-slate-500 mt-1">Главное о центре за сегодня: семьи, сборы, задачи и новости</p>
       </div>
 

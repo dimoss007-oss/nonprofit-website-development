@@ -167,7 +167,7 @@ export default function AdminPanel() {
   const userPerms = parsePermissions(session.permissions);
 
   const TABS: { id: Tab; label: string; icon: string }[] = [
-    { id: "dashboard",   label: "Дашборд",       icon: "LayoutDashboard" },
+    { id: "dashboard",   label: "Главная",       icon: "LayoutDashboard" },
     { id: "crm",         label: "Семьи",         icon: "Users" },
     { id: "shifts",      label: "Журнал",        icon: "Clock" },
     { id: "tasks",       label: "Задачи",        icon: "ClipboardList" },
