@@ -1,3 +1,4 @@
+import AdminResidentsYearWidget from "@/components/admin/AdminResidentsYearWidget";
 import Icon from "@/components/ui/icon";
 import { useDashboardSummary } from "@/components/admin/dashboard/useDashboardSummary";
 import ResidentsCard from "@/components/admin/dashboard/ResidentsCard";
@@ -47,6 +48,8 @@ export default function AdminDashboard({ onNavigate }: { onNavigate?: (tab: stri
           </button>
         ))}
       </div>
+
+      <AdminResidentsYearWidget />
 
       <div className="grid gap-4 grid-cols-1 lg:grid-cols-3 [&>*]:min-w-0">
         <ResidentsCard data={data?.residents} loading={loading} onSaveCapacity={saveCapacity} />

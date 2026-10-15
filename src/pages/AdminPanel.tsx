@@ -11,7 +11,6 @@ import AdminFundraisingTab from "@/components/admin/AdminFundraisingTab";
 import AdminGovTab from "@/components/admin/AdminGovTab";
 import AdminShiftLogsTab from "@/components/admin/AdminShiftLogsTab";
 import AdminTasksWidget from "@/components/admin/AdminTasksWidget";
-import AdminResidentsYearWidget from "@/components/admin/AdminResidentsYearWidget";
 import PasswordResetForm from "@/components/admin/PasswordResetForm";
 import AdminDashboard from "@/components/admin/AdminDashboard";
 import AdminAiSettingsTab from "@/components/admin/AdminAiSettingsTab";
@@ -209,7 +208,6 @@ export default function AdminPanel() {
         {tab === "news" && <AdminNewsTab isAdmin={isAdmin} />}
         {tab === "tasks" && (
           <div className="space-y-6">
-            <AdminResidentsYearWidget />
             {isAdmin && (
               <AdminTasksWidget
                 onGoToTasks={() => setTab("tasks")}
