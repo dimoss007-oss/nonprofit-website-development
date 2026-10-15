@@ -243,3 +243,10 @@ input[type="range"].gradient-blue-green::-moz-range-thumb {
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }
+
+.admin-shell .border-slate-100 {
+  border-color: rgb(226 232 240);
+}
+.admin-shell .rounded-2xl.bg-white {
+  box-shadow: 0 1px 3px rgb(15 23 42 / 0.08);
+}

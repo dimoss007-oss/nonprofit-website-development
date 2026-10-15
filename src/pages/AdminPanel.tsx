@@ -186,7 +186,7 @@ export default function AdminPanel() {
   const pick = (ids: string[]) => ids.map(id => visibleTabs.find(t => t.id === id)).filter(Boolean) as typeof TABS;
 
   return (
-    <div className="min-h-screen bg-slate-50 font-inter text-slate-800">
+    <div className="admin-shell min-h-screen bg-slate-100 font-inter text-slate-800">
       <AdminHeader
         headerRef={headerRef}
         logo={LOGO_IMG}
