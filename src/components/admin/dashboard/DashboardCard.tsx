@@ -14,13 +14,13 @@ interface Props {
 
 export default function DashboardCard({ title, icon, iconClass, loading, className = "", badge, children }: Props) {
   return (
-    <section className={`bg-white rounded-2xl border border-beige-dark p-5 flex flex-col min-w-0 overflow-hidden ${className}`}>
+    <section className={`bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex flex-col min-w-0 overflow-hidden transition-all hover:shadow-md ${className}`}>
       <header className="flex items-center justify-between gap-2 mb-4 flex-wrap">
         <div className="flex items-center gap-2 min-w-0">
-          <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${iconClass}`}>
+          <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 ${iconClass}`}>
             <Icon name={icon} size={16} />
           </div>
-          <h3 className="text-sm font-semibold text-ink break-words">{title}</h3>
+          <h3 className="text-sm font-semibold text-slate-800 break-words">{title}</h3>
         </div>
         {!loading && badge}
       </header>
@@ -40,7 +40,7 @@ export function StatusBadge({ tone, children }: { tone: "good" | "bad" | "warn" 
     good: "bg-green-100 text-green-700",
     bad: "bg-red-100 text-red-700",
     warn: "bg-amber-100 text-amber-700",
-    neutral: "bg-beige-dark text-ink/70",
+    neutral: "bg-slate-100 text-slate-600",
   };
   return <span className={`px-2 py-0.5 rounded-full text-[11px] font-medium whitespace-nowrap ${tones[tone]}`}>{children}</span>;
 }

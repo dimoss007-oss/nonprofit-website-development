@@ -17,13 +17,13 @@ export default function SystemCard({ data, loading }: { data?: DashboardSummary[
       loading={loading}
       badge={last && <StatusBadge tone={stale ? "bad" : "good"}>{stale ? "Нет синхронизации" : "Работает"}</StatusBadge>}
     >
-      {!last && data && <p className="text-sm text-ink/60">Синхронизаций с ВКонтакте пока не было</p>}
+      {!last && data && <p className="text-sm text-slate-500">Синхронизаций с ВКонтакте пока не было</p>}
       {last && (
-        <div className="flex items-start gap-2 text-sm text-ink/80">
+        <div className="flex items-start gap-2 text-sm text-slate-600">
           <Icon name="RefreshCw" size={14} className="mt-0.5 flex-shrink-0" />
           <div className="min-w-0 break-words">
             <p>Последняя новость из ВКонтакте</p>
-            <p className="text-xs text-ink/50 mt-0.5">
+            <p className="text-xs text-slate-400 mt-0.5">
               {last.toLocaleString("ru-RU", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" })}
             </p>
           </div>

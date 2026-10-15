@@ -38,9 +38,9 @@ export default function ResidentsCard({ data, loading, onSaveCapacity }: Props) 
                 onChange={e => setValue(e.target.value.replace(/\D/g, ""))}
                 placeholder="Всего мест в центре"
                 inputMode="numeric"
-                className="flex-1 min-w-0 border border-beige-dark rounded-lg px-3 py-2 text-sm bg-beige/50 focus:outline-none focus:border-ink"
+                className="flex-1 min-w-0 border border-slate-200 rounded-xl px-3 py-2 text-sm bg-slate-50 focus:outline-none focus:border-indigo-400"
               />
-              <button onClick={save} disabled={saving || !value} className="px-3 py-2 rounded-lg text-sm bg-ink text-beige disabled:opacity-50">
+              <button onClick={save} disabled={saving || !value} className="px-4 py-2 rounded-xl text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-700 transition disabled:opacity-50">
                 Сохранить
               </button>
             </div>
@@ -53,9 +53,9 @@ export default function ResidentsCard({ data, loading, onSaveCapacity }: Props) 
 
 function Stat({ label, value }: { label: string; value: number | string }) {
   return (
-    <div className="bg-beige-mid rounded-xl px-3 py-3 min-w-0">
-      <p className="text-2xl font-semibold text-ink break-words">{value}</p>
-      <p className="text-xs text-ink/60 mt-1 break-words leading-snug">{label}</p>
+    <div className="bg-slate-50 border border-slate-100 rounded-xl px-3 py-3 min-w-0">
+      <p className="text-2xl font-semibold text-slate-800 break-words">{value}</p>
+      <p className="text-xs text-slate-500 mt-1 break-words leading-snug">{label}</p>
     </div>
   );
 }

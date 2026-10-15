@@ -21,19 +21,19 @@ export default function TasksCard({ data, loading }: { data?: DashboardSummary["
         {data?.map(t => {
           const overdue = t.isOverdue;
           return (
-            <li key={t.id} className={`rounded-xl px-3 py-2.5 border ${overdue ? "border-red-200 bg-red-50" : "border-beige-dark bg-beige-mid"}`}>
+            <li key={t.id} className={`rounded-xl px-3 py-2.5 border ${overdue ? "border-red-200 bg-red-50" : "border-slate-200 bg-slate-50"}`}>
               <div className="flex items-start justify-between gap-3 flex-wrap sm:flex-nowrap">
-                <p className="text-sm text-ink break-words min-w-0">{t.title}</p>
+                <p className="text-sm text-slate-800 break-words min-w-0">{t.title}</p>
                 <div className="flex gap-1 flex-shrink-0 flex-wrap">
                   {t.isUrgent && !overdue && <StatusBadge tone="warn">Срочно</StatusBadge>}
                   {overdue && <StatusBadge tone="bad">Просрочено</StatusBadge>}
                 </div>
               </div>
-              <p className="text-xs text-ink/50 mt-1">{t.author} · {t.hasDeadline ? `срок ${formatDate(t.date)}` : `создана ${formatDate(t.date)}`}</p>
+              <p className="text-xs text-slate-400 mt-1">{t.author} · {t.hasDeadline ? `срок ${formatDate(t.date)}` : `создана ${formatDate(t.date)}`}</p>
             </li>
           );
         })}
-        {data?.length === 0 && <li className="text-sm text-ink/50">Активных задач нет</li>}
+        {data?.length === 0 && <li className="text-sm text-slate-400">Активных задач нет</li>}
       </ul>
     </DashboardCard>
   );

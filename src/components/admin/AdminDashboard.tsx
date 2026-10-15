@@ -7,30 +7,55 @@ import AiReportsCard from "@/components/admin/dashboard/AiReportsCard";
 import NewsCard from "@/components/admin/dashboard/NewsCard";
 import SystemCard from "@/components/admin/dashboard/SystemCard";
 
-export default function AdminDashboard() {
+export default function AdminDashboard({ onNavigate }: { onNavigate?: (tab: string) => void }) {
   const { data, loading, error, reload, saveCapacity, summaryLoading, refreshSummary } = useDashboardSummary();
 
   if (error) {
     return (
-      <div className="bg-white rounded-2xl border border-red-200 p-6 flex items-center justify-between gap-4">
+      <div className="bg-white rounded-2xl border border-red-100 shadow-sm p-6 flex items-center justify-between gap-4 font-inter">
         <div className="flex items-center gap-2 text-sm text-red-700">
           <Icon name="TriangleAlert" size={16} /> Не удалось загрузить сводку
         </div>
-        <button onClick={reload} className="text-sm px-3 py-1.5 rounded-lg bg-ink text-beige hover:opacity-90">
+        <button onClick={reload} className="text-sm px-4 py-2 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 transition font-medium">
           Повторить
         </button>
       </div>
     );
   }
 
+  const overdue = data ? data.tasks.filter(t => t.isOverdue).length : 0;
+  const metrics = [
+    { key: "active", label: "В стационаре", value: data?.residents.totalActive ?? "—", color: "text-green-600", border: "border-green-100", hover: "hover:bg-green-50", go: "crm" },
+    { key: "children", label: "Детей с ними", value: data?.residents.totalChildren ?? "—", color: "text-slate-700", border: "border-slate-100", hover: "hover:bg-slate-50", go: "crm" },
+    { key: "beds", label: "Свободных мест", value: data?.residents.freeBeds ?? "—", color: "text-blue-600", border: "border-blue-100", hover: "hover:bg-blue-50", go: "crm" },
+    { key: "money", label: "Собрано за месяц", value: data ? `${data.finance.monthlyTotalRub.toLocaleString("ru-RU")} ₽` : "—", color: "text-green-600", border: "border-green-100", hover: "hover:bg-green-50", go: "fundraising" },
+    { key: "overdue", label: "Просроченных задач", value: data ? overdue : "—", color: overdue > 0 ? "text-red-500" : "text-slate-700", border: overdue > 0 ? "border-red-100" : "border-slate-100", hover: "hover:bg-red-50", go: "tasks" },
+  ];
+
   return (
-    <div className="grid gap-4 grid-cols-1 lg:grid-cols-3 [&>*]:min-w-0">
-      <ResidentsCard data={data?.residents} loading={loading} onSaveCapacity={saveCapacity} />
-      <FinanceCard data={data?.finance} loading={loading} />
-      <SystemCard data={data?.system} loading={loading} />
-      <TasksCard data={data?.tasks} loading={loading} />
-      <AiReportsCard data={data?.aiReports} loading={loading} summaryLoading={summaryLoading} onRefresh={refreshSummary} />
-      <NewsCard data={data?.news} loading={loading} />
+    <div className="space-y-6 font-inter">
+      <div>
+        <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Дашборд</h1>
+        <p className="text-sm text-slate-500 mt-1">Главное о центре за сегодня: семьи, сборы, задачи и новости</p>
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        {metrics.map(m => (
+          <button key={m.key} onClick={() => onNavigate?.(m.go)} className={`bg-white p-4 rounded-2xl border shadow-sm flex flex-col items-center justify-center transition min-w-0 ${m.border} ${m.hover} ${m.key === "overdue" ? "col-span-2 md:col-span-1" : ""}`}>
+            <span className={`text-2xl font-bold break-words max-w-full ${m.color}`}>{m.value}</span>
+            <span className="text-xs text-slate-500 font-medium mt-1 text-center">{m.label}</span>
+          </button>
+        ))}
+      </div>
+
+      <div className="grid gap-4 grid-cols-1 lg:grid-cols-3 [&>*]:min-w-0">
+        <ResidentsCard data={data?.residents} loading={loading} onSaveCapacity={saveCapacity} />
+        <FinanceCard data={data?.finance} loading={loading} />
+        <SystemCard data={data?.system} loading={loading} />
+        <TasksCard data={data?.tasks} loading={loading} />
+        <AiReportsCard data={data?.aiReports} loading={loading} summaryLoading={summaryLoading} onRefresh={refreshSummary} />
+        <NewsCard data={data?.news} loading={loading} />
+      </div>
     </div>
   );
 }

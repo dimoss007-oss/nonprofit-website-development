@@ -28,7 +28,7 @@ export default function AiReportsCard({ data, loading, summaryLoading, onRefresh
     >
       {data && (
         <div className="space-y-2">
-          <p className="text-xs text-ink/60">Тревожные сигналы от психологов</p>
+          <p className="text-xs text-slate-500">Тревожные сигналы от психологов</p>
           {data.criticalAlerts.length === 0 ? (
             <StatusBadge tone="good">Сигналов нет</StatusBadge>
           ) : (
@@ -40,23 +40,23 @@ export default function AiReportsCard({ data, loading, summaryLoading, onRefresh
             ))
           )}
           {summaryLoading && !data.dailySummary ? (
-            <p className="text-sm italic text-gray-400 border-l-2 border-beige-dark pl-3 pt-1">Нейросеть готовит сводку за сутки...</p>
+            <p className="text-sm italic text-gray-400 border-l-2 border-slate-200 pl-3 pt-1">Нейросеть готовит сводку за сутки...</p>
           ) : data.dailySummary ? (
-            <p className="text-sm italic text-gray-600 border-l-2 border-beige-dark pl-3 pt-1 leading-relaxed break-words">
+            <p className="text-sm italic text-gray-600 border-l-2 border-slate-200 pl-3 pt-1 leading-relaxed break-words">
               {data.dailySummary}
             </p>
           ) : (
-            <p className="text-sm italic text-gray-400 border-l-2 border-beige-dark pl-3 pt-1">Сводок пока нет</p>
+            <p className="text-sm italic text-gray-400 border-l-2 border-slate-200 pl-3 pt-1">Сводок пока нет</p>
           )}
           {data.dailySummaryDate && (
-            <p className="text-[11px] text-ink/40">
+            <p className="text-[11px] text-slate-400">
               {data.dailySummaryFresh ? "Сегодня" : `От ${new Date(data.dailySummaryDate).toLocaleDateString("ru-RU", { day: "numeric", month: "long" })}`}
             </p>
           )}
           <button
             onClick={onRefresh}
             disabled={summaryLoading}
-            className="flex items-center gap-1 text-xs text-ink/50 hover:text-ink disabled:opacity-50"
+            className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-800 disabled:opacity-50"
           >
             <Icon name="RefreshCw" size={12} className={summaryLoading ? "animate-spin" : ""} />
             Обновить сводку
