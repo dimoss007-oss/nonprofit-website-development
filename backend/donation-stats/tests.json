@@ -1,0 +1,6 @@
+{
+  "tests": [
+    {"name": "OPTIONS preflight", "method": "OPTIONS", "path": "/", "expectedStatus": 200},
+    {"name": "Get donation stats", "method": "GET", "path": "/", "expectedStatus": 200}
+  ]
+}
