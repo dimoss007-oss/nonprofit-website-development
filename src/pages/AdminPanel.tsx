@@ -202,7 +202,7 @@ export default function AdminPanel() {
       />
 
       <main className="pb-16 max-w-7xl mx-auto px-4 sm:px-6" style={{ paddingTop: headerHeight + 16 }}>
-        {tab === "dashboard" && isAdmin && <AdminDashboard onNavigate={id => setTab(id as Tab)} />}
+        {tab === "dashboard" && isAdmin && <AdminDashboard onNavigate={id => setTab(id as Tab)} session={session} users={adminUsers} />}
         {tab === "crm" && <AdminCrmTab isAdmin={isAdmin} authorName={session.full_name || session.login} focusPatientId={focusPatientId} onFocusHandled={() => setFocusPatientId(null)} onViewShiftHistory={goToShiftHistory} />}
         {tab === "sop" && <AdminSopTab isAdmin={isAdmin} />}
         {tab === "news" && <AdminNewsTab isAdmin={isAdmin} />}

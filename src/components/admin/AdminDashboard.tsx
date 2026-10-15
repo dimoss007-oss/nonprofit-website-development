@@ -5,12 +5,12 @@ import { useEffect, useState } from "react";
 import Icon from "@/components/ui/icon";
 import { useDashboardSummary } from "@/components/admin/dashboard/useDashboardSummary";
 import ResidentsCard from "@/components/admin/dashboard/ResidentsCard";
-import TasksCard from "@/components/admin/dashboard/TasksCard";
+import TasksCalendarCard from "@/components/admin/dashboard/TasksCalendarCard";
 import AiReportsCard from "@/components/admin/dashboard/AiReportsCard";
 import NewsCard from "@/components/admin/dashboard/NewsCard";
 import SystemCard from "@/components/admin/dashboard/SystemCard";
 
-export default function AdminDashboard({ onNavigate }: { onNavigate?: (tab: string) => void }) {
+export default function AdminDashboard({ onNavigate, session, users }: { onNavigate?: (tab: string) => void; session: { login: string; full_name: string }; users: { login: string; full_name?: string }[] }) {
   const [fundStats, setFundStats] = useState<Stats | null>(null);
   useEffect(() => {
     fetch(`${FUNDRAISING_URL}?type=stats`).then(r => r.json()).then(setFundStats).catch(() => {});
@@ -62,7 +62,7 @@ export default function AdminDashboard({ onNavigate }: { onNavigate?: (tab: stri
       <div className="grid gap-4 grid-cols-1 lg:grid-cols-3 [&>*]:min-w-0">
         <ResidentsCard data={data?.residents} loading={loading} onSaveCapacity={saveCapacity} />
         <SystemCard data={data?.system} loading={loading} />
-        <TasksCard data={data?.tasks} loading={loading} />
+        <TasksCalendarCard session={session} users={users} onOpenTasks={() => onNavigate?.("tasks")} />
         <AiReportsCard data={data?.aiReports} loading={loading} summaryLoading={summaryLoading} onRefresh={refreshSummary} />
         <NewsCard data={data?.news} loading={loading} />
       </div>
