@@ -36,6 +36,7 @@ export interface Donation {
   donation_type: DonationType;
   goal_id: number | null;
   thank_you_sent: boolean; thank_you_sent_at: string | null;
+  is_regular?: boolean; payment_purpose?: string | null;
 }
 
 export interface FundraisingGoal {

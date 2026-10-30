@@ -54,7 +54,7 @@ export default function Donate() {
   const [email, setEmail] = useState("");
   const photos = useGalleryPhotos(4, "donate");
   const [monthly, setMonthly] = useState(false);
-  const [justPaid, setJustPaid] = useState(() => new URLSearchParams(window.location.search).get("paid") === "1");
+  const [justPaid, setJustPaid] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [goals, setGoals] = useState<FundraisingGoal[]>([]);
@@ -63,14 +63,19 @@ export default function Donate() {
   const handleGoalPaid = (value: number) =>
     setGoals(prev => prev.map(g => g.id === activeGoalId ? { ...g, collected_amount: g.collected_amount + value } : g));
   const [selectedNeed, setSelectedNeed] = useState<number | null>(null);
-  const [referrerCode] = useState(() => {
-    const fromUrl = new URLSearchParams(window.location.search).get("ref");
+  const [referrerCode, setReferrerCode] = useState("");
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("paid") === "1") setJustPaid(true);
+    const fromUrl = params.get("ref");
     if (fromUrl) {
       sessionStorage.setItem("donor_ref", fromUrl);
-      return fromUrl;
+      setReferrerCode(fromUrl);
+    } else {
+      setReferrerCode(sessionStorage.getItem("donor_ref") || "");
     }
-    return sessionStorage.getItem("donor_ref") || "";
-  });
+  }, []);
 
   useEffect(() => {
     fetch(`${FUNDRAISING_URL}?type=goals`)

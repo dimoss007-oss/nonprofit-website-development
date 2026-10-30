@@ -8,14 +8,16 @@ const navItemsBefore = [
   { label: "главная", href: "/" },
 ];
 
-const navItemsAfter = [
+type NavItem = { label: string; href: string } | { label: string; anchor: string };
+
+const navItemsAfter: NavItem[] = [
   { label: "новости", href: "/news" },
   { label: "программа", href: "/program" },
   { label: "наши семьи", href: "/our-families" },
   { label: "партнёры", href: "/partners" },
 ];
 
-const aboutItems = [
+const aboutItems: NavItem[] = [
   { label: "Миссия", anchor: "missiya" },
   { label: "Команда", anchor: "komanda" },
   { label: "Фотогалерея", href: "/gallery" },

@@ -1,1 +1,0 @@
-ALTER TABLE t_p59822815_nonprofit_website_de.admin_users ADD COLUMN IF NOT EXISTS phone VARCHAR(32);

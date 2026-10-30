@@ -5,8 +5,9 @@ import HomeAbout from "@/components/home/HomeAbout";
 import HomeNews from "@/components/home/HomeNews";
 import HomeSupport from "@/components/home/HomeSupport";
 import SiteFooter from "@/components/shared/SiteFooter";
+import type { RawNewsItem } from "@/lib/news-data";
 
-export default function Index() {
+export default function Index({ initialNews = null }: { initialNews?: RawNewsItem[] | null }) {
   const [activeSection, setActiveSection] = useState("главная");
 
   const scrollTo = (id: string) => {
@@ -28,7 +29,7 @@ export default function Index() {
       <HomeHero onScrollTo={scrollTo} activeSection={activeSection} setActiveSection={setActiveSection} />
 
       <main id="main-content" tabIndex={-1} aria-label="Основное содержимое">
-        <HomeNews />
+        <HomeNews initialNews={initialNews} />
         <HomeAbout />
         <HomeSupport />
       </main>

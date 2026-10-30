@@ -19,6 +19,7 @@ export interface Agency {
   notes: string | null;
   created_at: string;
   agreement_status: AgreementStatus;
+  contact_person?: string | null;
 }
 
 export interface AgencyContact {

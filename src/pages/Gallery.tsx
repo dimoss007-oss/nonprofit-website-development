@@ -31,8 +31,8 @@ export default function Gallery() {
   const [activeTag, setActiveTag] = useState("all");
   const [loading, setLoading] = useState(true);
   const [lightbox, setLightbox] = useState<number | null>(null);
-  const [cols, setCols] = useState(() => window.innerWidth < 640 ? 2 : 4);
-  const [rowH, setRowH] = useState(() => window.innerWidth < 640 ? 140 : 200);
+  const [cols, setCols] = useState(4);
+  const [rowH, setRowH] = useState(200);
 
   const updateGrid = useCallback(() => {
     const w = window.innerWidth;

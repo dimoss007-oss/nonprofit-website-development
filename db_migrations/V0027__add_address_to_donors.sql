@@ -1,2 +1,0 @@
-ALTER TABLE donors_orgs ADD COLUMN IF NOT EXISTS address TEXT;
-ALTER TABLE donors_persons ADD COLUMN IF NOT EXISTS address TEXT;

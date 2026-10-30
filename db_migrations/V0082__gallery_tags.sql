@@ -1,2 +1,0 @@
-ALTER TABLE t_p59822815_nonprofit_website_de.gallery ADD COLUMN IF NOT EXISTS tags TEXT[] NOT NULL DEFAULT '{}';
-CREATE INDEX IF NOT EXISTS idx_gallery_tags ON t_p59822815_nonprofit_website_de.gallery USING GIN (tags);

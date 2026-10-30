@@ -1,2 +1,0 @@
-ALTER TABLE patients ADD COLUMN IF NOT EXISTS photo_url TEXT;
-ALTER TABLE patient_children ADD COLUMN IF NOT EXISTS photo_url TEXT;

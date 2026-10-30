@@ -18,7 +18,7 @@ interface Props {
   onSelect: (id: string) => void;
   onAi: () => void;
   onLogout: () => void;
-  headerRef: React.RefObject<HTMLElement>;
+  headerRef: React.RefObject<HTMLElement | null>;
 }
 
 const linkBase = "px-3 py-2 text-sm rounded-xl transition-colors flex items-center whitespace-nowrap";

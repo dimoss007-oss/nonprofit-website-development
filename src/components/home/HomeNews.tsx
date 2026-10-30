@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import Icon from "@/components/ui/icon"; // используется в "Все новости"
+import type { RawNewsItem } from "@/lib/news-data";
 
 const NEWS_URL = "https://functions.poehali.dev/b33c4df8-295a-4694-a485-e771aec3d9ce";
 
@@ -25,7 +26,7 @@ function getEmbedUrl(url: string): string | null {
 }
 
 function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" });
+  return new Date(iso).toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric", timeZone: "Europe/Moscow" });
 }
 
 function cleanText(text: string, title: string) {
@@ -66,11 +67,19 @@ function Reveal({ children, className = "" }: { children: React.ReactNode; class
   );
 }
 
-export default function HomeNews() {
-  const [news, setNews] = useState<NewsItem[]>([]);
-  const [loading, setLoading] = useState(true);
+const prepareNews = (list: Partial<NewsItem>[]): NewsItem[] =>
+  list.slice(0, 3).map((n) => ({
+    ...(n as NewsItem),
+    text: cleanText(n.text ?? "", n.title ?? ""),
+    video_url: n.video_url ?? "",
+  }));
+
+export default function HomeNews({ initialNews = null }: { initialNews?: RawNewsItem[] | null }) {
+  const [news, setNews] = useState<NewsItem[]>(() => (initialNews ? prepareNews(initialNews) : []));
+  const [loading, setLoading] = useState(initialNews === null);
 
   useEffect(() => {
+    if (initialNews !== null) return;
     fetch(NEWS_URL)
       .then((r) => r.json())
       .then((d) => {

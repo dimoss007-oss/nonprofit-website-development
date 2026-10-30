@@ -48,12 +48,19 @@ function applySettings(s: A11ySettings) {
 
 export default function AccessibilityWidget() {
   const [open, setOpen] = useState(false);
-  const [settings, setSettings] = useState<A11ySettings>(loadSettings);
+  const [settings, setSettings] = useState<A11ySettings>(defaults);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
+    setSettings(loadSettings());
+    setLoaded(true);
+  }, []);
+
+  useEffect(() => {
+    if (!loaded) return;
     applySettings(settings);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
-  }, [settings]);
+  }, [settings, loaded]);
 
   function update(patch: Partial<A11ySettings>) {
     setSettings((prev) => ({ ...prev, ...patch }));

@@ -1,1 +1,0 @@
-UPDATE admin_users SET full_name = 'Администратор' WHERE id = 11;

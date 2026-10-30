@@ -1,1 +1,0 @@
-ALTER TABLE gov_agency_documents ADD COLUMN archived BOOLEAN NOT NULL DEFAULT FALSE;

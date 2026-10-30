@@ -3,6 +3,7 @@ import { usePageMeta } from "@/hooks/usePageMeta";
 import Icon from "@/components/ui/icon";
 import SiteNav from "@/components/shared/SiteNav";
 import SiteFooter from "@/components/shared/SiteFooter";
+import type { RawNewsItem } from "@/lib/news-data";
 
 const NEWS_URL = "https://functions.poehali.dev/b33c4df8-295a-4694-a485-e771aec3d9ce";
 const VK_SYNC_URL = "https://functions.poehali.dev/7aa0c61c-d0d9-445c-bf64-da1978b51e1a?route=sync";
@@ -22,7 +23,7 @@ interface NewsItem {
 }
 
 function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" });
+  return new Date(iso).toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric", timeZone: "Europe/Moscow" });
 }
 
 function getEmbedUrl(url: string): string | null {
@@ -179,10 +180,12 @@ function PhotoGrid({ photos, onOpen }: { photos: string[]; onOpen: (idx: number)
   );
 }
 
-export default function News() {
-  const [allNews, setAllNews] = useState<NewsItem[]>([]);
+export default function News({ initialNews = null }: { initialNews?: RawNewsItem[] | null }) {
+  const [allNews, setAllNews] = useState<NewsItem[]>(() =>
+    (initialNews || []).map((n) => ({ ...n, text: cleanText(n.text, n.title) }))
+  );
   const [visible, setVisible] = useState(PAGE_SIZE);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(initialNews === null);
   const [lightbox, setLightbox] = useState<{ photos: string[]; idx: number } | null>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
 

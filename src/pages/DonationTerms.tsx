@@ -1,5 +1,5 @@
 import { usePageMeta } from "@/hooks/usePageMeta";
-import { Link } from "react-router-dom";
+import { Link } from "@/lib/router-compat";
 import SiteNav from "@/components/shared/SiteNav";
 import SiteFooter from "@/components/shared/SiteFooter";
 import Icon from "@/components/ui/icon";
