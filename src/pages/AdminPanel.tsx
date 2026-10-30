@@ -15,6 +15,7 @@ import PasswordResetForm from "@/components/admin/PasswordResetForm";
 import AdminDashboard from "@/components/admin/AdminDashboard";
 import AdminAiSettingsTab from "@/components/admin/AdminAiSettingsTab";
 import AdminHeader from "@/components/admin/AdminHeader";
+import FeedbackWidget from "@/components/admin/FeedbackWidget";
 import AiChatModal from "@/components/admin/AiChatModal";
 import type { Task } from "@/components/admin/taskTypes";
 
@@ -200,6 +201,8 @@ export default function AdminPanel() {
         onAi={() => setAiChatOpen(true)}
         onLogout={logout}
       />
+
+      <FeedbackWidget authorName={session.full_name || session.login} authorLogin={session.login} />
 
       <main className="pb-16 max-w-7xl mx-auto px-4 sm:px-6" style={{ paddingTop: headerHeight + 16 }}>
         {tab === "dashboard" && isAdmin && <AdminDashboard onNavigate={id => setTab(id as Tab)} session={session} users={adminUsers} />}

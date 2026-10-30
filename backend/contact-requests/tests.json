@@ -1,12 +1,1 @@
-{
-  "tests": [
-    {
-      "name": "Список заявок",
-      "method": "GET",
-      "path": "/",
-      "expectedStatus": 200,
-      "expectedBody": {"requests": []},
-      "bodyMatcher": "partial"
-    }
-  ]
-}
+{"tests": [{"name": "Список заявок", "method": "GET", "path": "/", "expectedStatus": 200, "expectedBody": {"requests": "array"}, "bodyMatcher": "partial"}]}

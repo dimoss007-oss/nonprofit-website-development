@@ -32,6 +32,12 @@ def handler(event: dict, context) -> dict:
     conn = get_conn()
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
+    if method == "GET" and params.get("kind") == "feedback":
+        cur.execute(f"SELECT id, author_name, category, message, status, created_at FROM {SCHEMA}.crm_feedback ORDER BY created_at DESC LIMIT 200")
+        rows = [dict(r) for r in cur.fetchall()]
+        conn.close()
+        return ok({"items": rows})
+
     # Список заявок
     if method == "GET":
         status_filter = params.get("status")
@@ -49,6 +55,23 @@ def handler(event: dict, context) -> dict:
     # Обновить статус
     if method == "POST":
         action = body.get("action")
+
+        if action == "feedback":
+            message = (body.get("message") or "").strip()
+            if not message:
+                conn.close()
+                return err("Введите сообщение")
+            category = body.get("category") if body.get("category") in ("idea", "bug", "question") else "idea"
+            name = (body.get("author_name") or "Сотрудник").strip()[:200]
+            login = (body.get("author_login") or "").strip()[:100]
+            cur.execute(
+                f"INSERT INTO {SCHEMA}.crm_feedback (author_name, author_login, category, message) VALUES (%s, %s, %s, %s) RETURNING id",
+                (name, login, category, message[:5000])
+            )
+            new_id = cur.fetchone()["id"]
+            conn.commit()
+            conn.close()
+            return ok({"ok": True, "id": new_id})
 
         if action == "update_status":
             req_id = body.get("id")
