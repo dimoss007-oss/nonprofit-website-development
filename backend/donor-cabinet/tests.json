@@ -86,6 +86,25 @@
         "action": "admin_gratitude_save"
       },
       "expectedStatus": 403
+    },
+    {
+      "name": "Видеоотчёты",
+      "method": "GET",
+      "path": "/?view=videos",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "videos": []
+      },
+      "bodyMatcher": "keys"
+    },
+    {
+      "name": "Видео без прав",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "admin_video_save"
+      },
+      "expectedStatus": 403
     }
   ]
 }

@@ -7,6 +7,7 @@ import auth
 import cabinet
 import goal_reports
 import gratitude
+import video_reports
 from common import CORS, err, get_conn
 
 PUBLIC_POST = {
@@ -30,6 +31,7 @@ CABINET_GET = {
     "rating": cabinet.get_rating,
     "subscriptions": cabinet.get_subscriptions,
     "year_summary": cabinet.year_summary,
+    "videos": video_reports.public_videos,
     "gratitude": gratitude.public_posts,
     "gratitude_mine": gratitude.my_posts,
     "top_stories": goal_reports.top_stories,

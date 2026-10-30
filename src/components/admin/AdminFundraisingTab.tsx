@@ -15,6 +15,7 @@ import FundraisingCampaignsTab from "./FundraisingCampaignsTab";
 import FundraisingProjectsTab from "./FundraisingProjectsTab";
 import FundraisingTasksTab from "./FundraisingTasksTab";
 import FundraisingDocsTab from "./FundraisingDocsTab";
+import VideoAdminTab from "./VideoAdminTab";
 import GratitudeAdminTab from "./GratitudeAdminTab";
 import FundraisingKpiTab from "./FundraisingKpiTab";
 import { DonorCrmPanel } from "./DonorCrmPanel";
@@ -211,6 +212,7 @@ export default function AdminFundraisingTab({ adminUsers, users, authLogin = "",
     { id: "projects" as Section, label: "Проекты", icon: "FolderOpen" },
     { id: "tasks" as Section, label: "Задачи", icon: "CheckSquare" },
     { id: "cabinet" as Section, label: "Кабинет", icon: "HeartHandshake" },
+    { id: "videos" as Section, label: "Видеоотчёты", icon: "Video" },
     { id: "gratitude" as Section, label: "Благодарности", icon: "Heart" },
     { id: "docs" as Section, label: "Документы", icon: "FileText" },
     { id: "qr" as Section, label: "QR", icon: "QrCode" },
@@ -473,6 +475,7 @@ export default function AdminFundraisingTab({ adminUsers, users, authLogin = "",
 
       {/* ── ДОКУМЕНТЫ ── */}
       {section === "cabinet" && <DonorCabinetAdmin authLogin={authLogin} authPassword={authPassword} />}
+      {section === "videos" && <VideoAdminTab authLogin={authLogin} authPassword={authPassword} />}
       {section === "gratitude" && <GratitudeAdminTab authLogin={authLogin} authPassword={authPassword} />}
       {section === "docs" && <FundraisingDocsTab />}
 
