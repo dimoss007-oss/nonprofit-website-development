@@ -3,6 +3,7 @@ import { usePageMeta } from "@/hooks/usePageMeta";
 import HomeHero from "@/components/home/HomeHero";
 import HomeAbout from "@/components/home/HomeAbout";
 import HomeNews from "@/components/home/HomeNews";
+import TopStoriesWidget from "@/components/home/TopStoriesWidget";
 import HomeSupport from "@/components/home/HomeSupport";
 import SiteFooter from "@/components/shared/SiteFooter";
 import type { RawNewsItem } from "@/lib/news-data";
@@ -31,6 +32,7 @@ export default function Index({ initialNews = null }: { initialNews?: RawNewsIte
       <main id="main-content" tabIndex={-1} aria-label="Основное содержимое">
         <HomeNews initialNews={initialNews} />
         <HomeAbout />
+        <TopStoriesWidget />
         <HomeSupport />
       </main>
 

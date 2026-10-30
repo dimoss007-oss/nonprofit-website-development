@@ -64,10 +64,18 @@ export default function Donate() {
     setGoals(prev => prev.map(g => g.id === activeGoalId ? { ...g, collected_amount: g.collected_amount + value } : g));
   const [selectedNeed, setSelectedNeed] = useState<number | null>(null);
   const [referrerCode, setReferrerCode] = useState("");
+  const [source, setSource] = useState("");
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get("paid") === "1") setJustPaid(true);
+    const src = params.get("src");
+    if (src) {
+      sessionStorage.setItem("donate_src", src);
+      setSource(src);
+    } else {
+      setSource(sessionStorage.getItem("donate_src") || "");
+    }
     const fromUrl = params.get("ref");
     if (fromUrl) {
       sessionStorage.setItem("donor_ref", fromUrl);
@@ -107,6 +115,7 @@ export default function Donate() {
           user_email: email || undefined,
           monthly,
           referrer_code: referrerCode || undefined,
+          source: source || undefined,
           success_url: `${window.location.origin}/donate?paid=1`,
         }),
       });

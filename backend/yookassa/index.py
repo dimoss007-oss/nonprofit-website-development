@@ -68,6 +68,7 @@ def handler(event: dict, context) -> dict:
         goal_id = int(body.get("goal_id") or 0)
     except (TypeError, ValueError):
         goal_id = 0
+    source = "".join(ch for ch in str(body.get("source", "")) if ch.isalnum() or ch in "-_:")[:40]
     use_qr = body.get("payment_method") == "sbp_qr"
     description_base = "Пожертвование АНО Спасение надежды"
     description = (f"Ежемесячное {description_base.lower()}" if monthly else description_base)
@@ -158,7 +159,7 @@ def handler(event: dict, context) -> dict:
             f"""INSERT INTO {schema}.orders
                 (order_number, user_name, user_email, user_phone, amount, status, order_comment, referrer_code)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""",
-            (order_number, user_name, user_email or None, None, round(amount, 2), "pending", f"yookassa:{payment_id}{'|monthly' if monthly else ''}{'|gid:' + str(goal_id) if goal_id else ''}{'|goal:' + goal_title if goal_title else ''}", referrer_code)
+            (order_number, user_name, user_email or None, None, round(amount, 2), "pending", f"yookassa:{payment_id}{'|monthly' if monthly else ''}{'|gid:' + str(goal_id) if goal_id else ''}{'|goal:' + goal_title if goal_title else ''}{'|src:' + source if source else ''}", referrer_code)
         )
         conn.commit()
         cur.close()

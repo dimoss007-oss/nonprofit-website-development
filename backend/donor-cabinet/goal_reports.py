@@ -51,6 +51,12 @@ def save_report(cur, conn, body):
     fields = [(body.get(k) or "").strip()[:3000] for k in ("situation_before", "action_taken", "situation_after")]
     ai_text = body.get("ai_text")
     ai_text = ai_text.strip()[:6000] if isinstance(ai_text, str) else None
+    in_top = bool(body.get("in_top"))
+    if in_top and not (ai_text or "").strip():
+        cur.execute(f"SELECT ai_text FROM {SCHEMA}.goal_reports WHERE goal_id = %s", (goal_id,))
+        row = cur.fetchone()
+        if not row or not (row["ai_text"] or "").strip():
+            return err("Чтобы добавить историю на сайт, сначала сгенерируйте текст")
     cur.execute(
         f"""INSERT INTO {SCHEMA}.goal_reports (goal_id, situation_before, action_taken, situation_after, ai_text)
             VALUES (%s, %s, %s, %s, %s)
@@ -59,6 +65,19 @@ def save_report(cur, conn, body):
               ai_text = COALESCE(EXCLUDED.ai_text, {SCHEMA}.goal_reports.ai_text), updated_at = NOW()""",
         (goal_id, *fields, ai_text),
     )
+    if "in_top" in body:
+        if in_top:
+            cur.execute(
+                f"""UPDATE {SCHEMA}.goal_reports SET in_top = TRUE, published_at = COALESCE(published_at, NOW()),
+                    top_added_at = CASE WHEN in_top THEN top_added_at ELSE NOW() END WHERE goal_id = %s""",
+                (goal_id,),
+            )
+            cur.execute(
+                f"""UPDATE {SCHEMA}.goal_reports SET in_top = FALSE WHERE in_top AND goal_id NOT IN (
+                    SELECT goal_id FROM {SCHEMA}.goal_reports WHERE in_top ORDER BY top_added_at DESC NULLS LAST LIMIT 5)"""
+            )
+        else:
+            cur.execute(f"UPDATE {SCHEMA}.goal_reports SET in_top = FALSE WHERE goal_id = %s", (goal_id,))
     conn.commit()
     return ok({"ok": True})
 
@@ -177,3 +196,30 @@ def send_report(cur, conn, body):
     conn.commit()
     result = process_queue(cur, conn)
     return ok({"recipients": len(donors), "emails_queued": queued, "queue": result})
+
+
+def preview_of(text: str, limit: int = 220) -> str:
+    paragraphs = [p.strip() for p in text.split("\n\n") if p.strip()]
+    skip = [p for p in paragraphs if CLOSING not in p]
+    body = " ".join(re.sub(r"^(БЫЛО|ЧТО СДЕЛАЛИ|СТАЛО)[:\s]*", "", p).strip() for p in skip[:3])
+    body = re.sub(r"\s+", " ", body).strip()
+    if len(body) <= limit:
+        return body
+    return body[:limit].rsplit(" ", 1)[0].rstrip(",.;:") + "…"
+
+
+def top_stories(cur, conn, event, params):
+    archive = params.get("archive") == "1"
+    cond = "r.published_at IS NOT NULL AND NOT r.in_top" if archive else "r.in_top"
+    order = "r.published_at DESC" if archive else "r.top_added_at DESC NULLS LAST"
+    cur.execute(
+        f"""SELECT r.goal_id, g.title, r.photo_url, r.ai_text FROM {SCHEMA}.goal_reports r
+            JOIN {SCHEMA}.fundraising_goals g ON g.id = r.goal_id
+            WHERE {cond} AND COALESCE(r.ai_text, '') <> '' ORDER BY {order} LIMIT {'100' if archive else '5'}"""
+    )
+    items = [
+        {"campaign_id": r["goal_id"], "title": r["title"], "photo_url": r["photo_url"],
+         "preview": preview_of(r["ai_text"]), "full_text": r["ai_text"]}
+        for r in cur.fetchall()
+    ]
+    return ok({"stories": items})

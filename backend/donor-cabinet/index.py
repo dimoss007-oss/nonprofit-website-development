@@ -5,6 +5,7 @@ from psycopg2.extras import RealDictCursor
 import admin
 import auth
 import cabinet
+import goal_reports
 from common import CORS, err, get_conn
 
 PUBLIC_POST = {
@@ -28,6 +29,7 @@ CABINET_GET = {
     "rating": cabinet.get_rating,
     "subscriptions": cabinet.get_subscriptions,
     "year_summary": cabinet.year_summary,
+    "top_stories": goal_reports.top_stories,
     "public": lambda cur, conn, event, params: cabinet.public_info(cur, conn, event, params),
 }
 

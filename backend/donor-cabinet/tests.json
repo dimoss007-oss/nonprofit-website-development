@@ -57,6 +57,16 @@
         "goal_id": 1
       },
       "expectedStatus": 403
+    },
+    {
+      "name": "Топ историй",
+      "method": "GET",
+      "path": "/?view=top_stories",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "stories": []
+      },
+      "bodyMatcher": "keys"
     }
   ]
 }

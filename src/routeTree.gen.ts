@@ -23,6 +23,7 @@ import { Route as NewsRouteImport } from './routes/news'
 import { Route as OurFamiliesRouteImport } from './routes/our-families'
 import { Route as PartnersRouteImport } from './routes/partners'
 import { Route as ProgramRouteImport } from './routes/program'
+import { Route as StoriesRouteImport } from './routes/stories'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminFinanceRouteImport } from './routes/admin.finance'
 import { Route as AdminGalleryRouteImport } from './routes/admin.gallery'
@@ -98,6 +99,11 @@ const ProgramRoute = ProgramRouteImport.update({
   path: '/program',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StoriesRoute = StoriesRouteImport.update({
+  id: '/stories',
+  path: '/stories',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/admin/',
   path: '/admin/',
@@ -134,6 +140,7 @@ export interface FileRoutesByFullPath {
   '/our-families': typeof OurFamiliesRoute
   '/partners': typeof PartnersRoute
   '/program': typeof ProgramRoute
+  '/stories': typeof StoriesRoute
   '/admin/finance': typeof AdminFinanceRoute
   '/admin/gallery': typeof AdminGalleryRoute
   '/admin/news': typeof AdminNewsRoute
@@ -154,6 +161,7 @@ export interface FileRoutesByTo {
   '/our-families': typeof OurFamiliesRoute
   '/partners': typeof PartnersRoute
   '/program': typeof ProgramRoute
+  '/stories': typeof StoriesRoute
   '/admin/finance': typeof AdminFinanceRoute
   '/admin/gallery': typeof AdminGalleryRoute
   '/admin/news': typeof AdminNewsRoute
@@ -175,6 +183,7 @@ export interface FileRoutesById {
   '/our-families': typeof OurFamiliesRoute
   '/partners': typeof PartnersRoute
   '/program': typeof ProgramRoute
+  '/stories': typeof StoriesRoute
   '/admin/finance': typeof AdminFinanceRoute
   '/admin/gallery': typeof AdminGalleryRoute
   '/admin/news': typeof AdminNewsRoute
@@ -197,6 +206,7 @@ export interface FileRouteTypes {
     | '/our-families'
     | '/partners'
     | '/program'
+    | '/stories'
     | '/admin/finance'
     | '/admin/gallery'
     | '/admin/news'
@@ -217,6 +227,7 @@ export interface FileRouteTypes {
     | '/our-families'
     | '/partners'
     | '/program'
+    | '/stories'
     | '/admin/finance'
     | '/admin/gallery'
     | '/admin/news'
@@ -237,6 +248,7 @@ export interface FileRouteTypes {
     | '/our-families'
     | '/partners'
     | '/program'
+    | '/stories'
     | '/admin/finance'
     | '/admin/gallery'
     | '/admin/news'
@@ -258,6 +270,7 @@ export interface RootRouteChildren {
   OurFamiliesRoute: typeof OurFamiliesRoute
   PartnersRoute: typeof PartnersRoute
   ProgramRoute: typeof ProgramRoute
+  StoriesRoute: typeof StoriesRoute
   AdminFinanceRoute: typeof AdminFinanceRoute
   AdminGalleryRoute: typeof AdminGalleryRoute
   AdminNewsRoute: typeof AdminNewsRoute
@@ -364,6 +377,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProgramRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/stories': {
+      id: '/stories'
+      path: '/stories'
+      fullPath: '/stories'
+      preLoaderRoute: typeof StoriesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/': {
       id: '/admin/'
       path: '/admin'
@@ -410,6 +430,7 @@ const rootRouteChildren: RootRouteChildren = {
   OurFamiliesRoute: OurFamiliesRoute,
   PartnersRoute: PartnersRoute,
   ProgramRoute: ProgramRoute,
+  StoriesRoute: StoriesRoute,
   AdminFinanceRoute: AdminFinanceRoute,
   AdminGalleryRoute: AdminGalleryRoute,
   AdminNewsRoute: AdminNewsRoute,
