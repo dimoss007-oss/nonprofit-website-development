@@ -124,6 +124,15 @@
         "action": "admin_brigade_stats_save"
       },
       "expectedStatus": 403
+    },
+    {
+      "name": "Годовой отчёт без прав",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "admin_annual_draft"
+      },
+      "expectedStatus": 403
     }
   ]
 }

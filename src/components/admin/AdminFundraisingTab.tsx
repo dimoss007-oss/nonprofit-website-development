@@ -11,6 +11,7 @@ import FundraisingCampaignsTab from "./FundraisingCampaignsTab";
 import FundraisingProjectsTab from "./FundraisingProjectsTab";
 import FundraisingTasksTab from "./FundraisingTasksTab";
 import FundraisingDocsTab from "./FundraisingDocsTab";
+import AnnualReportTab from "./AnnualReportTab";
 import BrigadeAdminTab from "./BrigadeAdminTab";
 import VideoAdminTab from "./VideoAdminTab";
 import GratitudeAdminTab from "./GratitudeAdminTab";
@@ -111,6 +112,7 @@ export default function AdminFundraisingTab({ adminUsers, users, authLogin = "",
     { id: "brigade" as Section, label: "Бригада", icon: "Truck" },
     { id: "videos" as Section, label: "Видеоотчёты", icon: "Video" },
     { id: "gratitude" as Section, label: "Благодарности", icon: "Heart" },
+    { id: "annual" as Section, label: "Годовые отчёты", icon: "FileBarChart" },
     { id: "docs" as Section, label: "Документы", icon: "FileText" },
     { id: "qr" as Section, label: "QR", icon: "QrCode" },
   ];
@@ -200,6 +202,7 @@ export default function AdminFundraisingTab({ adminUsers, users, authLogin = "",
       {section === "brigade" && <BrigadeAdminTab authLogin={authLogin} authPassword={authPassword} />}
       {section === "videos" && <VideoAdminTab authLogin={authLogin} authPassword={authPassword} />}
       {section === "gratitude" && <GratitudeAdminTab authLogin={authLogin} authPassword={authPassword} />}
+      {section === "annual" && <AnnualReportTab authLogin={authLogin} authPassword={authPassword} />}
       {section === "docs" && <FundraisingDocsTab />}
 
       {/* ── KPI ── */}

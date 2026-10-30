@@ -3,6 +3,7 @@ import json
 import os
 import smtplib
 
+import annual_report
 import brigade
 import goal_reports
 import gratitude
@@ -491,6 +492,10 @@ ADMIN_ACTIONS = {
     "settings_get": get_settings_action,
     "settings_save": save_settings,
     "run_automation": run_automation,
+    "annual_orgs": annual_report.list_orgs,
+    "annual_draft": annual_report.build_draft,
+    "annual_intro": annual_report.generate_intro,
+    "annual_pdf": annual_report.build_pdf,
     "brigade_get": brigade.admin_get,
     "brigade_stats_save": brigade.save_stats,
     "brigade_action_save": brigade.save_action,
