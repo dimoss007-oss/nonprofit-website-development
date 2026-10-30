@@ -73,6 +73,16 @@ def handler(event: dict, context) -> dict:
             conn.close()
             return ok({"ok": True, "id": new_id})
 
+        if action == "feedback_status":
+            status = body.get("status")
+            if status not in ("new", "done"):
+                conn.close()
+                return err("Неверный статус")
+            cur.execute(f"UPDATE {SCHEMA}.crm_feedback SET status=%s WHERE id=%s", (status, body.get("id")))
+            conn.commit()
+            conn.close()
+            return ok({"ok": True})
+
         if action == "update_status":
             req_id = body.get("id")
             status = body.get("status")

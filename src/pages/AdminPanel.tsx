@@ -16,6 +16,7 @@ import AdminDashboard from "@/components/admin/AdminDashboard";
 import AdminAiSettingsTab from "@/components/admin/AdminAiSettingsTab";
 import AdminHeader from "@/components/admin/AdminHeader";
 import FeedbackWidget from "@/components/admin/FeedbackWidget";
+import AdminFeedbackTab from "@/components/admin/AdminFeedbackTab";
 import AiChatModal from "@/components/admin/AiChatModal";
 import type { Task } from "@/components/admin/taskTypes";
 
@@ -23,7 +24,7 @@ const AUTH_URL = "https://functions.poehali.dev/e6567f16-b3db-4b0d-9c1f-abed808c
 const LOGO_IMG = "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/4ca974da-fec3-4fd3-834d-c7dccc97fca9.jpg";
 const SESSION_KEY = "admin_auth";
 
-type Tab = TabId | "ai_settings" | "dashboard";
+type Tab = TabId | "ai_settings" | "dashboard" | "feedback";
 type Role = "admin" | "user";
 
 interface Session { login: string; password: string; role: Role; full_name: string; permissions?: string | null }
@@ -127,7 +128,7 @@ export default function AdminPanel() {
 
   useEffect(() => {
     if (!session || session.role === "admin") return;
-    if (tab === "ai_settings" || tab === "dashboard") {
+    if (tab === "ai_settings" || tab === "dashboard" || tab === "feedback") {
       setTab("tasks");
       return;
     }
@@ -179,11 +180,12 @@ export default function AdminPanel() {
     { id: "gallery",     label: "Галерея",       icon: "Images" },
     { id: "users",       label: "Сотрудники",    icon: "UserCog" },
     { id: "ai_settings", label: "Настройки ИИ",  icon: "BrainCircuit" },
+    { id: "feedback",    label: "Пожелания",     icon: "MessageSquareText" },
   ];
 
   const visibleTabs = isAdmin
     ? TABS
-    : TABS.filter(t => t.id !== "ai_settings" && t.id !== "dashboard" && (userPerms ? userPerms.includes(t.id as TabId) : true));
+    : TABS.filter(t => t.id !== "ai_settings" && t.id !== "dashboard" && t.id !== "feedback" && (userPerms ? userPerms.includes(t.id as TabId) : true));
   const pick = (ids: string[]) => ids.map(id => visibleTabs.find(t => t.id === id)).filter(Boolean) as typeof TABS;
 
   return (
@@ -196,7 +198,7 @@ export default function AdminPanel() {
         tab={tab}
         mainTabs={pick(["dashboard", "crm", "shifts", "tasks", "requests", "fundraising"])}
         refTabs={pick(["sop", "gov", "news", "gallery"])}
-        settingsTabs={pick(["users", "ai_settings"])}
+        settingsTabs={pick(["users", "ai_settings", "feedback"])}
         onSelect={id => setTab(id as Tab)}
         onAi={() => setAiChatOpen(true)}
         onLogout={logout}
@@ -231,6 +233,7 @@ export default function AdminPanel() {
         {tab === "fundraising" && <AdminFundraisingTab adminUsers={adminUsers.map(u => u.full_name || u.login)} users={adminUsers} authLogin={session.login} authPassword={session.password} />}
         {tab === "gov" && <AdminGovTab focusAgencyId={focusGovId} onFocusHandled={() => setFocusGovId(null)} users={adminUsers} />}
         {tab === "shifts" && <AdminShiftLogsTab onSelectPatient={goToPatient} filterPatientId={shiftFilterPatientId} onClearFilter={() => setShiftFilterPatientId(null)} />}
+        {tab === "feedback" && isAdmin && <AdminFeedbackTab />}
         {tab === "ai_settings" && <AdminAiSettingsTab isAdmin={isAdmin} authLogin={session.login} authPassword={session.password} />}
       </main>
 

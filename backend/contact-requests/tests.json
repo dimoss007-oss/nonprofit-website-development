@@ -1,1 +1,1 @@
-{"tests": [{"name": "Список заявок", "method": "GET", "path": "/", "expectedStatus": 200, "expectedBody": {"requests": "array"}, "bodyMatcher": "partial"}]}
+{"tests": [{"name": "Список обращений", "method": "GET", "path": "/?kind=feedback", "expectedStatus": 200, "expectedBody": {}, "bodyMatcher": "partial"}]}
