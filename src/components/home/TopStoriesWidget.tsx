@@ -6,8 +6,8 @@ import { CABINET_URL } from "@/components/cabinet/cabinet.shared";
 
 export type Story = { campaign_id: number; title: string; photo_url: string | null; preview: string; full_text: string };
 
-export async function fetchStories(archive = false): Promise<Story[]> {
-  const r = await fetch(`${CABINET_URL}?view=top_stories${archive ? "&archive=1" : ""}`);
+export async function fetchStories(archive = false, tag = ""): Promise<Story[]> {
+  const r = await fetch(`${CABINET_URL}?view=top_stories${archive ? "&archive=1" : ""}${tag ? `&tag=${tag}` : ""}`);
   const d = await r.json();
   return d.stories || [];
 }
@@ -29,7 +29,7 @@ export function StoryCard({ story, onOpen }: { story: Story; onOpen: () => void 
   );
 }
 
-export function StoryModal({ story, onClose }: { story: Story | null; onClose: () => void }) {
+export function StoryModal({ story, onClose, src = "" }: { story: Story | null; onClose: () => void; src?: string }) {
   const paragraphs = story ? story.full_text.split("\n\n").filter(p => p.trim()) : [];
   return (
     <Dialog open={!!story} onOpenChange={o => { if (!o) onClose(); }}>
@@ -46,7 +46,7 @@ export function StoryModal({ story, onClose }: { story: Story | null; onClose: (
             </div>
             <Link
               to="/donate"
-              search={{ src: `story-${story.campaign_id}` } as never}
+              search={{ src: src || `story-${story.campaign_id}` } as never}
               className="mt-2 w-full inline-flex items-center justify-center gap-2 rounded-xl bg-ink text-beige font-semibold py-3.5 hover:opacity-90 transition-opacity"
             >
               <Icon name="HeartHandshake" size={18} /> Помочь другим семьям
@@ -58,11 +58,11 @@ export function StoryModal({ story, onClose }: { story: Story | null; onClose: (
   );
 }
 
-export default function TopStoriesWidget() {
+export default function TopStoriesWidget({ tag = "", title = "Благодаря вам", subtitle = "5 историй добра за месяц", donateSrc = "" }: { tag?: string; title?: string; subtitle?: string; donateSrc?: string }) {
   const [stories, setStories] = useState<Story[]>([]);
   const [open, setOpen] = useState<Story | null>(null);
 
-  useEffect(() => { fetchStories().then(setStories).catch(() => {}); }, []);
+  useEffect(() => { fetchStories(false, tag).then(setStories).catch(() => {}); }, []);
 
   if (stories.length === 0) return null;
 
@@ -70,17 +70,17 @@ export default function TopStoriesWidget() {
     <section className="py-16 px-4 bg-beige-mid" aria-labelledby="top-stories-title">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-10">
-          <h2 id="top-stories-title" className="font-cormorant text-4xl font-semibold text-ink">Благодаря вам</h2>
-          <p className="text-ink/60 mt-2">5 историй добра за месяц</p>
+          <h2 id="top-stories-title" className="font-cormorant text-4xl font-semibold text-ink">{title}</h2>
+          <p className="text-ink/60 mt-2">{subtitle}</p>
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {stories.map(s => <StoryCard key={s.campaign_id} story={s} onOpen={() => setOpen(s)} />)}
         </div>
         <div className="text-center mt-8">
-          <Link to="/stories" className="text-sm font-medium text-ink hover:underline">Все истории</Link>
+          {!tag && <Link to="/stories" className="text-sm font-medium text-ink hover:underline">Все истории</Link>}
         </div>
       </div>
-      <StoryModal story={open} onClose={() => setOpen(null)} />
+      <StoryModal story={open} src={donateSrc} onClose={() => setOpen(null)} />
     </section>
   );
 }

@@ -3,6 +3,7 @@ import json
 import os
 import smtplib
 
+import brigade
 import goal_reports
 import gratitude
 import video_reports
@@ -490,6 +491,10 @@ ADMIN_ACTIONS = {
     "settings_get": get_settings_action,
     "settings_save": save_settings,
     "run_automation": run_automation,
+    "brigade_get": brigade.admin_get,
+    "brigade_stats_save": brigade.save_stats,
+    "brigade_action_save": brigade.save_action,
+    "brigade_action_delete": brigade.delete_action,
     "video_list": video_reports.list_videos,
     "video_save": video_reports.save_video,
     "video_delete": video_reports.delete_video,

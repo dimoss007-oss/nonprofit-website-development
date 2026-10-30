@@ -14,14 +14,15 @@ interface TargetDonationModalProps {
   title: string;
   currentAmount: number;
   targetAmount: number;
+  defaultAmount?: number;
 }
 
 type Stage = "form" | "qr" | "paid";
 
 const fmt = (n: number) => `${Math.round(n).toLocaleString("ru")} ₽`;
 
-export default function TargetDonationModal({ open, onClose, onPaid, goalId, title, currentAmount, targetAmount }: TargetDonationModalProps) {
-  const [amount, setAmount] = useState<number>(500);
+export default function TargetDonationModal({ open, onClose, onPaid, goalId, title, currentAmount, targetAmount, defaultAmount = 500 }: TargetDonationModalProps) {
+  const [amount, setAmount] = useState<number>(defaultAmount);
   const [custom, setCustom] = useState("");
   const [email, setEmail] = useState("");
   const [stage, setStage] = useState<Stage>("form");
@@ -42,9 +43,9 @@ export default function TargetDonationModal({ open, onClose, onPaid, goalId, tit
   useEffect(() => {
     if (!open) {
       stopPolling();
-      setStage("form"); setError(""); setQrData(""); setPaymentUrl(""); setPaymentId(""); setCustom(""); setAmount(500);
+      setStage("form"); setError(""); setQrData(""); setPaymentUrl(""); setPaymentId(""); setCustom(""); setAmount(defaultAmount);
     }
-  }, [open]);
+  }, [open, defaultAmount]);
 
   useEffect(() => {
     stopPolling();
@@ -100,7 +101,7 @@ export default function TargetDonationModal({ open, onClose, onPaid, goalId, tit
           <DialogDescription className="text-ink/50">Целевое пожертвование</DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-1.5">
+        {targetAmount > 0 && <div className="space-y-1.5">
           <div className="flex justify-between text-sm">
             <span className="text-ink/60">Собрано {fmt(currentAmount)} из {fmt(targetAmount)}</span>
             <span className="text-ink font-medium">{pct}%</span>
@@ -108,7 +109,7 @@ export default function TargetDonationModal({ open, onClose, onPaid, goalId, tit
           <div className="h-2.5 bg-beige-mid rounded-full overflow-hidden">
             <div className="h-full bg-sage rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
           </div>
-        </div>
+        </div>}
 
         {stage === "form" && (
           <div className="space-y-4">

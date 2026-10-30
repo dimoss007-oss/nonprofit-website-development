@@ -105,6 +105,25 @@
         "action": "admin_video_save"
       },
       "expectedStatus": 403
+    },
+    {
+      "name": "Мобильная бригада",
+      "method": "GET",
+      "path": "/?view=brigade",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "stats": {}
+      },
+      "bodyMatcher": "keys"
+    },
+    {
+      "name": "Бригада без прав",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "admin_brigade_stats_save"
+      },
+      "expectedStatus": 403
     }
   ]
 }

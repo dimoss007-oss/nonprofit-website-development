@@ -19,6 +19,7 @@ import { Route as DonationTermsRouteImport } from './routes/donation-terms'
 import { Route as EduLicenseRouteImport } from './routes/edu-license'
 import { Route as GalleryRouteImport } from './routes/gallery'
 import { Route as GratitudeRouteImport } from './routes/gratitude'
+import { Route as MobileBrigadeRouteImport } from './routes/mobile-brigade'
 import { Route as NewsRouteImport } from './routes/news'
 import { Route as OurFamiliesRouteImport } from './routes/our-families'
 import { Route as PartnersRouteImport } from './routes/partners'
@@ -79,6 +80,11 @@ const GratitudeRoute = GratitudeRouteImport.update({
   path: '/gratitude',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MobileBrigadeRoute = MobileBrigadeRouteImport.update({
+  id: '/mobile-brigade',
+  path: '/mobile-brigade',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const NewsRoute = NewsRouteImport.update({
   id: '/news',
   path: '/news',
@@ -136,6 +142,7 @@ export interface FileRoutesByFullPath {
   '/edu-license': typeof EduLicenseRoute
   '/gallery': typeof GalleryRoute
   '/gratitude': typeof GratitudeRoute
+  '/mobile-brigade': typeof MobileBrigadeRoute
   '/news': typeof NewsRoute
   '/our-families': typeof OurFamiliesRoute
   '/partners': typeof PartnersRoute
@@ -157,6 +164,7 @@ export interface FileRoutesByTo {
   '/edu-license': typeof EduLicenseRoute
   '/gallery': typeof GalleryRoute
   '/gratitude': typeof GratitudeRoute
+  '/mobile-brigade': typeof MobileBrigadeRoute
   '/news': typeof NewsRoute
   '/our-families': typeof OurFamiliesRoute
   '/partners': typeof PartnersRoute
@@ -179,6 +187,7 @@ export interface FileRoutesById {
   '/edu-license': typeof EduLicenseRoute
   '/gallery': typeof GalleryRoute
   '/gratitude': typeof GratitudeRoute
+  '/mobile-brigade': typeof MobileBrigadeRoute
   '/news': typeof NewsRoute
   '/our-families': typeof OurFamiliesRoute
   '/partners': typeof PartnersRoute
@@ -202,6 +211,7 @@ export interface FileRouteTypes {
     | '/edu-license'
     | '/gallery'
     | '/gratitude'
+    | '/mobile-brigade'
     | '/news'
     | '/our-families'
     | '/partners'
@@ -223,6 +233,7 @@ export interface FileRouteTypes {
     | '/edu-license'
     | '/gallery'
     | '/gratitude'
+    | '/mobile-brigade'
     | '/news'
     | '/our-families'
     | '/partners'
@@ -244,6 +255,7 @@ export interface FileRouteTypes {
     | '/edu-license'
     | '/gallery'
     | '/gratitude'
+    | '/mobile-brigade'
     | '/news'
     | '/our-families'
     | '/partners'
@@ -266,6 +278,7 @@ export interface RootRouteChildren {
   EduLicenseRoute: typeof EduLicenseRoute
   GalleryRoute: typeof GalleryRoute
   GratitudeRoute: typeof GratitudeRoute
+  MobileBrigadeRoute: typeof MobileBrigadeRoute
   NewsRoute: typeof NewsRoute
   OurFamiliesRoute: typeof OurFamiliesRoute
   PartnersRoute: typeof PartnersRoute
@@ -349,6 +362,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GratitudeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/mobile-brigade': {
+      id: '/mobile-brigade'
+      path: '/mobile-brigade'
+      fullPath: '/mobile-brigade'
+      preLoaderRoute: typeof MobileBrigadeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/news': {
       id: '/news'
       path: '/news'
@@ -426,6 +446,7 @@ const rootRouteChildren: RootRouteChildren = {
   EduLicenseRoute: EduLicenseRoute,
   GalleryRoute: GalleryRoute,
   GratitudeRoute: GratitudeRoute,
+  MobileBrigadeRoute: MobileBrigadeRoute,
   NewsRoute: NewsRoute,
   OurFamiliesRoute: OurFamiliesRoute,
   PartnersRoute: PartnersRoute,

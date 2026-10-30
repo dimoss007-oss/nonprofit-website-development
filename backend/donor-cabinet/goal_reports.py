@@ -52,6 +52,7 @@ def save_report(cur, conn, body):
     ai_text = body.get("ai_text")
     ai_text = ai_text.strip()[:6000] if isinstance(ai_text, str) else None
     in_top = bool(body.get("in_top"))
+    tag = body.get("tag") if body.get("tag") in ("", "mobile_brigade") else None
     if in_top and not (ai_text or "").strip():
         cur.execute(f"SELECT ai_text FROM {SCHEMA}.goal_reports WHERE goal_id = %s", (goal_id,))
         row = cur.fetchone()
@@ -65,6 +66,8 @@ def save_report(cur, conn, body):
               ai_text = COALESCE(EXCLUDED.ai_text, {SCHEMA}.goal_reports.ai_text), updated_at = NOW()""",
         (goal_id, *fields, ai_text),
     )
+    if tag is not None:
+        cur.execute(f"UPDATE {SCHEMA}.goal_reports SET tag = %s WHERE goal_id = %s", (tag, goal_id))
     if "in_top" in body:
         if in_top:
             cur.execute(
@@ -210,12 +213,15 @@ def preview_of(text: str, limit: int = 220) -> str:
 
 def top_stories(cur, conn, event, params):
     archive = params.get("archive") == "1"
+    tag = "".join(ch for ch in (params.get("tag") or "") if ch.isalnum() or ch == "_")[:30]
     cond = "r.published_at IS NOT NULL AND NOT r.in_top" if archive else "r.in_top"
+    if tag:
+        cond = f"r.published_at IS NOT NULL AND r.tag = '{tag}'"
     order = "r.published_at DESC" if archive else "r.top_added_at DESC NULLS LAST"
     cur.execute(
         f"""SELECT r.goal_id, g.title, r.photo_url, r.ai_text FROM {SCHEMA}.goal_reports r
             JOIN {SCHEMA}.fundraising_goals g ON g.id = r.goal_id
-            WHERE {cond} AND COALESCE(r.ai_text, '') <> '' ORDER BY {order} LIMIT {'100' if archive else '5'}"""
+            WHERE {cond} AND COALESCE(r.ai_text, '') <> '' ORDER BY {order} LIMIT {'100' if archive else ('6' if tag else '5')}"""
     )
     items = [
         {"campaign_id": r["goal_id"], "title": r["title"], "photo_url": r["photo_url"],

@@ -5,7 +5,7 @@ import { Creds, adminCall } from "@/components/admin/donorcabinet/adminApi";
 const area = "w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:border-indigo-400 bg-slate-50 min-h-[84px]";
 const lbl = "block text-xs uppercase tracking-widest text-slate-400 mb-1";
 
-type Report = { situation_before: string; action_taken: string; situation_after: string; photo_url: string | null; ai_text: string | null; in_top?: boolean; sent_at: string | null; sent_count: number };
+type Report = { situation_before: string; action_taken: string; situation_after: string; photo_url: string | null; ai_text: string | null; in_top?: boolean; tag?: string; sent_at: string | null; sent_count: number };
 
 export default function GoalReportPanel({ goalId, goalTitle, creds, onClose }: { goalId: number; goalTitle: string; creds: Creds; onClose: () => void }) {
   const [before, setBefore] = useState("");
@@ -16,6 +16,7 @@ export default function GoalReportPanel({ goalId, goalTitle, creds, onClose }: {
   const [sentInfo, setSentInfo] = useState("");
   const [donors, setDonors] = useState(0);
   const [inTop, setInTop] = useState(false);
+  const [brigade, setBrigade] = useState(false);
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
@@ -28,7 +29,7 @@ export default function GoalReportPanel({ goalId, goalTitle, creds, onClose }: {
         const r = d.report;
         if (!r) return;
         setBefore(r.situation_before || ""); setAction(r.action_taken || ""); setAfter(r.situation_after || "");
-        setPhoto(r.photo_url); setText(r.ai_text || ""); setInTop(!!r.in_top);
+        setPhoto(r.photo_url); setText(r.ai_text || ""); setInTop(!!r.in_top); setBrigade(r.tag === "mobile_brigade");
         if (r.sent_at) setSentInfo(`Отправлено ${new Date(r.sent_at).toLocaleDateString("ru-RU")}, писем: ${r.sent_count}`);
       })
       .catch(e => setError(e instanceof Error ? e.message : "Ошибка"));
@@ -49,7 +50,7 @@ export default function GoalReportPanel({ goalId, goalTitle, creds, onClose }: {
   });
 
   const save = () => run("save", async () => {
-    await adminCall(creds, "goal_report_save", { goal_id: goalId, ...fields, ai_text: text, in_top: inTop });
+    await adminCall(creds, "goal_report_save", { goal_id: goalId, ...fields, ai_text: text, in_top: inTop, tag: brigade ? "mobile_brigade" : "" });
     setInfo(inTop ? "Сохранено, история показана на сайте" : "Сохранено");
   });
 
@@ -111,6 +112,11 @@ export default function GoalReportPanel({ goalId, goalTitle, creds, onClose }: {
       <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
         <input type="checkbox" checked={inTop} onChange={e => setInTop(e.target.checked)} className="w-4 h-4" />
         Добавить в топ-5 этого месяца на сайте («Благодаря вам»)
+      </label>
+
+      <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+        <input type="checkbox" checked={brigade} onChange={e => setBrigade(e.target.checked)} className="w-4 h-4" />
+        Показывать на странице «Мобильная бригада»
       </label>
 
       {error && <p className="text-sm text-red-600">{error}</p>}

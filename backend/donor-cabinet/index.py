@@ -5,6 +5,7 @@ from psycopg2.extras import RealDictCursor
 import admin
 import auth
 import cabinet
+import brigade
 import goal_reports
 import gratitude
 import video_reports
@@ -31,6 +32,7 @@ CABINET_GET = {
     "rating": cabinet.get_rating,
     "subscriptions": cabinet.get_subscriptions,
     "year_summary": cabinet.year_summary,
+    "brigade": brigade.public_data,
     "videos": video_reports.public_videos,
     "gratitude": gratitude.public_posts,
     "gratitude_mine": gratitude.my_posts,

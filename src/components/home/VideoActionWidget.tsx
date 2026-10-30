@@ -42,7 +42,7 @@ function LazyPlayer({ video }: { video: Video }) {
   );
 }
 
-export default function VideoActionWidget() {
+export default function VideoActionWidget({ category = "", title = "Ваше добро в действии" }: { category?: string; title?: string }) {
   const [videos, setVideos] = useState<Video[]>([]);
   const [active, setActive] = useState<string>("all");
   const [started, setStarted] = useState(false);
@@ -61,7 +61,7 @@ export default function VideoActionWidget() {
 
   useEffect(() => {
     if (!started) return;
-    fetch(`${CABINET_URL}?view=videos`).then(r => r.json()).then(d => setVideos(d.videos || [])).catch(() => {});
+    fetch(`${CABINET_URL}?view=videos`).then(r => r.json()).then(d => setVideos((d.videos || []).filter((v: Video) => !category || v.category === category))).catch(() => {});
   }, [started]);
 
   const present = VIDEO_CATEGORIES.filter(c => videos.some(v => v.category === c.id));
@@ -72,7 +72,7 @@ export default function VideoActionWidget() {
       {videos.length > 0 && (
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-8">
-            <h2 id="video-action-title" className="font-cormorant text-4xl font-semibold text-ink">Ваше добро в действии</h2>
+            <h2 id="video-action-title" className="font-cormorant text-4xl font-semibold text-ink">{title}</h2>
             <p className="text-ink/60 mt-2">Видеоотчёты о том, как ваша помощь доходит до семей</p>
           </div>
           {present.length > 1 && (
