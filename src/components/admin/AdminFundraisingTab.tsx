@@ -458,7 +458,7 @@ export default function AdminFundraisingTab({ adminUsers, users, authLogin = "",
       {section === "funnel" && <FundraisingFunnelTab adminUsers={adminUsers} />}
 
       {/* ── ЦЕЛИ СБОРА ── */}
-      {section === "goals" && <FundraisingGoalsTab />}
+      {section === "goals" && <FundraisingGoalsTab authLogin={authLogin} authPassword={authPassword} />}
 
       {/* ── КАМПАНИИ ── */}
       {section === "campaigns" && <FundraisingCampaignsTab />}

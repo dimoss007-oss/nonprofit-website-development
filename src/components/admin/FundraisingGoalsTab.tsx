@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import Icon from "@/components/ui/icon";
+import GoalReportPanel from "./GoalReportPanel";
 import { FundraisingGoal, FUNDRAISING_URL, fmt } from "./fundraising.types";
 
 const inp = "w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:border-indigo-400 bg-slate-50";
@@ -7,11 +8,12 @@ const lbl = "block text-xs uppercase tracking-widest text-slate-400 mb-1";
 
 const EMPTY: Partial<FundraisingGoal> = { title: "", description: "", target_amount: 0, is_active: true };
 
-function GoalCard({ goal, onEdit, onDelete, onToggle }: {
+function GoalCard({ goal, onEdit, onDelete, onToggle, onReport }: {
   goal: FundraisingGoal;
   onEdit: () => void;
   onDelete: () => void;
   onToggle: () => void;
+  onReport: () => void;
 }) {
   const pct = goal.target_amount > 0
     ? Math.min(100, Math.round((goal.collected_amount / goal.target_amount) * 100))
@@ -31,6 +33,9 @@ function GoalCard({ goal, onEdit, onDelete, onToggle }: {
           {goal.description && <p className="text-xs text-slate-400 mt-0.5">{goal.description}</p>}
         </div>
         <div className="flex items-center gap-1 flex-shrink-0">
+          <button onClick={onReport} className="p-1.5 text-slate-300 hover:text-indigo-600 transition-colors" title="Отчёт донорам">
+            <Icon name="Mail" size={14} />
+          </button>
           <button onClick={onEdit} className="p-1.5 text-slate-300 hover:text-slate-800 transition-colors">
             <Icon name="Pencil" size={14} />
           </button>
@@ -115,7 +120,8 @@ function GoalForm({ initial, onSave, onCancel }: {
   );
 }
 
-export default function FundraisingGoalsTab() {
+export default function FundraisingGoalsTab({ authLogin = "", authPassword = "" }: { authLogin?: string; authPassword?: string }) {
+  const [reportGoal, setReportGoal] = useState<FundraisingGoal | null>(null);
   const [goals, setGoals] = useState<FundraisingGoal[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -195,15 +201,19 @@ export default function FundraisingGoalsTab() {
           <p>Целей сбора пока нет</p>
         </div>
       ) : (
+        <>
+        {reportGoal && <GoalReportPanel key={reportGoal.id} goalId={reportGoal.id} goalTitle={reportGoal.title} creds={{ authLogin, authPassword }} onClose={() => setReportGoal(null)} />}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {goals.map(g => (
             <GoalCard key={g.id} goal={g}
               onEdit={() => { setEditGoal(g); setShowForm(false); }}
               onDelete={() => deleteGoal(g.id)}
               onToggle={() => toggleGoal(g)}
+              onReport={() => setReportGoal(g)}
             />
           ))}
         </div>
+        </>
       )}
     </div>
   );

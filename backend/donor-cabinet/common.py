@@ -8,6 +8,7 @@ import ssl
 import time
 from datetime import date, datetime
 from decimal import Decimal
+from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.utils import formataddr, formatdate, make_msgid
 
@@ -264,8 +265,13 @@ def open_smtp():
     return server
 
 
-def send_mail(server, to_email: str, subject: str, body: str, org_name: str):
-    msg = MIMEText(body, "plain", "utf-8")
+def send_mail(server, to_email: str, subject: str, body: str, org_name: str, body_html=None):
+    if body_html:
+        msg = MIMEMultipart("alternative")
+        msg.attach(MIMEText(body, "plain", "utf-8"))
+        msg.attach(MIMEText(body_html, "html", "utf-8"))
+    else:
+        msg = MIMEText(body, "plain", "utf-8")
     msg["Subject"] = subject
     sender = ascii_addr(os.environ["SMTP_USER"])
     msg["From"] = formataddr((org_name, sender))
@@ -287,7 +293,7 @@ def process_queue(cur, conn, budget_seconds: float = 3.0) -> dict:
         return {"sent": 0, "failed": 0, "pending": pending, "error": "Почта не настроена"}
 
     settings = get_settings(cur)
-    cur.execute(f"SELECT id, to_email, subject, body FROM {SCHEMA}.donor_email_queue WHERE status = 'pending' ORDER BY id LIMIT 200")
+    cur.execute(f"SELECT id, to_email, subject, body, body_html FROM {SCHEMA}.donor_email_queue WHERE status = 'pending' ORDER BY id LIMIT 200")
     rows = cur.fetchall()
     sent = failed = 0
     started = time.time()
@@ -300,7 +306,7 @@ def process_queue(cur, conn, budget_seconds: float = 3.0) -> dict:
             if time.time() - started > budget_seconds:
                 break
             try:
-                send_mail(server, row["to_email"], row["subject"], row["body"], settings["org_name"])
+                send_mail(server, row["to_email"], row["subject"], row["body"], settings["org_name"], row.get("body_html"))
                 cur.execute(f"UPDATE {SCHEMA}.donor_email_queue SET status = 'sent', sent_at = NOW() WHERE id = %s", (row["id"],))
                 sent += 1
             except Exception as e:
