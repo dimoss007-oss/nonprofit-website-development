@@ -6,6 +6,7 @@ import admin
 import auth
 import cabinet
 import goal_reports
+import gratitude
 from common import CORS, err, get_conn
 
 PUBLIC_POST = {
@@ -29,6 +30,8 @@ CABINET_GET = {
     "rating": cabinet.get_rating,
     "subscriptions": cabinet.get_subscriptions,
     "year_summary": cabinet.year_summary,
+    "gratitude": gratitude.public_posts,
+    "gratitude_mine": gratitude.my_posts,
     "top_stories": goal_reports.top_stories,
     "public": lambda cur, conn, event, params: cabinet.public_info(cur, conn, event, params),
 }

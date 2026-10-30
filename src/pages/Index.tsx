@@ -3,6 +3,7 @@ import { usePageMeta } from "@/hooks/usePageMeta";
 import HomeHero from "@/components/home/HomeHero";
 import HomeAbout from "@/components/home/HomeAbout";
 import HomeNews from "@/components/home/HomeNews";
+import GratitudeGallery from "@/components/home/GratitudeGallery";
 import TopStoriesWidget from "@/components/home/TopStoriesWidget";
 import HomeSupport from "@/components/home/HomeSupport";
 import SiteFooter from "@/components/shared/SiteFooter";
@@ -33,6 +34,7 @@ export default function Index({ initialNews = null }: { initialNews?: RawNewsIte
         <HomeNews initialNews={initialNews} />
         <HomeAbout />
         <TopStoriesWidget />
+        <GratitudeGallery limit={9} />
         <HomeSupport />
       </main>
 

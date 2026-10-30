@@ -6,6 +6,7 @@ import CabinetAchievements from "@/components/cabinet/CabinetAchievements";
 import CabinetRating from "@/components/cabinet/CabinetRating";
 import CabinetSubscription from "@/components/cabinet/CabinetSubscription";
 import CabinetYear from "@/components/cabinet/CabinetYear";
+import GratitudeGallery from "@/components/home/GratitudeGallery";
 import { CabinetFeed, CabinetMessages } from "@/components/cabinet/CabinetInbox";
 import { CabinetDocs, CabinetProfile } from "@/components/cabinet/CabinetProfileDocs";
 import { AuthError, Overview, TOKEN_KEY, cabinetGet, cabinetPost } from "@/components/cabinet/cabinet.shared";
@@ -17,6 +18,7 @@ const TABS = [
   { id: "achievements", label: "Награды", icon: "Award" },
   { id: "messages", label: "Сообщения", icon: "Mail" },
   { id: "feed", label: "Для своих", icon: "Newspaper" },
+  { id: "gratitude", label: "Благодарности", icon: "Heart" },
   { id: "rating", label: "Рейтинг", icon: "Trophy" },
   { id: "subscription", label: "Подписка", icon: "Repeat" },
   { id: "year", label: "Итог года", icon: "Sparkles" },
@@ -106,6 +108,7 @@ export default function Cabinet() {
             {tab === "achievements" && <CabinetAchievements data={data} />}
             {tab === "messages" && <CabinetMessages onRead={load} />}
             {tab === "feed" && <CabinetFeed />}
+            {tab === "gratitude" && <GratitudeGallery mine />}
             {tab === "rating" && <CabinetRating />}
             {tab === "subscription" && <CabinetSubscription />}
             {tab === "year" && <CabinetYear years={data.years_available} />}

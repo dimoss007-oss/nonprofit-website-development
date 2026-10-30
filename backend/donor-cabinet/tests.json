@@ -67,6 +67,25 @@
         "stories": []
       },
       "bodyMatcher": "keys"
+    },
+    {
+      "name": "Галерея благодарностей",
+      "method": "GET",
+      "path": "/?view=gratitude",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "posts": []
+      },
+      "bodyMatcher": "keys"
+    },
+    {
+      "name": "Благодарность без прав",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "admin_gratitude_save"
+      },
+      "expectedStatus": 403
     }
   ]
 }

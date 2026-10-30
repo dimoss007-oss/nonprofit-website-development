@@ -4,6 +4,7 @@ import os
 import smtplib
 
 import goal_reports
+import gratitude
 from common import (SCHEMA, add_message, compute_stats, err, evaluate_achievements,
                     get_donations, get_levels, get_settings, grant_award, ok, open_smtp, process_queue,
                     queue_email, sha, smtp_configured, sync_accounts, totals_by_email)
@@ -488,6 +489,11 @@ ADMIN_ACTIONS = {
     "settings_get": get_settings_action,
     "settings_save": save_settings,
     "run_automation": run_automation,
+    "gratitude_list": gratitude.list_posts,
+    "gratitude_save": gratitude.save_post,
+    "gratitude_delete": gratitude.delete_post,
+    "gratitude_upload": gratitude.upload_media,
+    "gratitude_anonymize": gratitude.anonymize,
     "goal_report_get": goal_reports.get_report,
     "goal_report_save": goal_reports.save_report,
     "goal_report_photo": goal_reports.upload_photo,
