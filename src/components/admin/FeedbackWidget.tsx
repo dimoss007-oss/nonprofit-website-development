@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Icon from "@/components/ui/icon";
 
 const API = "https://functions.poehali.dev/2a909b11-72ee-48fd-9e6a-24527476dc11";
@@ -8,6 +8,8 @@ const CATEGORIES = [
   { id: "bug", label: "Ошибка" },
   { id: "question", label: "Вопрос" },
 ];
+
+interface MyItem { id: number; message: string; created_at: string; reply: string | null; reply_seen: boolean }
 
 interface Props { authorName: string; authorLogin: string }
 
@@ -19,6 +21,29 @@ export default function FeedbackWidget({ authorName, authorLogin }: Props) {
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
 
+  const [mine, setMine] = useState<MyItem[]>([]);
+  const [tab, setTab] = useState<"new" | "mine">("new");
+  const unseen = mine.filter(i => i.reply && !i.reply_seen).length;
+
+  const loadMine = async () => {
+    try {
+      const res = await fetch(`${API}?kind=my_feedback&login=${encodeURIComponent(authorLogin)}`);
+      const d = await res.json();
+      setMine(d.items || []);
+    } catch { setMine([]); }
+  };
+
+  useEffect(() => { loadMine(); }, [authorLogin]);
+
+  const openMine = async () => {
+    setTab("mine");
+    await loadMine();
+    if (unseen > 0) {
+      await fetch(API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "feedback_seen", login: authorLogin }) });
+      setMine(prev => prev.map(i => ({ ...i, reply_seen: true })));
+    }
+  };
+
   const send = async () => {
     if (!message.trim()) { setError("Опишите, что нужно доработать"); return; }
     setSending(true); setError("");
@@ -29,7 +54,7 @@ export default function FeedbackWidget({ authorName, authorLogin }: Props) {
         body: JSON.stringify({ action: "feedback", category, message, author_name: authorName, author_login: authorLogin }),
       });
       const d = await res.json();
-      if (d.ok) { setSent(true); setMessage(""); setTimeout(() => { setSent(false); setOpen(false); }, 2000); }
+      if (d.ok) { setSent(true); setMessage(""); loadMine(); setTimeout(() => { setSent(false); setOpen(false); }, 2000); }
       else setError(d.error || "Не удалось отправить");
     } catch { setError("Ошибка соединения. Попробуйте снова."); }
     setSending(false);
@@ -48,7 +73,29 @@ export default function FeedbackWidget({ authorName, authorLogin }: Props) {
               <Icon name="X" size={16} />
             </button>
           </div>
-          {sent ? (
+          <div className="flex border-b border-slate-100">
+            <button onClick={() => setTab("new")} className={`flex-1 py-2 text-xs font-medium ${tab === "new" ? "text-brand-700 border-b-2 border-brand-600" : "text-slate-500"}`}>Написать</button>
+            <button onClick={openMine} className={`flex-1 py-2 text-xs font-medium ${tab === "mine" ? "text-brand-700 border-b-2 border-brand-600" : "text-slate-500"}`}>
+              Мои обращения{unseen > 0 && <span className="ml-1.5 inline-block min-w-4 px-1 rounded-full bg-red-500 text-white text-[10px]">{unseen}</span>}
+            </button>
+          </div>
+          {tab === "mine" ? (
+            <div className="p-4 space-y-3 max-h-80 overflow-y-auto">
+              {mine.length === 0 && <p className="text-sm text-slate-500 text-center py-6">Вы пока ничего не отправляли</p>}
+              {mine.map(i => (
+                <div key={i.id} className="border border-slate-100 rounded-xl p-3">
+                  <p className="text-xs text-slate-400 mb-1">{new Date(i.created_at).toLocaleDateString("ru-RU")}</p>
+                  <p className="text-sm text-slate-700 whitespace-pre-wrap">{i.message}</p>
+                  {i.reply ? (
+                    <div className="mt-2 bg-brand-50 rounded-lg px-3 py-2">
+                      <p className="text-xs font-semibold text-brand-700 mb-0.5">Ответ</p>
+                      <p className="text-sm text-slate-800 whitespace-pre-wrap">{i.reply}</p>
+                    </div>
+                  ) : <p className="mt-2 text-xs text-slate-400">Ответа пока нет</p>}
+                </div>
+              ))}
+            </div>
+          ) : sent ? (
             <div className="px-4 py-10 text-center">
               <Icon name="CheckCircle" size={32} className="text-green-600 mx-auto mb-2" />
               <p className="text-sm font-medium text-slate-700">Спасибо! Сообщение отправлено</p>
@@ -74,6 +121,7 @@ export default function FeedbackWidget({ authorName, authorLogin }: Props) {
       <button onClick={() => setOpen(o => !o)} className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium shadow-lg transition-colors" aria-label="Обратная связь">
         <Icon name="MessageSquarePlus" size={16} />
         <span className="hidden sm:inline">Обратная связь</span>
+        {unseen > 0 && !open && <span className="min-w-5 h-5 px-1 rounded-full bg-red-500 text-white text-xs flex items-center justify-center">{unseen}</span>}
       </button>
     </div>
   );

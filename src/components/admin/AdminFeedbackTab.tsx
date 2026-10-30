@@ -10,6 +10,7 @@ interface Item {
   message: string;
   status: "new" | "done";
   created_at: string;
+  reply?: string | null;
 }
 
 const CATEGORY: Record<string, { label: string; color: string }> = {
@@ -42,6 +43,19 @@ export default function AdminFeedbackTab() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "feedback_status", id: item.id, status }),
     });
+  };
+
+  const [drafts, setDrafts] = useState<Record<number, string>>({});
+
+  const sendReply = async (item: Item) => {
+    const reply = (drafts[item.id] ?? item.reply ?? "").trim();
+    await fetch(API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "feedback_reply", id: item.id, reply }),
+    });
+    setItems(prev => prev.map(i => i.id === item.id ? { ...i, reply: reply || null } : i));
+    setDrafts(prev => { const n = { ...prev }; delete n[item.id]; return n; });
   };
 
   const shown = items.filter(i => filter === "all" || i.status === filter);
@@ -80,6 +94,18 @@ export default function AdminFeedbackTab() {
                   <span className="text-xs text-slate-400">{new Date(item.created_at).toLocaleString("ru-RU")}</span>
                 </div>
                 <p className="text-sm text-slate-700 whitespace-pre-wrap">{item.message}</p>
+                <div className="mt-3 flex gap-2">
+                  <input
+                    value={drafts[item.id] ?? item.reply ?? ""}
+                    onChange={e => setDrafts(prev => ({ ...prev, [item.id]: e.target.value }))}
+                    maxLength={1000}
+                    placeholder="Короткий ответ сотруднику"
+                    className="flex-1 min-w-0 border border-slate-200 rounded-xl px-3 py-1.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  />
+                  <button onClick={() => sendReply(item)} disabled={(drafts[item.id] ?? item.reply ?? "") === (item.reply ?? "")} className="px-3 py-1.5 text-xs font-medium rounded-xl bg-brand-600 hover:bg-brand-700 text-white disabled:opacity-40 transition-colors">
+                    {item.reply ? "Обновить" : "Ответить"}
+                  </button>
+                </div>
                 <button onClick={() => toggle(item)} className={`mt-3 inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${done ? "border-slate-200 text-slate-600 hover:bg-slate-50" : "border-green-200 bg-green-50 text-green-700 hover:bg-green-100"}`}>
                   <Icon name={done ? "RotateCcw" : "Check"} size={13} className="mr-1.5" />
                   {done ? "Вернуть в новые" : "Отметить выполненным"}

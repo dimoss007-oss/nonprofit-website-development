@@ -32,8 +32,21 @@ def handler(event: dict, context) -> dict:
     conn = get_conn()
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
+    if method == "GET" and params.get("kind") == "my_feedback":
+        login = (params.get("login") or "").strip()
+        if not login:
+            conn.close()
+            return ok({"items": []})
+        cur.execute(
+            f"SELECT id, category, message, status, created_at, reply, replied_at, reply_seen FROM {SCHEMA}.crm_feedback WHERE author_login = %s ORDER BY created_at DESC LIMIT 30",
+            (login,)
+        )
+        rows = [dict(r) for r in cur.fetchall()]
+        conn.close()
+        return ok({"items": rows})
+
     if method == "GET" and params.get("kind") == "feedback":
-        cur.execute(f"SELECT id, author_name, category, message, status, created_at FROM {SCHEMA}.crm_feedback ORDER BY created_at DESC LIMIT 200")
+        cur.execute(f"SELECT id, author_name, category, message, status, created_at, reply, replied_at FROM {SCHEMA}.crm_feedback ORDER BY created_at DESC LIMIT 200")
         rows = [dict(r) for r in cur.fetchall()]
         conn.close()
         return ok({"items": rows})
@@ -72,6 +85,23 @@ def handler(event: dict, context) -> dict:
             conn.commit()
             conn.close()
             return ok({"ok": True, "id": new_id})
+
+        if action == "feedback_reply":
+            reply = (body.get("reply") or "").strip()[:1000]
+            cur.execute(
+                f"UPDATE {SCHEMA}.crm_feedback SET reply=%s, replied_at=CASE WHEN %s = '' THEN NULL ELSE NOW() END, reply_seen=FALSE WHERE id=%s",
+                (reply or None, reply, body.get("id"))
+            )
+            conn.commit()
+            conn.close()
+            return ok({"ok": True})
+
+        if action == "feedback_seen":
+            login = (body.get("login") or "").strip()
+            cur.execute(f"UPDATE {SCHEMA}.crm_feedback SET reply_seen=TRUE WHERE author_login=%s AND reply IS NOT NULL", (login,))
+            conn.commit()
+            conn.close()
+            return ok({"ok": True})
 
         if action == "feedback_status":
             status = body.get("status")
