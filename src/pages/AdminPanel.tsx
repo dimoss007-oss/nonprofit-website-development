@@ -201,7 +201,7 @@ export default function AdminPanel() {
         fullName={session.full_name || session.login}
         isAdmin={isAdmin}
         tab={tab}
-        mainTabs={pick(["psychologist", "dashboard", "crm", "shifts", "tasks", "requests", "fundraising"])}
+        mainTabs={pick(["dashboard", "crm", "shifts", "tasks", "requests", "fundraising", "psychologist"])}
         refTabs={pick(["sop", "gov", "news", "gallery"])}
         settingsTabs={pick(["users", "ai_settings", "feedback"])}
         onSelect={id => setTab(id as Tab)}
