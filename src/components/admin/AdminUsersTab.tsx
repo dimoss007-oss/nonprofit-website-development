@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import Icon from "@/components/ui/icon";
+import LoginLogPanel from "@/components/admin/LoginLogPanel";
 
 const API = "https://functions.poehali.dev/e6567f16-b3db-4b0d-9c1f-abed808c2ac8";
 
@@ -48,9 +49,11 @@ export const ALL_TABS = [
   { id: "fundraising", label: "Фандрайзинг",   icon: "HandCoins" },
   { id: "gov",         label: "Госорганы",     icon: "Landmark" },
   { id: "shifts",      label: "Отчёты смены",  icon: "Clock" },
+  { id: "psychologist", label: "Психолог",      icon: "Brain" },
 ] as const;
 
 export type TabId = typeof ALL_TABS[number]["id"];
+const DEFAULT_TABS: TabId[] = ALL_TABS.map(t => t.id).filter(id => id !== "psychologist");
 
 export function parsePermissions(raw?: string | null): TabId[] | null {
   if (!raw) return null;
@@ -179,13 +182,14 @@ export default function AdminUsersTab({ authLogin, authPassword, isAdmin = false
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [view, setView] = useState<"staff" | "log">("staff");
 
   const [newLogin, setNewLogin] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [newRole, setNewRole] = useState<Role>("user");
   const [newFullName, setNewFullName] = useState("");
   const [newPhone, setNewPhone] = useState("");
-  const [newPerms, setNewPerms] = useState<TabId[]>(ALL_TABS.map(t => t.id));
+  const [newPerms, setNewPerms] = useState<TabId[]>(DEFAULT_TABS);
   const [newProfile, setNewProfile] = useState<ProfileForm>(EMPTY_PROFILE);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -212,7 +216,7 @@ export default function AdminUsersTab({ authLogin, authPassword, isAdmin = false
     const d = await r.json();
     setSaving(false);
     if (d.error) { setError(d.error); return; }
-    setAdding(false); setNewLogin(""); setNewPassword(""); setNewRole("user"); setNewFullName(""); setNewPhone(""); setNewPerms(ALL_TABS.map(t => t.id)); setNewProfile(EMPTY_PROFILE);
+    setAdding(false); setNewLogin(""); setNewPassword(""); setNewRole("user"); setNewFullName(""); setNewPhone(""); setNewPerms(DEFAULT_TABS); setNewProfile(EMPTY_PROFILE);
     load();
   };
 
@@ -264,10 +268,23 @@ export default function AdminUsersTab({ authLogin, authPassword, isAdmin = false
     );
   }
 
+  if (view === "log") {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-3">
+          <button onClick={() => setView("staff")} className="flex items-center gap-1.5 text-sm text-ink/50 hover:text-ink"><Icon name="ArrowLeft" size={16} />К сотрудникам</button>
+          <h2 className="font-cormorant text-ink text-2xl font-semibold">Журнал входов</h2>
+        </div>
+        <LoginLogPanel authLogin={authLogin} authPassword={authPassword} />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="font-cormorant text-ink text-2xl font-semibold">Сотрудники</h2>
+        <button onClick={() => setView("log")} className="flex items-center gap-2 border border-beige-dark px-4 py-2.5 rounded-xl text-sm hover:border-ink transition-colors mr-auto ml-4"><Icon name="History" size={16} /> Журнал входов</button>
         <button onClick={() => { setAdding(true); setError(""); }} className="flex items-center gap-2 bg-ink text-beige px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-ink/90 transition-colors">
           <Icon name="UserPlus" size={16} /> Добавить
         </button>
@@ -376,7 +393,7 @@ function EditableUserRow({ user, authLogin, authPassword, onDeleted, onUpdated, 
   const [fullName, setFullName] = useState(user.full_name || "");
   const [phone, setPhone] = useState(user.phone || "");
   const [newPassword, setNewPassword] = useState("");
-  const [perms, setPerms] = useState<TabId[]>(() => parsePermissions(user.permissions) ?? ALL_TABS.map(t => t.id));
+  const [perms, setPerms] = useState<TabId[]>(() => parsePermissions(user.permissions) ?? DEFAULT_TABS);
   const [profile, setProfile] = useState<ProfileForm>(() => toProfile(user));
   const [saving, setSaving] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);

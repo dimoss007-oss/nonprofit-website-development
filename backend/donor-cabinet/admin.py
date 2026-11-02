@@ -39,10 +39,20 @@ def authorize(cur, body) -> bool:
     master_password = os.environ.get("ADMIN_PASSWORD", "")
     if master_login and hmac.compare_digest(login, master_login) and hmac.compare_digest(password, master_password):
         return True
-    cur.execute(f"SELECT password_hash, role, permissions FROM {SCHEMA}.admin_users WHERE login = %s", (login,))
-    user = cur.fetchone()
-    if not user or not hmac.compare_digest(sha(password), user["password_hash"]):
-        return False
+    if password.startswith("stk_"):
+        cur.execute(
+            f"""SELECT u.role, u.permissions FROM {SCHEMA}.staff_sessions s JOIN {SCHEMA}.admin_users u ON u.id = s.user_id
+                WHERE s.token_hash = %s AND s.expires_at > NOW() AND u.login = %s""",
+            (sha(password), login),
+        )
+        user = cur.fetchone()
+        if not user:
+            return False
+    else:
+        cur.execute(f"SELECT password_hash, role, permissions FROM {SCHEMA}.admin_users WHERE login = %s", (login,))
+        user = cur.fetchone()
+        if not user or not hmac.compare_digest(sha(password), user["password_hash"]):
+            return False
     if user["role"] == "admin":
         return True
     try:

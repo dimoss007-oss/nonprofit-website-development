@@ -55,6 +55,38 @@
         "new_password": "abcdef"
       },
       "expectedStatus": 400
+    },
+    {
+      "name": "Журнал входов без прав",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "login_log",
+        "auth_login": "x",
+        "auth_password": "y"
+      },
+      "expectedStatus": 403
+    },
+    {
+      "name": "Код входа: неизвестный логин",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "request_login_code",
+        "login": "nobody-xyz"
+      },
+      "expectedStatus": 200
+    },
+    {
+      "name": "Код входа: неверный код",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "confirm_login_code",
+        "login": "nobody-xyz",
+        "code": "000000"
+      },
+      "expectedStatus": 400
     }
   ]
 }

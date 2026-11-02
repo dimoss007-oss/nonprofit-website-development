@@ -52,6 +52,13 @@ def is_admin(cur, login: str, password: str) -> bool:
     master_password = os.environ.get('ADMIN_PASSWORD', '')
     if master_login and hmac.compare_digest(login, master_login) and hmac.compare_digest(password, master_password):
         return True
+    if password.startswith('stk_'):
+        cur.execute(
+            f"SELECT u.role FROM {SCHEMA}.staff_sessions s JOIN {SCHEMA}.admin_users u ON u.id = s.user_id WHERE s.token_hash = %s AND s.expires_at > NOW() AND u.login = %s",
+            (hashlib.sha256(password.encode()).hexdigest(), login),
+        )
+        row = cur.fetchone()
+        return bool(row and row['role'] == 'admin')
     cur.execute(f"SELECT password_hash, role FROM {SCHEMA}.admin_users WHERE login = %s", (login,))
     user = cur.fetchone()
     if not user or user['role'] != 'admin':

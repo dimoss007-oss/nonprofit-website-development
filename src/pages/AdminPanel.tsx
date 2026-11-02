@@ -11,6 +11,7 @@ import AdminFundraisingTab from "@/components/admin/AdminFundraisingTab";
 import AdminGovTab from "@/components/admin/AdminGovTab";
 import AdminShiftLogsTab from "@/components/admin/AdminShiftLogsTab";
 import AdminTasksWidget from "@/components/admin/AdminTasksWidget";
+import MaxCodeLogin from "@/components/admin/MaxCodeLogin";
 import PasswordResetForm from "@/components/admin/PasswordResetForm";
 import AdminDashboard from "@/components/admin/AdminDashboard";
 import AdminAiSettingsTab from "@/components/admin/AdminAiSettingsTab";
@@ -29,7 +30,7 @@ type Tab = TabId | "ai_settings" | "dashboard" | "feedback" | "psychologist";
 type Role = "admin" | "user" | "psychologist";
 const startTab = (role?: Role): Tab => (role === "admin" ? "dashboard" : role === "psychologist" ? "psychologist" : "tasks");
 
-interface Session { login: string; password: string; role: Role; full_name: string; permissions?: string | null }
+export interface Session { login: string; password: string; role: Role; full_name: string; permissions?: string | null }
 interface AdminUser { login: string; full_name?: string }
 
 function LoginScreen({ onAuth }: { onAuth: (s: Session) => void }) {
@@ -39,6 +40,7 @@ function LoginScreen({ onAuth }: { onAuth: (s: Session) => void }) {
   const [loading, setLoading] = useState(false);
   const [showPass, setShowPass] = useState(false);
   const [resetMode, setResetMode] = useState(false);
+  const [codeMode, setCodeMode] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,7 +65,7 @@ function LoginScreen({ onAuth }: { onAuth: (s: Session) => void }) {
           <div className="font-cormorant text-ink text-2xl font-semibold">Спасение надежды</div>
           <div className="text-ink/40 text-xs uppercase tracking-widest mt-1">Панель управления</div>
         </div>
-        {resetMode ? <PasswordResetForm initialLogin={login} onBack={() => setResetMode(false)} /> : (
+        {resetMode ? <PasswordResetForm initialLogin={login} onBack={() => setResetMode(false)} /> : codeMode ? <MaxCodeLogin initialLogin={login} onAuth={onAuth} onBack={() => setCodeMode(false)} /> : (
         <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-8 shadow-sm space-y-4">
           <div>
             <label className="block text-xs uppercase tracking-widest text-ink/50 mb-2">Логин</label>
@@ -81,6 +83,9 @@ function LoginScreen({ onAuth }: { onAuth: (s: Session) => void }) {
           {error && <div className="flex items-center gap-2 text-red-500 text-sm bg-red-50 px-4 py-3 rounded-xl"><Icon name="AlertCircle" size={14} />{error}</div>}
           <button type="submit" disabled={loading} className="w-full bg-ink text-beige py-3.5 rounded-xl font-semibold text-sm hover:bg-ink/90 transition-colors disabled:opacity-60">
             {loading ? "Проверяем..." : "Войти"}
+          </button>
+          <button type="button" onClick={() => setCodeMode(true)} className="w-full flex items-center justify-center gap-2 border border-beige-dark py-3 rounded-xl text-sm text-ink hover:border-ink transition-colors">
+            <Icon name="MessageCircle" size={15} /> Войти по коду из Max
           </button>
           <button type="button" onClick={() => setResetMode(true)} className="w-full text-xs text-ink/50 hover:text-ink transition-colors">
             Забыли пароль?
@@ -135,8 +140,7 @@ export default function AdminPanel() {
       return;
     }
     const perms = parsePermissions(session.permissions);
-    if (tab === "psychologist") return;
-    if (perms && !perms.includes(tab)) {
+    if (perms && !perms.includes(tab) && !(tab === "psychologist" && session.role === "psychologist")) {
       const first = ALL_TABS.find(t => perms.includes(t.id));
       if (first) setTab(first.id);
     }
@@ -186,7 +190,7 @@ export default function AdminPanel() {
     { id: "feedback",    label: "Пожелания",     icon: "MessageSquareText" },
     { id: "psychologist", label: "Психолог",     icon: "Brain" },
   ];
-  const isPsychologist = session.role === "psychologist";
+  const isPsychologist = session.role === "psychologist" || !!userPerms?.includes("psychologist" as TabId);
 
   const visibleTabs = isAdmin
     ? TABS

@@ -1,4 +1,5 @@
 import hashlib
+import json
 import hmac
 import os
 import re
@@ -54,13 +55,33 @@ def authenticate(cur, login: str, password: str):
     ml, mp = os.environ.get("ADMIN_LOGIN", ""), os.environ.get("ADMIN_PASSWORD", "")
     if ml and hmac.compare_digest(login, ml) and hmac.compare_digest(password, mp):
         return {"login": login, "role": "admin", "full_name": "Администратор"}
-    cur.execute(f"SELECT login, role, full_name, password_hash FROM {SCHEMA}.admin_users WHERE login = %s", (login,))
+    digest = hashlib.sha256(password.encode()).hexdigest()
+    if password.startswith("stk_"):
+        cur.execute(
+            f"""SELECT u.login, u.role, u.full_name, u.permissions FROM {SCHEMA}.staff_sessions s JOIN {SCHEMA}.admin_users u ON u.id = s.user_id
+                WHERE s.token_hash = %s AND s.expires_at > NOW() AND u.login = %s""",
+            (digest, login),
+        )
+        user = cur.fetchone()
+        if not user:
+            return None
+        return {"login": user["login"], "role": user["role"], "full_name": user["full_name"] or user["login"], "permissions": user["permissions"]}
+    cur.execute(f"SELECT login, role, full_name, permissions, password_hash FROM {SCHEMA}.admin_users WHERE login = %s", (login,))
     user = cur.fetchone()
     if not user:
         return None
-    if not hmac.compare_digest(hashlib.sha256(password.encode()).hexdigest(), user["password_hash"]):
+    if not hmac.compare_digest(digest, user["password_hash"]):
         return None
-    return {"login": user["login"], "role": user["role"], "full_name": user["full_name"] or user["login"]}
+    return {"login": user["login"], "role": user["role"], "full_name": user["full_name"] or user["login"], "permissions": user["permissions"]}
+
+
+def has_psycho_access(user: dict) -> bool:
+    if user["role"] in ("psychologist", "admin"):
+        return True
+    try:
+        return "psychologist" in json.loads(user.get("permissions") or "[]")
+    except ValueError:
+        return False
 
 
 def mask_name(text: str, client_name: str) -> str:
@@ -128,7 +149,7 @@ def handle(cur, conn, event, body):
         )
         return ok({"items": [dict(r) for r in cur.fetchall()]})
 
-    if user["role"] not in ("psychologist", "admin"):
+    if not has_psycho_access(user):
         return err("Раздел доступен только психологу", 403)
     login = user["login"]
 

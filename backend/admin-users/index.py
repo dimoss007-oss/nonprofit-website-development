@@ -62,6 +62,61 @@ def send_reset_code(max_chat_id: int, code: str) -> bool:
         print(f"reset code send error: {e}")
         return False
 
+SESSION_TTL_HOURS = 12
+TOKEN_PREFIX = "stk_"
+LOGIN_CODE_TTL_MIN = 10
+
+
+def send_max_text(max_chat_id: int, text: str) -> bool:
+    token = os.environ.get("MAX_TASKS_BOT_TOKEN", "")
+    if not token or not max_chat_id:
+        return False
+    try:
+        r = requests.post(f"{MAX_API_URL}/messages", params={"user_id": max_chat_id}, headers={"Authorization": token}, json={"text": text}, timeout=5)
+        print(f"login code send status={r.status_code}")
+        return r.status_code == 200
+    except Exception as e:
+        print(f"login code send error: {e}")
+        return False
+
+
+def sha(text: str) -> str:
+    return hashlib.sha256(text.encode()).hexdigest()
+
+
+def client_info(event: dict):
+    ip = ((event.get("requestContext") or {}).get("identity") or {}).get("sourceIp") or ""
+    ua = (event.get("headers") or {}).get("User-Agent") or (event.get("headers") or {}).get("user-agent") or ""
+    return ip[:64], ua[:300]
+
+
+def log_login(cur, event: dict, login: str, full_name, method: str, success: bool):
+    ip, ua = client_info(event)
+    cur.execute(
+        f"INSERT INTO {SCHEMA}.admin_login_log (login, full_name, method, success, ip, user_agent) VALUES (%s,%s,%s,%s,%s,%s)",
+        (login[:100], full_name, method, success, ip, ua),
+    )
+
+
+def verify_admin(cur, login: str, password: str) -> bool:
+    if verify_master(login, password):
+        return True
+    if not login or not password:
+        return False
+    if password.startswith(TOKEN_PREFIX):
+        cur.execute(
+            f"""SELECT u.role FROM {SCHEMA}.staff_sessions s JOIN {SCHEMA}.admin_users u ON u.id = s.user_id
+                WHERE s.token_hash = %s AND s.expires_at > NOW() AND u.login = %s""",
+            (sha(password), login),
+        )
+    else:
+        cur.execute(f"SELECT role, password_hash FROM {SCHEMA}.admin_users WHERE login = %s", (login,))
+    row = cur.fetchone()
+    if not row or row["role"] != "admin":
+        return False
+    return password.startswith(TOKEN_PREFIX) or hmac.compare_digest(sha(password), row["password_hash"])
+
+
 PUBLIC_COLS = "id, login, role, full_name, phone, created_at, permissions, position, photo_url, (max_chat_id IS NOT NULL) AS max_linked"
 FULL_COLS = PUBLIC_COLS + ", birth_date, passport_series, passport_number, passport_issued_by, passport_issued_date"
 
@@ -83,22 +138,103 @@ def handler(event: dict, context) -> dict:
         login = body.get("login", "")
         password = body.get("password", "")
 
+        conn = get_conn()
+        conn.autocommit = True
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+
         if verify_master(login, password):
+            log_login(cur, event, login, "Администратор", "password", True)
+            conn.close()
             return ok({"ok": True, "role": "admin", "full_name": "Администратор", "login": login, "permissions": None})
 
-        conn = get_conn()
-        cur = conn.cursor(cursor_factory=RealDictCursor)
         cur.execute(f"SELECT * FROM {SCHEMA}.admin_users WHERE login = %s", (login,))
         user = cur.fetchone()
+
+        if not user or not hmac.compare_digest(hash_password(password), user["password_hash"]):
+            log_login(cur, event, str(login), user["full_name"] if user else None, "password", False)
+            conn.close()
+            return ok({"ok": False, "error": "Неверный логин или пароль"}, 401)
+
+        log_login(cur, event, login, user["full_name"] or login, "password", True)
         conn.close()
-
-        if not user:
-            return ok({"ok": False, "error": "Неверный логин или пароль"}, 401)
-
-        if not hmac.compare_digest(hash_password(password), user["password_hash"]):
-            return ok({"ok": False, "error": "Неверный логин или пароль"}, 401)
-
         return ok({"ok": True, "role": user["role"], "full_name": user["full_name"] or login, "login": login, "permissions": user.get("permissions")})
+
+    # ── Вход по коду из Max ──────────────────────────────
+    if method == "POST" and body.get("action") == "request_login_code":
+        login = (body.get("login") or "").strip()
+        if not login:
+            return err("Укажите логин")
+        conn = get_conn()
+        conn.autocommit = True
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        cur.execute(f"SELECT id, max_chat_id FROM {SCHEMA}.admin_users WHERE login = %s", (login,))
+        user = cur.fetchone()
+        if user and user["max_chat_id"]:
+            cur.execute(
+                f"SELECT 1 FROM {SCHEMA}.staff_login_codes WHERE user_id = %s AND created_at > NOW() - (%s || ' seconds')::interval",
+                (user["id"], str(RESET_RESEND_SEC)),
+            )
+            if not cur.fetchone():
+                code = f"{secrets.randbelow(1000000):06d}"
+                cur.execute(
+                    f"""INSERT INTO {SCHEMA}.staff_login_codes (user_id, code_hash, expires_at, attempts, created_at)
+                        VALUES (%s, %s, NOW() + (%s || ' minutes')::interval, 0, NOW())
+                        ON CONFLICT (user_id) DO UPDATE SET code_hash = EXCLUDED.code_hash,
+                            expires_at = EXCLUDED.expires_at, attempts = 0, created_at = NOW()""",
+                    (user["id"], hash_code(user["id"], code), str(LOGIN_CODE_TTL_MIN)),
+                )
+                send_max_text(user["max_chat_id"], f"🔑 Код для входа в CRM: {code}\nДействует {LOGIN_CODE_TTL_MIN} минут. Если это не вы, никому не сообщайте код.")
+        conn.close()
+        return ok({"ok": True, "message": "Если сотрудник найден и подключён к боту Max, код отправлен в мессенджер."})
+
+    if method == "POST" and body.get("action") == "confirm_login_code":
+        login = (body.get("login") or "").strip()
+        code = (body.get("code") or "").strip()
+        bad = "Неверный или просроченный код"
+        if not login or not code:
+            return err("Введите логин и код")
+        conn = get_conn()
+        conn.autocommit = True
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        cur.execute(
+            f"""SELECT u.id, u.role, u.full_name, u.permissions, c.code_hash, c.attempts, (c.expires_at > NOW()) AS alive
+                FROM {SCHEMA}.admin_users u JOIN {SCHEMA}.staff_login_codes c ON c.user_id = u.id WHERE u.login = %s""",
+            (login,),
+        )
+        row = cur.fetchone()
+        if not row or not row["alive"] or row["attempts"] >= RESET_MAX_ATTEMPTS:
+            log_login(cur, event, login, row["full_name"] if row else None, "max_code", False)
+            conn.close()
+            return err(bad, 400)
+        if not hmac.compare_digest(hash_code(row["id"], code), row["code_hash"]):
+            cur.execute(f"UPDATE {SCHEMA}.staff_login_codes SET attempts = attempts + 1 WHERE user_id = %s", (row["id"],))
+            log_login(cur, event, login, row["full_name"], "max_code", False)
+            conn.close()
+            return err(bad, 400)
+        cur.execute(f"UPDATE {SCHEMA}.staff_login_codes SET expires_at = NOW() - interval '1 second' WHERE user_id = %s", (row["id"],))
+        cur.execute(f"DELETE FROM {SCHEMA}.staff_sessions WHERE expires_at < NOW()")
+        token = TOKEN_PREFIX + secrets.token_urlsafe(32)
+        cur.execute(
+            f"INSERT INTO {SCHEMA}.staff_sessions (token_hash, user_id, expires_at) VALUES (%s, %s, NOW() + (%s || ' hours')::interval)",
+            (sha(token), row["id"], str(SESSION_TTL_HOURS)),
+        )
+        log_login(cur, event, login, row["full_name"] or login, "max_code", True)
+        conn.close()
+        return ok({"ok": True, "role": row["role"], "full_name": row["full_name"] or login, "login": login, "permissions": row["permissions"], "token": token})
+
+    if method == "POST" and body.get("action") == "login_log":
+        conn = get_conn()
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        if not verify_admin(cur, str(body.get("auth_login") or ""), str(body.get("auth_password") or "")):
+            conn.close()
+            return err("Нет прав", 403)
+        only = (body.get("login") or "").strip()
+        limit = min(int(body.get("limit") or 200), 500)
+        where, vals = ("WHERE login = %s", (only, limit)) if only else ("", (limit,))
+        cur.execute(f"SELECT id, login, full_name, method, success, ip, user_agent, created_at FROM {SCHEMA}.admin_login_log {where} ORDER BY created_at DESC LIMIT %s", vals)
+        rows = [dict(r) for r in cur.fetchall()]
+        conn.close()
+        return ok({"entries": rows})
 
     # ── Восстановление пароля через Max ──────────────────
     if method == "POST" and body.get("action") == "request_reset":
