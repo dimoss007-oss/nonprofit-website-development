@@ -16,11 +16,12 @@ const TEXT_FIELDS: { key: keyof PsychoSession; label: string; hint?: string }[] 
 interface Props {
   value: PsychoSession;
   families: FamilyOption[];
+  patients: FamilyOption[];
   onChange: (v: PsychoSession) => void;
   disabled?: boolean;
 }
 
-export default function PsychoSessionForm({ value, families, onChange, disabled }: Props) {
+export default function PsychoSessionForm({ value, families, patients, onChange, disabled }: Props) {
   const set = <K extends keyof PsychoSession>(k: K, v: PsychoSession[K]) => onChange({ ...value, [k]: v });
 
   return (
@@ -31,13 +32,26 @@ export default function PsychoSessionForm({ value, families, onChange, disabled 
           <input type="date" className={inp} value={value.date} onChange={e => set("date", e.target.value)} disabled={disabled} />
         </div>
         <div>
-          <label className={lbl}>Карточка семьи (для прикрепления рекомендаций)</label>
-          <select className={inp} value={value.clientId} onChange={e => {
-            const f = families.find(x => String(x.id) === e.target.value);
-            onChange({ ...value, clientId: e.target.value, clientName: value.clientName || f?.name || "" });
+          <label className={lbl}>Карточка (для прикрепления рекомендаций)</label>
+          <select className={inp} value={value.patientId ? `p:${value.patientId}` : value.clientId ? `f:${value.clientId}` : ""} onChange={e => {
+            const v = e.target.value;
+            if (!v) { onChange({ ...value, patientId: "", clientId: "" }); return; }
+            const isPatient = v.startsWith("p:");
+            const id = v.slice(2);
+            const found = (isPatient ? patients : families).find(x => String(x.id) === id);
+            onChange({ ...value, patientId: isPatient ? id : "", clientId: isPatient ? "" : id, clientName: value.clientName || found?.name || "" });
           }} disabled={disabled}>
             <option value="">Не выбрана</option>
-            {families.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
+            {patients.length > 0 && (
+              <optgroup label="Сейчас в стационаре">
+                {patients.map(f => <option key={`p${f.id}`} value={`p:${f.id}`}>{f.name}</option>)}
+              </optgroup>
+            )}
+            {families.length > 0 && (
+              <optgroup label="Семьи на сопровождении (СОП)">
+                {families.map(f => <option key={`f${f.id}`} value={`f:${f.id}`}>{f.name}</option>)}
+              </optgroup>
+            )}
           </select>
         </div>
       </div>

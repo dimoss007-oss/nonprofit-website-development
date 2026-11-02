@@ -4,13 +4,13 @@ import { Creds, psychoCall } from "./psycho/psychoApi";
 
 type Item = { session_date: string; text: string };
 
-export default function PsychologistRecommendations({ familyId, authLogin, authPassword }: { familyId: number; authLogin: string; authPassword: string }) {
+export default function PsychologistRecommendations({ familyId, patientId, authLogin, authPassword }: { familyId?: number; patientId?: number; authLogin: string; authPassword: string }) {
   const [items, setItems] = useState<Item[]>([]);
 
   useEffect(() => {
     const creds: Creds = { authLogin, authPassword };
-    psychoCall<{ items: Item[] }>(creds, "recommendations", { family_id: familyId }).then(d => setItems(d.items)).catch(() => setItems([]));
-  }, [familyId, authLogin, authPassword]);
+    psychoCall<{ items: Item[] }>(creds, "recommendations", patientId ? { patient_id: patientId } : { family_id: familyId }).then(d => setItems(d.items)).catch(() => setItems([]));
+  }, [familyId, patientId, authLogin, authPassword]);
 
   if (items.length === 0) return null;
   return (

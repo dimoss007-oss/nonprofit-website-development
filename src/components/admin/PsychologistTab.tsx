@@ -8,6 +8,7 @@ export default function PsychologistTab({ authLogin, authPassword }: { authLogin
   const creds: Creds = { authLogin, authPassword };
   const [sessions, setSessions] = useState<PsychoSession[]>([]);
   const [families, setFamilies] = useState<FamilyOption[]>([]);
+  const [patients, setPatients] = useState<FamilyOption[]>([]);
   const [current, setCurrent] = useState<PsychoSession>(emptySession());
   const [strategy, setStrategy] = useState("");
   const [busy, setBusy] = useState("");
@@ -21,7 +22,7 @@ export default function PsychologistTab({ authLogin, authPassword }: { authLogin
 
   useEffect(() => {
     load().catch(e => setError(e.message));
-    psychoCall<{ families: FamilyOption[] }>(creds, "families").then(d => setFamilies(d.families)).catch(() => {});
+    psychoCall<{ families: FamilyOption[]; patients?: FamilyOption[] }>(creds, "families").then(d => { setFamilies(d.families); setPatients(d.patients || []); }).catch(() => {});
   }, []);
 
   const open = (s: PsychoSession) => { setCurrent(s); setStrategy(s.aiConsultantStrategy || ""); setError(""); setInfo(""); };
@@ -100,7 +101,7 @@ export default function PsychologistTab({ authLogin, authPassword }: { authLogin
         <div className="space-y-6 min-w-0">
           <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-5">
             <h2 className="font-semibold text-slate-800">{current.id ? "Протокол сессии" : "Новый протокол"}</h2>
-            <PsychoSessionForm value={current} families={families} onChange={setCurrent} disabled={!!busy} />
+            <PsychoSessionForm value={current} families={families} patients={patients} onChange={setCurrent} disabled={!!busy} />
             <div className="flex flex-wrap gap-3">
               <button onClick={save} disabled={!!busy || !current.clientName.trim()} className="px-5 py-2.5 rounded-xl text-sm border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-40">{busy === "save" ? "Сохраняем..." : "Сохранить протокол"}</button>
               <button onClick={analyze} disabled={!!busy || !current.clientName.trim()} className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-40">

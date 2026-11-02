@@ -43,7 +43,7 @@ TEXT_COLS = [f for f, _ in FIELDS]
 MAX_TEXT = 4000
 
 SESSION_COLS = (
-    "id, session_date, client_id, client_name, request, phenomenology, contact_interruptions, client_feelings, "
+    "id, session_date, client_id, patient_id, client_name, request, phenomenology, contact_interruptions, client_feelings, "
     "client_background, client_figure, therapist_feelings, ai_consultant_strategy, ai_supervision, "
     "attached_strategy, attached_at, updated_at"
 )
@@ -140,12 +140,15 @@ def handle(cur, conn, event, body):
         return err("Нет доступа", 401)
 
     if action == "recommendations":
-        family_id = int(body.get("family_id") or 0)
+        if body.get("patient_id"):
+            col, ident = "patient_id", int(body.get("patient_id") or 0)
+        else:
+            col, ident = "client_id", int(body.get("family_id") or 0)
         cur.execute(
             f"""SELECT session_date, attached_strategy AS text FROM {SCHEMA}.psycho_sessions
-                WHERE client_id = %s AND COALESCE(attached_strategy, '') <> ''
+                WHERE {col} = %s AND COALESCE(attached_strategy, '') <> ''
                 ORDER BY session_date DESC, attached_at DESC LIMIT 5""",
-            (family_id,),
+            (ident,),
         )
         return ok({"items": [dict(r) for r in cur.fetchall()]})
 
@@ -158,7 +161,14 @@ def handle(cur, conn, event, body):
             f"""SELECT id, trim(concat_ws(' ', last_name, first_name, middle_name)) AS name
                 FROM {SCHEMA}.sop_families ORDER BY last_name, first_name"""
         )
-        return ok({"families": [dict(r) for r in cur.fetchall()]})
+        families = [dict(r) for r in cur.fetchall()]
+        cur.execute(
+            f"""SELECT id, trim(concat_ws(' ', last_name, first_name, middle_name)) AS name
+                FROM {SCHEMA}.patients
+                WHERE discharge_date IS NULL AND care_stage = 'inpatient'
+                ORDER BY last_name, first_name"""
+        )
+        return ok({"families": families, "patients": [dict(r) for r in cur.fetchall()]})
 
     if action == "list":
         cur.execute(
@@ -179,22 +189,28 @@ def handle(cur, conn, event, body):
             client_id = int(body.get("client_id") or 0) or None
         except (TypeError, ValueError):
             client_id = None
+        try:
+            patient_id = int(body.get("patient_id") or 0) or None
+        except (TypeError, ValueError):
+            patient_id = None
+        if patient_id:
+            client_id = None
         texts = [str(body.get(c) or "")[:MAX_TEXT] for c in TEXT_COLS]
         if sid:
             if not own_session(cur, sid, login):
                 return err("Протокол не найден", 404)
             sets = ", ".join(f"{c} = %s" for c in TEXT_COLS)
             cur.execute(
-                f"UPDATE {SCHEMA}.psycho_sessions SET session_date=%s, client_id=%s, client_name=%s, {sets}, updated_at=NOW() WHERE id=%s",
-                (date, client_id, client_name, *texts, sid),
+                f"UPDATE {SCHEMA}.psycho_sessions SET session_date=%s, client_id=%s, patient_id=%s, client_name=%s, {sets}, updated_at=NOW() WHERE id=%s",
+                (date, client_id, patient_id, client_name, *texts, sid),
             )
         else:
             sid = uuid.uuid4().hex
             cols = ", ".join(TEXT_COLS)
             marks = ", ".join(["%s"] * len(TEXT_COLS))
             cur.execute(
-                f"INSERT INTO {SCHEMA}.psycho_sessions (id, author_login, session_date, client_id, client_name, {cols}) VALUES (%s,%s,%s,%s,%s,{marks})",
-                (sid, login, date, client_id, client_name, *texts),
+                f"INSERT INTO {SCHEMA}.psycho_sessions (id, author_login, session_date, client_id, patient_id, client_name, {cols}) VALUES (%s,%s,%s,%s,%s,%s,{marks})",
+                (sid, login, date, client_id, patient_id, client_name, *texts),
             )
         conn.commit()
         return ok({"id": sid})
@@ -229,8 +245,8 @@ def handle(cur, conn, event, body):
         text = str(body.get("text") or "").strip()[:6000]
         detach = bool(body.get("detach"))
         if not detach:
-            if not row["client_id"]:
-                return err("Выберите семью, к карточке которой нужно прикрепить рекомендации")
+            if not row["client_id"] and not row["patient_id"]:
+                return err("Выберите подопечную или семью, к карточке которой нужно прикрепить рекомендации")
             if not text:
                 return err("Текст рекомендаций пуст")
         cur.execute(

@@ -22,11 +22,11 @@ export default function PsychoResults({ session, strategy, setStrategy, busy, on
         <p className="text-xs text-slate-500">Этот текст увидят консультанты и соцработники в карточке семьи. Отредактируйте его перед прикреплением.</p>
         <textarea className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 min-h-[260px] focus:outline-none focus:border-indigo-400 bg-slate-50" value={strategy} onChange={e => setStrategy(e.target.value)} />
         <div className="flex flex-wrap items-center gap-3">
-          <button onClick={onAttach} disabled={!!busy || !session.clientId || !strategy.trim()} className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-40">
+          <button onClick={onAttach} disabled={!!busy || (!session.clientId && !session.patientId) || !strategy.trim()} className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-40">
             <Icon name="Paperclip" size={15} />{busy === "attach" ? "Прикрепляем..." : attached ? "Обновить в карточке семьи" : "Прикрепить к карточке семьи"}
           </button>
           {attached && <button onClick={onDetach} disabled={!!busy} className="text-sm text-slate-500 hover:text-red-600">Открепить</button>}
-          {!session.clientId && <span className="text-xs text-amber-700">Выберите карточку семьи в форме и сохраните протокол</span>}
+          {!session.clientId && !session.patientId && <span className="text-xs text-amber-700">Выберите карточку в форме и сохраните протокол</span>}
           {attached && <span className="text-xs text-green-700">Прикреплено к карточке семьи</span>}
         </div>
       </div>

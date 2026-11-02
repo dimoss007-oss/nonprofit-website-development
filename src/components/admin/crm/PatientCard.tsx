@@ -1,3 +1,4 @@
+import PsychologistRecommendations from "@/components/admin/PsychologistRecommendations";
 import { useState, useEffect, useRef } from "react";
 import Icon from "@/components/ui/icon";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -11,6 +12,13 @@ import { PatientForm, ChildForm, ChildRow, Row } from "@/components/admin/crm/Pa
 
 export default function PatientCard({ patientId, onBack, onDeleted, isAdmin, authorName, onViewShiftHistory }: { patientId: number; onBack: () => void; onDeleted: () => void; isAdmin: boolean; authorName: string; onViewShiftHistory?: (patientId: number) => void }) {
   const [data, setData] = useState<PatientFull | null>(null);
+  const [creds, setCreds] = useState({ login: "", password: "" });
+  useEffect(() => {
+    try {
+      const sess = JSON.parse(sessionStorage.getItem("admin_auth") || "null");
+      if (sess?.login) setCreds({ login: sess.login, password: sess.password || "" });
+    } catch { /* нет сессии */ }
+  }, []);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -362,6 +370,7 @@ export default function PatientCard({ patientId, onBack, onDeleted, isAdmin, aut
               })}
             </div>
           </div>
+          {creds.login && <PsychologistRecommendations patientId={patientId} authLogin={creds.login} authPassword={creds.password} />}
         </TabsContent>
 
         <TabsContent value="dynamics" className="mt-4">
