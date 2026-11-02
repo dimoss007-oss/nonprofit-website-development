@@ -45,11 +45,11 @@ export function FundraisingNav({ metrics, sections, section, currentLabel, switc
       ))}
     </div>
 
-    <div className="bg-white p-2 rounded-2xl border border-slate-200 shadow-sm overflow-x-auto">
-      <div className="flex items-center gap-1 min-w-max">
+    <div className="bg-white p-2 rounded-2xl border border-slate-200 shadow-sm">
+      <div className="flex flex-wrap items-center gap-1">
         {sections.map(x => (
           <button key={x.id} onClick={() => switchSection(x.id)}
-            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium transition whitespace-nowrap ${section === x.id ? "bg-indigo-50 text-indigo-700" : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"}`}>
+            className={`flex flex-1 items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition whitespace-nowrap ${section === x.id ? "bg-indigo-50 text-indigo-700" : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"}`}>
             <Icon name={x.icon} size={14} />
             {x.label}
           </button>
