@@ -9,7 +9,11 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen import canvas
 
-from common import SCHEMA, err, get_settings, ok
+import base64
+import json
+import smtplib
+
+from common import SCHEMA, err, get_settings, ok, open_smtp, send_mail_with_pdf, smtp_configured
 from docs import ACCENT, INK, SOFT, ensure_fonts, money, to_b64, wrap
 from goal_reports import CLOSING
 
@@ -297,3 +301,40 @@ def build_pdf(cur, conn, body):
     c.showPage()
     c.save()
     return ok({"pdf_base64": to_b64(buf), "file_name": f"otchet-{year}.pdf"})
+
+
+def send_pdf(cur, conn, body):
+    to_email = (body.get("to_email") or "").strip()
+    if not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", to_email):
+        return err("Укажите корректный email партнёра")
+    if not smtp_configured():
+        return err("Почта не настроена, письмо отправить нельзя")
+    built = build_pdf(cur, conn, body)
+    if built["statusCode"] != 200:
+        return built
+    data = json.loads(built["body"])
+    settings = get_settings(cur)
+    org_name = settings.get("org_name") or "АНО «Спасение надежды»"
+    company = (body.get("company") or "").strip()[:150]
+    year = _year(body)
+    subject = f"Годовой отчёт {year}: {org_name}"
+    text = (
+        f"Здравствуйте!\n\nНаправляем годовой отчёт о том, как помощь компании «{company}» "
+        f"была использована в {year} году. Отчёт во вложении.\n\n"
+        f"Спасибо, что вы с нами.\n{org_name}"
+    )
+    try:
+        server = open_smtp()
+        try:
+            send_mail_with_pdf(server, to_email, subject, text, org_name, base64.b64decode(data["pdf_base64"]), data["file_name"])
+        finally:
+            try:
+                server.quit()
+            except Exception:
+                pass
+    except smtplib.SMTPRecipientsRefused:
+        return err("Почтовый сервер отклонил этот адрес. Проверьте email партнёра")
+    except Exception as e:
+        print(f"annual send error: {e}")
+        return err("Не удалось отправить письмо, попробуйте ещё раз", 502)
+    return ok({"ok": True})

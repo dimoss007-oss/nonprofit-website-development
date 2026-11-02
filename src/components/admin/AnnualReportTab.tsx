@@ -24,6 +24,8 @@ export default function AnnualReportTab({ authLogin, authPassword }: { authLogin
   const [photos, setPhotos] = useState<string[]>([]);
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
+  const [info, setInfo] = useState("");
+  const [toEmail, setToEmail] = useState("");
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -33,7 +35,7 @@ export default function AnnualReportTab({ authLogin, authPassword }: { authLogin
   }, [q]);
 
   const run = async (name: string, fn: () => Promise<void>) => {
-    setBusy(name); setError("");
+    setBusy(name); setError(""); setInfo("");
     try { await fn(); } catch (e) { setError(e instanceof Error ? e.message : "Ошибка"); }
     setBusy("");
   };
@@ -41,6 +43,7 @@ export default function AnnualReportTab({ authLogin, authPassword }: { authLogin
   const build = () => run("draft", async () => {
     const d = await adminCall<Draft>(creds, "annual_draft", { org_id: Number(orgId), year: Number(year) });
     setDraft(d);
+    setToEmail(d.org.email || "");
     setProjects(d.projects);
     setPhotos(d.projects.map(p => p.photo_url).filter((u): u is string => !!u));
     setIntro("");
@@ -66,6 +69,15 @@ export default function AnnualReportTab({ authLogin, authPassword }: { authLogin
     const a = document.createElement("a");
     a.href = url; a.download = d.file_name; a.click();
     URL.revokeObjectURL(url);
+  });
+
+  const send = () => run("send", async () => {
+    if (!draft) return;
+    await adminCall(creds, "annual_send", {
+      to_email: toEmail, company: draft.org.name, year: draft.year, intro, total: draft.total, count: draft.count,
+      families: Number(families) || 0, projects, photos: photos.slice(0, 3),
+    });
+    setInfo(`Отчёт отправлен на ${toEmail}`);
   });
 
   const years = Array.from({ length: 6 }, (_, i) => String(thisYear - i));
@@ -158,6 +170,18 @@ export default function AnnualReportTab({ authLogin, authPassword }: { authLogin
           <button onClick={download} disabled={!!busy || !intro.trim()} className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold bg-green-600 text-white hover:bg-green-700 disabled:opacity-40">
             <Icon name="Download" size={16} />{busy === "pdf" ? "Готовим файл..." : "Скачать PDF"}
           </button>
+
+          <div className="border-t border-slate-100 pt-5 space-y-3">
+            <label className={lbl}>Email партнёра</label>
+            <input type="email" className={`${inp} max-w-md`} value={toEmail} onChange={e => setToEmail(e.target.value)} placeholder="partner@company.ru" />
+            <div>
+              <button onClick={send} disabled={!!busy || !intro.trim() || !toEmail.trim()} className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-40">
+                <Icon name="Send" size={16} />{busy === "send" ? "Отправляем..." : "Отправить партнёру на email"}
+              </button>
+            </div>
+            {info && <p className="text-sm text-green-700">{info}</p>}
+            {error && <p className="text-sm text-red-600">{error}</p>}
+          </div>
         </div>
       )}
     </div>

@@ -8,6 +8,7 @@ import ssl
 import time
 from datetime import date, datetime
 from decimal import Decimal
+from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.utils import formataddr, formatdate, make_msgid
@@ -282,6 +283,24 @@ def send_mail(server, to_email: str, subject: str, body: str, org_name: str, bod
     if refused:
         raise smtplib.SMTPRecipientsRefused(refused)
     print(f"mail accepted by smtp server for {to_email}, message-id={msg['Message-ID']}")
+
+
+def send_mail_with_pdf(server, to_email: str, subject: str, body: str, org_name: str, pdf: bytes, file_name: str):
+    msg = MIMEMultipart()
+    msg.attach(MIMEText(body, "plain", "utf-8"))
+    part = MIMEApplication(pdf, _subtype="pdf")
+    part.add_header("Content-Disposition", "attachment", filename=("utf-8", "", file_name))
+    msg.attach(part)
+    msg["Subject"] = subject
+    sender = ascii_addr(os.environ["SMTP_USER"])
+    msg["From"] = formataddr((org_name, sender))
+    msg["To"] = to_email
+    msg["Date"] = formatdate(localtime=False)
+    msg["Message-ID"] = make_msgid(domain=sender.rpartition("@")[2] or None)
+    refused = server.sendmail(sender, [to_email], msg.as_string())
+    if refused:
+        raise smtplib.SMTPRecipientsRefused(refused)
+    print(f"report mail accepted for {to_email}, message-id={msg['Message-ID']}")
 
 
 def process_queue(cur, conn, budget_seconds: float = 3.0) -> dict:

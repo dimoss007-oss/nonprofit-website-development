@@ -496,6 +496,7 @@ ADMIN_ACTIONS = {
     "annual_draft": annual_report.build_draft,
     "annual_intro": annual_report.generate_intro,
     "annual_pdf": annual_report.build_pdf,
+    "annual_send": annual_report.send_pdf,
     "brigade_get": brigade.admin_get,
     "brigade_stats_save": brigade.save_stats,
     "brigade_action_save": brigade.save_action,
