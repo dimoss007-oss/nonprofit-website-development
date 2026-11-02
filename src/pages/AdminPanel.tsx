@@ -215,7 +215,7 @@ export default function AdminPanel() {
         {tab === "dashboard" && isAdmin && <AdminDashboard onNavigate={id => setTab(id as Tab)} session={session} users={adminUsers} />}
         {tab === "crm" && <AdminCrmTab isAdmin={isAdmin} authorName={session.full_name || session.login} focusPatientId={focusPatientId} onFocusHandled={() => setFocusPatientId(null)} onViewShiftHistory={goToShiftHistory} />}
         {tab === "sop" && <AdminSopTab isAdmin={isAdmin} authLogin={session.login} authPassword={session.password} />}
-        {tab === "psychologist" && isPsychologist && <PsychologistTab authLogin={session.login} authPassword={session.password} />}
+        {tab === "psychologist" && (isPsychologist || isAdmin) && <PsychologistTab authLogin={session.login} authPassword={session.password} />}
         {tab === "news" && <AdminNewsTab isAdmin={isAdmin} />}
         {tab === "tasks" && (
           <div className="space-y-6">

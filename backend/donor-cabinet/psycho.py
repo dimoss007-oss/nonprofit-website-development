@@ -128,7 +128,7 @@ def handle(cur, conn, event, body):
         )
         return ok({"items": [dict(r) for r in cur.fetchall()]})
 
-    if user["role"] != "psychologist":
+    if user["role"] not in ("psychologist", "admin"):
         return err("Раздел доступен только психологу", 403)
     login = user["login"]
 
