@@ -7,6 +7,7 @@ import auth
 import cabinet
 import brigade
 import goal_reports
+import psycho
 import gratitude
 import video_reports
 from common import CORS, err, get_conn
@@ -70,6 +71,8 @@ def handler(event: dict, context) -> dict:
             return PUBLIC_POST[action](cur, conn, event, body)
         if action in CABINET_POST:
             return CABINET_POST[action](cur, conn, event, body)
+        if action.startswith("psycho_"):
+            return psycho.handle(cur, conn, event, body)
         if action.startswith("admin_"):
             if not admin.authorize(cur, body):
                 return err("Нет прав", 403)

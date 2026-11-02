@@ -14,6 +14,7 @@ import AdminTasksWidget from "@/components/admin/AdminTasksWidget";
 import PasswordResetForm from "@/components/admin/PasswordResetForm";
 import AdminDashboard from "@/components/admin/AdminDashboard";
 import AdminAiSettingsTab from "@/components/admin/AdminAiSettingsTab";
+import PsychologistTab from "@/components/admin/PsychologistTab";
 import AdminHeader from "@/components/admin/AdminHeader";
 import FeedbackWidget from "@/components/admin/FeedbackWidget";
 import AdminFeedbackTab from "@/components/admin/AdminFeedbackTab";
@@ -24,8 +25,9 @@ const AUTH_URL = "https://functions.poehali.dev/e6567f16-b3db-4b0d-9c1f-abed808c
 const LOGO_IMG = "https://cdn.poehali.dev/projects/74d085df-c0f5-411a-8882-3301097b85ca/bucket/4ca974da-fec3-4fd3-834d-c7dccc97fca9.jpg";
 const SESSION_KEY = "admin_auth";
 
-type Tab = TabId | "ai_settings" | "dashboard" | "feedback";
-type Role = "admin" | "user";
+type Tab = TabId | "ai_settings" | "dashboard" | "feedback" | "psychologist";
+type Role = "admin" | "user" | "psychologist";
+const startTab = (role?: Role): Tab => (role === "admin" ? "dashboard" : role === "psychologist" ? "psychologist" : "tasks");
 
 interface Session { login: string; password: string; role: Role; full_name: string; permissions?: string | null }
 interface AdminUser { login: string; full_name?: string }
@@ -100,7 +102,7 @@ function getSession(): Session | null {
 
 export default function AdminPanel() {
   const [session, setSession] = useState<Session | null>(() => getSession());
-  const [tab, setTab] = useState<Tab>(() => (getSession()?.role === "admin" ? "dashboard" : "tasks"));
+  const [tab, setTab] = useState<Tab>(() => startTab(getSession()?.role));
   const [adminUsers, setAdminUsers] = useState<AdminUser[]>([]);
   const [focusGovId, setFocusGovId] = useState<number | null>(null);
   const [focusPatientId, setFocusPatientId] = useState<number | null>(null);
@@ -133,6 +135,7 @@ export default function AdminPanel() {
       return;
     }
     const perms = parsePermissions(session.permissions);
+    if (tab === "psychologist") return;
     if (perms && !perms.includes(tab)) {
       const first = ALL_TABS.find(t => perms.includes(t.id));
       if (first) setTab(first.id);
@@ -161,7 +164,7 @@ export default function AdminPanel() {
     return () => { ro.disconnect(); window.removeEventListener("resize", update); };
   }, [session]);
 
-  if (!session) return <LoginScreen onAuth={s => { setSession(s); setTab(s.role === "admin" ? "dashboard" : "tasks"); }} />;
+  if (!session) return <LoginScreen onAuth={s => { setSession(s); setTab(startTab(s.role)); }} />;
 
   const logout = () => { sessionStorage.removeItem(SESSION_KEY); setSession(null); };
   const isAdmin = session.role === "admin";
@@ -181,11 +184,13 @@ export default function AdminPanel() {
     { id: "users",       label: "Сотрудники",    icon: "UserCog" },
     { id: "ai_settings", label: "Настройки ИИ",  icon: "BrainCircuit" },
     { id: "feedback",    label: "Пожелания",     icon: "MessageSquareText" },
+    { id: "psychologist", label: "Психолог",     icon: "Brain" },
   ];
+  const isPsychologist = session.role === "psychologist";
 
   const visibleTabs = isAdmin
     ? TABS
-    : TABS.filter(t => t.id !== "ai_settings" && t.id !== "dashboard" && t.id !== "feedback" && (userPerms ? userPerms.includes(t.id as TabId) : true));
+    : TABS.filter(t => t.id === "psychologist" ? isPsychologist : t.id !== "ai_settings" && t.id !== "dashboard" && t.id !== "feedback" && (userPerms ? userPerms.includes(t.id as TabId) : true));
   const pick = (ids: string[]) => ids.map(id => visibleTabs.find(t => t.id === id)).filter(Boolean) as typeof TABS;
 
   return (
@@ -196,7 +201,7 @@ export default function AdminPanel() {
         fullName={session.full_name || session.login}
         isAdmin={isAdmin}
         tab={tab}
-        mainTabs={pick(["dashboard", "crm", "shifts", "tasks", "requests", "fundraising"])}
+        mainTabs={pick(["psychologist", "dashboard", "crm", "shifts", "tasks", "requests", "fundraising"])}
         refTabs={pick(["sop", "gov", "news", "gallery"])}
         settingsTabs={pick(["users", "ai_settings", "feedback"])}
         onSelect={id => setTab(id as Tab)}
@@ -209,7 +214,8 @@ export default function AdminPanel() {
       <main className="pb-16 max-w-7xl mx-auto px-4 sm:px-6" style={{ paddingTop: headerHeight + 16 }}>
         {tab === "dashboard" && isAdmin && <AdminDashboard onNavigate={id => setTab(id as Tab)} session={session} users={adminUsers} />}
         {tab === "crm" && <AdminCrmTab isAdmin={isAdmin} authorName={session.full_name || session.login} focusPatientId={focusPatientId} onFocusHandled={() => setFocusPatientId(null)} onViewShiftHistory={goToShiftHistory} />}
-        {tab === "sop" && <AdminSopTab isAdmin={isAdmin} />}
+        {tab === "sop" && <AdminSopTab isAdmin={isAdmin} authLogin={session.login} authPassword={session.password} />}
+        {tab === "psychologist" && isPsychologist && <PsychologistTab authLogin={session.login} authPassword={session.password} />}
         {tab === "news" && <AdminNewsTab isAdmin={isAdmin} />}
         {tab === "tasks" && (
           <div className="space-y-6">

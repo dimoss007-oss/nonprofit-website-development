@@ -4,7 +4,7 @@ import Icon from "@/components/ui/icon";
 const API = "https://functions.poehali.dev/e6567f16-b3db-4b0d-9c1f-abed808c2ac8";
 
 type AdminUser = {
-  id: number; login: string; role: "admin" | "user"; full_name?: string; phone?: string; created_at: string; permissions?: string | null;
+  id: number; login: string; role: Role; full_name?: string; phone?: string; created_at: string; permissions?: string | null;
   position?: string | null; photo_url?: string | null; max_linked?: boolean; birth_date?: string | null;
   passport_series?: string | null; passport_number?: string | null; passport_issued_by?: string | null; passport_issued_date?: string | null;
 };
@@ -33,8 +33,9 @@ const readAsBase64 = (file: File): Promise<string> =>
 
 const INPUT_CLS = "w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink";
 
-const ROLE_LABELS = { admin: "Администратор", user: "Пользователь" };
-const ROLE_COLORS = { admin: "bg-ink text-beige", user: "bg-beige-dark text-ink" };
+type Role = "admin" | "user" | "psychologist";
+const ROLE_LABELS: Record<Role, string> = { admin: "Администратор", user: "Пользователь", psychologist: "Психолог" };
+const ROLE_COLORS: Record<Role, string> = { admin: "bg-ink text-beige", user: "bg-beige-dark text-ink", psychologist: "bg-teal-100 text-teal-800" };
 
 export const ALL_TABS = [
   { id: "crm",         label: "Пациенты",     icon: "Users" },
@@ -181,7 +182,7 @@ export default function AdminUsersTab({ authLogin, authPassword, isAdmin = false
 
   const [newLogin, setNewLogin] = useState("");
   const [newPassword, setNewPassword] = useState("");
-  const [newRole, setNewRole] = useState<"admin" | "user">("user");
+  const [newRole, setNewRole] = useState<Role>("user");
   const [newFullName, setNewFullName] = useState("");
   const [newPhone, setNewPhone] = useState("");
   const [newPerms, setNewPerms] = useState<TabId[]>(ALL_TABS.map(t => t.id));
@@ -206,7 +207,7 @@ export default function AdminUsersTab({ authLogin, authPassword, isAdmin = false
   const createUser = async () => {
     if (!newLogin.trim() || !newPassword.trim()) { setError("Заполните логин и пароль"); return; }
     setSaving(true); setError("");
-    const permissions = newRole === "user" ? newPerms : null;
+    const permissions = newRole !== "admin" ? newPerms : null;
     const r = await fetch(API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "create", auth_login: authLogin, auth_password: authPassword, login: newLogin, password: newPassword, role: newRole, full_name: newFullName, phone: newPhone, permissions, ...newProfile }) });
     const d = await r.json();
     setSaving(false);
@@ -296,8 +297,9 @@ export default function AdminUsersTab({ authLogin, authPassword, isAdmin = false
             </div>
             <div>
               <label className="text-xs text-ink/50 mb-1 block">Роль</label>
-              <select value={newRole} onChange={e => setNewRole(e.target.value as "admin" | "user")} className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink bg-white">
+              <select value={newRole} onChange={e => setNewRole(e.target.value as Role)} className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink bg-white">
                 <option value="user">Пользователь</option>
+                <option value="psychologist">Психолог</option>
                 <option value="admin">Администратор</option>
               </select>
             </div>
@@ -310,7 +312,7 @@ export default function AdminUsersTab({ authLogin, authPassword, isAdmin = false
               <label className="text-xs text-ink/50 mb-1 block">Пароль *</label>
               <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="••••••••" className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" />
             </div>
-            {newRole === "user" && (
+            {newRole !== "admin" && (
               <div className="sm:col-span-2">
                 <PermissionsEditor value={newPerms} onChange={setNewPerms} />
               </div>
@@ -370,7 +372,7 @@ function EditableUserRow({ user, authLogin, authPassword, onDeleted, onUpdated, 
   onEdit: () => void;
   onCancelEdit: () => void;
 }) {
-  const [role, setRole] = useState<"admin" | "user">(user.role);
+  const [role, setRole] = useState<Role>(user.role);
   const [fullName, setFullName] = useState(user.full_name || "");
   const [phone, setPhone] = useState(user.phone || "");
   const [newPassword, setNewPassword] = useState("");
@@ -401,7 +403,7 @@ function EditableUserRow({ user, authLogin, authPassword, onDeleted, onUpdated, 
 
   const save = async () => {
     setSaving(true);
-    const permissions = role === "user" ? perms : null;
+    const permissions = role !== "admin" ? perms : null;
     await fetch(API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "update", auth_login: authLogin, auth_password: authPassword, user_id: user.id, role, full_name: fullName, phone, new_password: newPassword, permissions, ...profile }) });
     setSaving(false);
     onCancelEdit();
@@ -434,9 +436,10 @@ function EditableUserRow({ user, authLogin, authPassword, onDeleted, onUpdated, 
         </div>
         <div>
           <label className="text-xs text-ink/50 mb-1 block">Роль</label>
-          <select value={role} onChange={e => setRole(e.target.value as "admin" | "user")} className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink bg-white">
+          <select value={role} onChange={e => setRole(e.target.value as Role)} className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink bg-white">
             <option value="user">Пользователь</option>
-            <option value="admin">Администратор</option>
+            <option value="psychologist">Психолог</option>
+                <option value="admin">Администратор</option>
           </select>
         </div>
         <div>
@@ -444,7 +447,7 @@ function EditableUserRow({ user, authLogin, authPassword, onDeleted, onUpdated, 
           <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="Оставьте пустым, чтобы не менять" className="w-full border border-beige-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-ink" />
         </div>
         <ProfileFields value={profile} onChange={setProfile} />
-        {role === "user" && (
+        {role !== "admin" && (
           <div className="sm:col-span-2">
             <PermissionsEditor value={perms} onChange={setPerms} />
           </div>
@@ -473,7 +476,7 @@ function EditableUserRow({ user, authLogin, authPassword, onDeleted, onUpdated, 
           {(user.passport_series || user.passport_number) && <p className="text-xs text-ink/50 flex items-center gap-1"><Icon name="IdCard" size={11} />{[user.passport_series, user.passport_number].filter(Boolean).join(" ")}</p>}
           {user.phone && <p className="text-xs text-ink/50 flex items-center gap-1"><Icon name="Phone" size={11} />{user.phone}</p>}
         </div>
-        {user.role === "user" && <PermissionsBadges perms={currentPerms} />}
+        {user.role !== "admin" && <PermissionsBadges perms={currentPerms} />}
       </div>
       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
         <button onClick={onEdit} className="p-1.5 text-ink/40 hover:text-ink transition-colors"><Icon name="Pencil" size={14} /></button>

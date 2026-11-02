@@ -142,6 +142,15 @@
         "action": "partner_request"
       },
       "expectedStatus": 400
+    },
+    {
+      "name": "Психолог без авторизации",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "psycho_list"
+      },
+      "expectedStatus": 401
     }
   ]
 }

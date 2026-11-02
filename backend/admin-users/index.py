@@ -216,7 +216,7 @@ def handler(event: dict, context) -> dict:
 
             if not login or not password:
                 return err("Логин и пароль обязательны")
-            if role not in ("admin", "user"):
+            if role not in ("admin", "user", "psychologist"):
                 return err("Неверная роль")
 
             cur.execute(f"SELECT id FROM {SCHEMA}.admin_users WHERE login = %s", (login,))
@@ -243,7 +243,7 @@ def handler(event: dict, context) -> dict:
             new_password = body.get("new_password", "").strip()
             permissions = body.get("permissions")
 
-            if role and role not in ("admin", "user"):
+            if role and role not in ("admin", "user", "psychologist"):
                 return err("Неверная роль")
 
             permissions_str = json.dumps(permissions) if permissions is not None else None

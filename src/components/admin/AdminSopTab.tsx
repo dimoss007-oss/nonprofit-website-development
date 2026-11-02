@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import Icon from "@/components/ui/icon";
+import PsychologistRecommendations from "@/components/admin/PsychologistRecommendations";
 
 const API = "https://functions.poehali.dev/a6165b16-3047-437e-95c8-119e4f3c08a1";
 
@@ -58,7 +59,7 @@ function FamilyForm({ initial, onSave, onCancel, loading }: { initial?: Partial<
   );
 }
 
-function FamilyCard({ familyId, onBack, onDeleted, isAdmin }: { familyId: number; onBack: () => void; onDeleted: () => void; isAdmin: boolean }) {
+function FamilyCard({ familyId, onBack, onDeleted, isAdmin, authLogin, authPassword }: { familyId: number; onBack: () => void; onDeleted: () => void; isAdmin: boolean; authLogin: string; authPassword: string }) {
   const [family, setFamily] = useState<Family | null>(null);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -138,6 +139,8 @@ function FamilyCard({ familyId, onBack, onDeleted, isAdmin }: { familyId: number
         )}
       </div>
 
+      {authLogin && <PsychologistRecommendations familyId={familyId} authLogin={authLogin} authPassword={authPassword} />}
+
       {confirmDelete && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4" onClick={() => setConfirmDelete(false)}>
           <div className="bg-white rounded-2xl p-6 max-w-sm w-full" onClick={e => e.stopPropagation()}>
@@ -154,7 +157,7 @@ function FamilyCard({ familyId, onBack, onDeleted, isAdmin }: { familyId: number
   );
 }
 
-export default function AdminSopTab({ isAdmin = true }: { isAdmin?: boolean }) {
+export default function AdminSopTab({ isAdmin = true, authLogin = "", authPassword = "" }: { isAdmin?: boolean; authLogin?: string; authPassword?: string }) {
   const [allFamilies, setAllFamilies] = useState<Family[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
@@ -193,7 +196,7 @@ export default function AdminSopTab({ isAdmin = true }: { isAdmin?: boolean }) {
   };
 
   if (selectedId) return (
-    <FamilyCard familyId={selectedId} onBack={() => setSelectedId(null)} onDeleted={() => { setSelectedId(null); loadFamilies(); }} isAdmin={isAdmin} />
+    <FamilyCard familyId={selectedId} onBack={() => setSelectedId(null)} onDeleted={() => { setSelectedId(null); loadFamilies(); }} isAdmin={isAdmin} authLogin={authLogin} authPassword={authPassword} />
   );
 
   return (
