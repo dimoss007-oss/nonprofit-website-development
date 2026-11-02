@@ -77,6 +77,10 @@ export default {
 				'beige-mid': 'hsl(var(--beige-mid))',
 				'beige-dark': 'hsl(var(--beige-dark))',
 				ink: 'hsl(var(--ink))',
+				navy: 'hsl(var(--navy))',
+				azure: 'hsl(var(--azure))',
+				'teal-deep': 'hsl(var(--teal-deep))',
+				mist: 'hsl(var(--mist))',
 			},
 			borderRadius: {
 				lg: 'var(--radius)',

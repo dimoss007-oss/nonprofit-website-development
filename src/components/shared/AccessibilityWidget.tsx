@@ -102,6 +102,37 @@ export default function AccessibilityWidget() {
         /* Скрыть декоративные изображения от скринридеров */
         .deco-img { pointer-events: none; }
 
+        @media (max-width: 1023px) {
+          .a11y-widget-btn {
+            top: auto !important;
+            right: auto !important;
+            left: 12px !important;
+            bottom: calc(12px + env(safe-area-inset-bottom)) !important;
+            transform: none !important;
+            width: 44px !important;
+            height: 44px !important;
+            padding: 0 !important;
+            border-radius: 50% !important;
+            flex-direction: row !important;
+            justify-content: center !important;
+            writing-mode: horizontal-tb !important;
+            opacity: 0.92;
+          }
+          .a11y-widget-btn .a11y-widget-label {
+            position: absolute !important;
+            width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+          }
+          .a11y-widget-panel {
+            top: auto !important;
+            right: 12px !important;
+            left: 12px !important;
+            bottom: calc(68px + env(safe-area-inset-bottom)) !important;
+            transform: none !important;
+            width: auto !important;
+            max-height: 70vh;
+            overflow-y: auto;
+          }
+        }
         /* Фокус-кольцо для всех интерактивных элементов */
         :focus-visible {
           outline: 3px solid #005fcc !important;
@@ -111,6 +142,7 @@ export default function AccessibilityWidget() {
 
       {/* Кнопка открытия */}
       <button
+        className="a11y-widget-btn"
         onClick={() => setOpen(!open)}
         aria-expanded={open}
         aria-label="Версия для слабовидящих — открыть панель доступности"
@@ -141,7 +173,7 @@ export default function AccessibilityWidget() {
         }}
       >
         <Icon name="Eye" size={18} />
-        <span style={{ writingMode: "vertical-rl", transform: "rotate(180deg)", fontSize: "10px" }}>
+        <span className="a11y-widget-label" style={{ writingMode: "vertical-rl", transform: "rotate(180deg)", fontSize: "10px" }}>
           Для слабовидящих
         </span>
       </button>

@@ -14,6 +14,7 @@ from common import CORS, err, get_conn
 PUBLIC_POST = {
     "request_code": auth.request_code,
     "verify_code": auth.verify_code,
+    "partner_request": brigade.submit_partner,
 }
 
 CABINET_POST = {

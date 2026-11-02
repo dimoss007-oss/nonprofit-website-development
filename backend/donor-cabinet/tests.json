@@ -133,6 +133,15 @@
         "action": "admin_annual_draft"
       },
       "expectedStatus": 403
+    },
+    {
+      "name": "Заявка партнёра: пустая",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "partner_request"
+      },
+      "expectedStatus": 400
     }
   ]
 }

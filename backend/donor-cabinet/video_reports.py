@@ -3,7 +3,7 @@ from urllib.parse import parse_qs, urlparse
 
 from common import SCHEMA, err, ok
 
-CATEGORIES = ("aid_distribution", "mobile_brigade", "center_life", "gratitude")
+CATEGORIES = ("aid_distribution", "mobile_brigade", "center_life", "gratitude", "brigade_prep", "brigade_districts", "center_address")
 
 
 def parse_video(url: str):

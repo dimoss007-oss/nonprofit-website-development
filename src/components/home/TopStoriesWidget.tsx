@@ -49,7 +49,7 @@ export function StoryModal({ story, onClose, src = "" }: { story: Story | null; 
               search={{ src: src || `story-${story.campaign_id}` } as never}
               className="mt-2 w-full inline-flex items-center justify-center gap-2 rounded-xl bg-ink text-beige font-semibold py-3.5 hover:opacity-90 transition-opacity"
             >
-              <Icon name="HeartHandshake" size={18} /> Помочь другим семьям
+              <Icon name="ArrowRight" size={18} /> Помочь другим семьям
             </Link>
           </>
         )}

@@ -6,6 +6,9 @@ export const VIDEO_CATEGORIES = [
   { id: "mobile_brigade", label: "Бригада" },
   { id: "center_life", label: "Жизнь центра" },
   { id: "gratitude", label: "Благодарности" },
+  { id: "brigade_prep", label: "Сборы бригады" },
+  { id: "brigade_districts", label: "Помощь в районах" },
+  { id: "center_address", label: "Обращение центра" },
 ] as const;
 
 type Video = { id: number; title: string; category: string; embed_url: string; thumbnail_url: string | null; description: string };
@@ -42,7 +45,7 @@ function LazyPlayer({ video }: { video: Video }) {
   );
 }
 
-export default function VideoActionWidget({ category = "", title = "Ваше добро в действии" }: { category?: string; title?: string }) {
+export default function VideoActionWidget({ category = "", categories, title = "Ваше добро в действии", subtitle = "Видеоотчёты о том, как ваша помощь доходит до семей" }: { category?: string; categories?: string[]; title?: string; subtitle?: string }) {
   const [videos, setVideos] = useState<Video[]>([]);
   const [active, setActive] = useState<string>("all");
   const [started, setStarted] = useState(false);
@@ -61,7 +64,7 @@ export default function VideoActionWidget({ category = "", title = "Ваше д�
 
   useEffect(() => {
     if (!started) return;
-    fetch(`${CABINET_URL}?view=videos`).then(r => r.json()).then(d => setVideos((d.videos || []).filter((v: Video) => !category || v.category === category))).catch(() => {});
+    fetch(`${CABINET_URL}?view=videos`).then(r => r.json()).then(d => setVideos((d.videos || []).filter((v: Video) => (categories ? categories.includes(v.category) : !category || v.category === category)))).catch(() => {});
   }, [started]);
 
   const present = VIDEO_CATEGORIES.filter(c => videos.some(v => v.category === c.id));
@@ -73,7 +76,7 @@ export default function VideoActionWidget({ category = "", title = "Ваше д�
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-8">
             <h2 id="video-action-title" className="font-cormorant text-4xl font-semibold text-ink">{title}</h2>
-            <p className="text-ink/60 mt-2">Видеоотчёты о том, как ваша помощь доходит до семей</p>
+            <p className="text-ink/60 mt-2">{subtitle}</p>
           </div>
           {present.length > 1 && (
             <div className="flex flex-wrap justify-center gap-2 mb-8" role="tablist">
