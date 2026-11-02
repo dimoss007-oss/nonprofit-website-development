@@ -318,10 +318,12 @@ def send_pdf(cur, conn, body):
     company = (body.get("company") or "").strip()[:150]
     year = _year(body)
     subject = f"Годовой отчёт {year}: {org_name}"
+    personal = (body.get("message") or "").strip()[:2000]
     text = (
         f"Здравствуйте!\n\nНаправляем годовой отчёт о том, как помощь компании «{company}» "
         f"была использована в {year} году. Отчёт во вложении.\n\n"
-        f"Спасибо, что вы с нами.\n{org_name}"
+        + (f"{personal}\n\n" if personal else "")
+        + f"Спасибо, что вы с нами.\n{org_name}"
     )
     try:
         server = open_smtp()

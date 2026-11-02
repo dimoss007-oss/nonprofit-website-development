@@ -26,6 +26,7 @@ export default function AnnualReportTab({ authLogin, authPassword }: { authLogin
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
   const [toEmail, setToEmail] = useState("");
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -74,7 +75,7 @@ export default function AnnualReportTab({ authLogin, authPassword }: { authLogin
   const send = () => run("send", async () => {
     if (!draft) return;
     await adminCall(creds, "annual_send", {
-      to_email: toEmail, company: draft.org.name, year: draft.year, intro, total: draft.total, count: draft.count,
+      to_email: toEmail, message, company: draft.org.name, year: draft.year, intro, total: draft.total, count: draft.count,
       families: Number(families) || 0, projects, photos: photos.slice(0, 3),
     });
     setInfo(`Отчёт отправлен на ${toEmail}`);
@@ -174,6 +175,11 @@ export default function AnnualReportTab({ authLogin, authPassword }: { authLogin
           <div className="border-t border-slate-100 pt-5 space-y-3">
             <label className={lbl}>Email партнёра</label>
             <input type="email" className={`${inp} max-w-md`} value={toEmail} onChange={e => setToEmail(e.target.value)} placeholder="partner@company.ru" />
+            <div>
+              <label className={lbl}>Ваше обращение к партнёру (необязательно, {message.length} из 2000)</label>
+              <textarea className={`${inp} min-h-[120px]`} maxLength={2000} value={message} onChange={e => setMessage(e.target.value)} placeholder="Например: Иван, спасибо за поддержку в этом году. Будем рады встретиться и обсудить планы на следующий." />
+              <p className="text-xs text-slate-400 mt-1">Текст добавится в письмо после стандартного вступления и перед подписью. PDF прикрепляется отдельно.</p>
+            </div>
             <div>
               <button onClick={send} disabled={!!busy || !intro.trim() || !toEmail.trim()} className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-40">
                 <Icon name="Send" size={16} />{busy === "send" ? "Отправляем..." : "Отправить партнёру на email"}
