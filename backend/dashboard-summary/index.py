@@ -234,6 +234,22 @@ def news(cur) -> list:
     return items
 
 
+def psychologist(cur) -> dict:
+    cur.execute(f"""
+        SELECT
+            COUNT(*) FILTER (WHERE created_at >= date_trunc('month', NOW())) AS sessions_month,
+            COUNT(*) FILTER (WHERE attached_at >= date_trunc('month', NOW()) AND attached_strategy IS NOT NULL) AS attached_month,
+            COUNT(*) FILTER (WHERE attached_strategy IS NOT NULL) AS attached_total
+        FROM {SCHEMA}.psycho_sessions
+    """)
+    row = cur.fetchone()
+    return {
+        'sessionsMonth': row['sessions_month'],
+        'attachedMonth': row['attached_month'],
+        'attachedTotal': row['attached_total'],
+    }
+
+
 def system(cur) -> dict:
     cur.execute(f"SELECT MAX(created_at) AS last_sync FROM {SCHEMA}.news WHERE vk_id IS NOT NULL")
     last = cur.fetchone()['last_sync']
@@ -300,6 +316,7 @@ def handler(event: dict, context) -> dict:
         'aiReports': ai_reports(cur),
         'news': news(cur),
         'system': system(cur),
+        'psychologist': psychologist(cur),
     }
     conn.close()
     return resp(200, summary)

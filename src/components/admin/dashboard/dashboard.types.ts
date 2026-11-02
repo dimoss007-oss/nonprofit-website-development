@@ -32,6 +32,11 @@ export interface DashboardSummary {
     dailySummaryDate: string | null;
   };
   news: DashboardNews[];
+  psychologist?: {
+    sessionsMonth: number;
+    attachedMonth: number;
+    attachedTotal: number;
+  };
   system: {
     lastVkSync: string | null;
     newsTotal: number;

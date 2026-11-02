@@ -9,6 +9,7 @@ import TasksCalendarCard from "@/components/admin/dashboard/TasksCalendarCard";
 import AiReportsCard from "@/components/admin/dashboard/AiReportsCard";
 import NewsCard from "@/components/admin/dashboard/NewsCard";
 import SystemCard from "@/components/admin/dashboard/SystemCard";
+import PsychologistCard from "@/components/admin/dashboard/PsychologistCard";
 
 export default function AdminDashboard({ onNavigate, session, users }: { onNavigate?: (tab: string) => void; session: { login: string; full_name: string }; users: { login: string; full_name?: string }[] }) {
   const [fundStats, setFundStats] = useState<Stats | null>(null);
@@ -62,6 +63,7 @@ export default function AdminDashboard({ onNavigate, session, users }: { onNavig
       <div className="grid gap-4 grid-cols-1 lg:grid-cols-3 [&>*]:min-w-0">
         <ResidentsCard data={data?.residents} loading={loading} onSaveCapacity={saveCapacity} />
         <AiReportsCard data={data?.aiReports} loading={loading} summaryLoading={summaryLoading} onRefresh={refreshSummary} />
+        <PsychologistCard data={data?.psychologist} loading={loading} onOpen={() => onNavigate?.("psychologist")} />
         <SystemCard data={data?.system} loading={loading} />
         <TasksCalendarCard session={session} users={users} />
         <NewsCard data={data?.news} loading={loading} />
